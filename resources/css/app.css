@@ -1,0 +1,81 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Outfit', 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-malayalam: 'Noto Sans Malayalam', 'Manjari', 'Gayathri', sans-serif;
+
+    /* High Energy Behance Brand Colors */
+    --color-electric-blue: #0052FF;
+    --color-electric-blue-dark: #003ECC;
+    --color-electric-blue-deep: #002888;
+    --color-electric-blue-light: #EBF2FF;
+    
+    --color-golden-yellow: #FFD200;
+    --color-golden-yellow-dark: #E6BD00;
+    --color-golden-yellow-light: #FFF9D2;
+
+    --color-psc-red: #EF4444;
+    --color-psc-green: #10B981;
+}
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+        -webkit-tap-highlight-color: transparent;
+    }
+    body {
+        font-family: var(--font-sans);
+    }
+}
+
+/* Custom Comic & Game Animations */
+@keyframes pulse-fast {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+@keyframes float-slow {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-8px) rotate(2deg); }
+}
+
+@keyframes float-reverse {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(8px) rotate(-2deg); }
+}
+
+@keyframes lightning-glow {
+    0%, 100% { filter: drop-shadow(0 0 10px rgba(255, 210, 0, 0.4)); }
+    50% { filter: drop-shadow(0 0 25px rgba(255, 210, 0, 0.9)); }
+}
+
+.animate-pulse-fast {
+    animation: pulse-fast 0.6s infinite ease-in-out;
+}
+
+.animate-float-slow {
+    animation: float-slow 4s infinite ease-in-out;
+}
+
+.animate-float-reverse {
+    animation: float-reverse 4.5s infinite ease-in-out;
+}
+
+.animate-lightning-glow {
+    animation: lightning-glow 2s infinite ease-in-out;
+}
+
+/* OMR Bubble Sheet Styles */
+.omr-bubble {
+    transition: all 0.15s ease-in-out;
+}
+.omr-bubble.filled {
+    background-color: #1E293B;
+    border-color: #0F172A;
+    box-shadow: inset 0 0 4px rgba(0,0,0,0.8);
+}
