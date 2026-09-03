@@ -117,6 +117,9 @@
 
                     @auth
                         <div class="flex items-center gap-2">
+                            <a href="{{ route('admin.dashboard') }}" class="px-3 py-1.5 text-xs font-black text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg transition border border-slate-300">
+                                📊 Dashboard
+                            </a>
                             <a href="{{ route('admin.sessions.index') }}" class="px-3 py-1.5 text-xs font-black text-[#0052FF] bg-blue-50 hover:bg-blue-100 rounded-lg transition border border-blue-200">
                                 ⚙️ Sessions
                             </a>
@@ -174,6 +177,7 @@
 
                         @auth
                             <div class="pt-2 border-t border-slate-100 flex flex-col gap-2">
+                                <a href="{{ route('admin.dashboard') }}" class="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-900 font-black">📊 Admin Dashboard</a>
                                 <a href="{{ route('admin.sessions.index') }}" class="px-4 py-2.5 rounded-xl bg-blue-50 text-[#0052FF] font-black">⚙️ Manage Sessions</a>
                                 <a href="{{ route('admin.media.index') }}" class="px-4 py-2.5 rounded-xl bg-purple-50 text-purple-700 font-black">📁 Media Library</a>
                                 <form action="{{ route('logout') }}" method="POST">

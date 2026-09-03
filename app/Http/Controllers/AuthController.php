@@ -13,7 +13,7 @@ class AuthController extends Controller
     public function showLogin()
     {
         if (Auth::check()) {
-            return redirect()->route('admin.sessions.index');
+            return redirect()->route('admin.dashboard');
         }
 
         return view('auth.login');
@@ -34,7 +34,7 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
 
-            return redirect()->intended(route('admin.sessions.index'))
+            return redirect()->intended(route('admin.dashboard'))
                 ->with('success', 'Welcome back, ' . Auth::user()->name . '! 👋');
         }
 

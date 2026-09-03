@@ -191,6 +191,6 @@ test('login page can be rendered and user can log in', function () {
         'password' => 'Amter9388$',
     ]);
 
-    $loginResponse->assertRedirect(route('admin.sessions.index'));
+    $loginResponse->assertRedirect(route('admin.dashboard'));
     $this->assertAuthenticatedAs($user);
 });
