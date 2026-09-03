@@ -154,18 +154,54 @@
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-2 pt-6">
-                        <input 
-                            type="checkbox" 
-                            id="is_active" 
-                            name="is_active" 
-                            value="1" 
-                            {{ old('is_active', $session->is_active ?? true) ? 'checked' : '' }}
-                            class="w-4 h-4 rounded text-[#0052FF]"
+                    <div class="flex flex-wrap items-center gap-6 pt-6 border-t border-slate-100">
+                        <div class="flex items-center gap-2">
+                            <input 
+                                type="checkbox" 
+                                id="is_active" 
+                                name="is_active" 
+                                value="1" 
+                                {{ old('is_active', $session->is_active ?? true) ? 'checked' : '' }}
+                                class="w-4 h-4 rounded text-[#0052FF]"
+                            >
+                            <label for="is_active" class="text-xs font-bold text-slate-800">
+                                Active &amp; Published in Learner Catalog
+                            </label>
+                        </div>
+
+                        <!-- Monetization Settings (Free vs Premium) -->
+                        <div 
+                            x-data="{ isPremium: {{ old('is_premium', $session->is_premium ?? false) ? 'true' : 'false' }} }"
+                            class="flex flex-wrap items-center gap-4 bg-amber-50/70 border border-amber-200 px-4 py-2 rounded-xl"
                         >
-                        <label for="is_active" class="text-xs font-bold text-slate-800">
-                            Active & Published in Learner Catalog
-                        </label>
+                            <div class="flex items-center gap-2">
+                                <input 
+                                    type="checkbox" 
+                                    id="is_premium" 
+                                    name="is_premium" 
+                                    value="1" 
+                                    x-model="isPremium"
+                                    {{ old('is_premium', $session->is_premium ?? false) ? 'checked' : '' }}
+                                    class="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
+                                >
+                                <label for="is_premium" class="text-xs font-black text-amber-950 flex items-center gap-1">
+                                    <span>👑 Premium Unit (PRO Paywall)</span>
+                                </label>
+                            </div>
+
+                            <div x-show="isPremium" class="flex items-center gap-2">
+                                <label class="text-xs font-bold text-slate-700">Unit Price (₹):</label>
+                                <input 
+                                    type="number" 
+                                    name="price" 
+                                    step="1"
+                                    min="0"
+                                    value="{{ old('price', $session->price ?? 199) }}" 
+                                    placeholder="199" 
+                                    class="w-24 px-2.5 py-1 text-xs font-bold rounded-lg border border-amber-300 bg-white font-mono text-slate-900"
+                                >
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

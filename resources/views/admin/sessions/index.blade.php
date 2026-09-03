@@ -66,11 +66,23 @@
                                 +{{ $session->xp_reward }} XP
                             </td>
                             <td class="p-4">
-                                @if($session->is_active)
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">Active</span>
-                                @else
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-200 text-slate-600">Draft</span>
-                                @endif
+                                <div class="flex flex-col gap-1 items-start">
+                                    @if($session->is_active)
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">Active</span>
+                                    @else
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-200 text-slate-600">Draft</span>
+                                    @endif
+
+                                    @if($session->is_premium)
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300">
+                                            👑 PRO ({{ $session->formatted_price }})
+                                        </span>
+                                    @else
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-100 text-slate-700">
+                                            FREE
+                                        </span>
+                                    @endif
+                                </div>
                             </td>
                             <td class="p-4 text-right space-x-2">
                                 <a 

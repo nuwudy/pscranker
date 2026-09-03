@@ -45,7 +45,30 @@ class SessionController extends Controller
         ->where('is_active', true)
         ->firstOrFail();
 
-        return view('pages.session-runner', compact('session'));
+        $previousSession = $session->getPreviousSession();
+        $nextSession = $session->getNextSession();
+
+        // Calculate unit numbering in current category
+        $categorySessionsQuery = Session::where('is_active', true);
+        if ($session->category_id) {
+            $categorySessionsQuery->where('category_id', $session->category_id);
+        }
+
+        $totalUnits = (clone $categorySessionsQuery)->count();
+        $unitNumber = (clone $categorySessionsQuery)->where('order', '<=', $session->order)->count() ?: $session->order;
+
+        // Premium gating check (Admins always bypass)
+        $isAdmin = auth()->check() && (auth()->user()->email === 'admin@pscranker.com' || auth()->user()->is_admin ?? false);
+        $isLocked = $session->is_premium && !$isAdmin;
+
+        return view('pages.session-runner', compact(
+            'session',
+            'previousSession',
+            'nextSession',
+            'unitNumber',
+            'totalUnits',
+            'isLocked'
+        ));
     }
 
     /**

@@ -21,23 +21,154 @@
     x-init="initEngine()"
     class="py-4 sm:py-8 bg-gradient-to-b from-blue-50/60 via-slate-50 to-white min-h-[90vh] select-none"
 >
+@if($isLocked)
+    <!-- ============================================================= -->
+    <!-- PREMIUM PAYWALL GATE (PhonePe / Razorpay Ready)              -->
+    <!-- ============================================================= -->
+    <div class="py-8 sm:py-16 max-w-xl mx-auto px-4">
+        <div class="bg-white rounded-3xl border-2 border-amber-300 shadow-2xl p-6 sm:p-10 text-center relative overflow-hidden">
+            
+            <!-- Glow Accent -->
+            <div class="absolute -top-16 -right-16 w-36 h-36 bg-amber-300/20 rounded-full blur-2xl pointer-events-none"></div>
+
+            <div class="w-16 h-16 rounded-3xl bg-gradient-to-tr from-amber-400 to-yellow-500 text-slate-950 flex items-center justify-center text-3xl mx-auto mb-4 shadow-lg shadow-yellow-400/30">
+                👑
+            </div>
+
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-900 border border-amber-200 text-xs font-black uppercase tracking-wider rounded-full mb-3">
+                <span>PRO Unit Locked</span>
+            </span>
+
+            <h1 class="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
+                {{ $session->title }}
+            </h1>
+
+            @if($session->title_malayalam)
+                <p class="text-sm font-bold text-[#0052FF] mt-1 font-['Noto_Sans_Malayalam']">
+                    {{ $session->title_malayalam }}
+                </p>
+            @endif
+
+            <p class="text-xs sm:text-sm text-slate-600 font-medium mt-3 leading-relaxed">
+                This is an advanced high-yield PSC Rank Maker capsule featuring exclusive SCERT mnemonics, audio explanations, and full OMR simulator test.
+            </p>
+
+            <!-- Feature Badges -->
+            <div class="my-6 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-left space-y-2.5 text-xs font-bold text-slate-700">
+                <div class="flex items-center gap-2">
+                    <span class="text-emerald-500 font-black">✓</span>
+                    <span>Phase 1 Diagnostic Trap Hook (+50 XP)</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-emerald-500 font-black">✓</span>
+                    <span>Phase 2 Audio Summary &amp; Visual Mnemonics</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-emerald-500 font-black">✓</span>
+                    <span>Phase 3 20-Sec Speed Blitz with Multipliers</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-emerald-500 font-black">✓</span>
+                    <span>Phase 4 Authentic Kerala PSC OMR Bubble Exam</span>
+                </div>
+            </div>
+
+            <!-- Price and Payment Gateway CTA -->
+            <div class="p-5 rounded-2xl bg-gradient-to-br from-slate-900 to-blue-950 text-white shadow-xl mb-6">
+                <span class="text-[10px] uppercase font-bold text-slate-400 tracking-widest block mb-1">
+                    One-Time Unit Unlock Pass
+                </span>
+                <div class="text-3xl sm:text-4xl font-black text-yellow-400 font-mono">
+                    {{ $session->formatted_price }}
+                </div>
+                <p class="text-[11px] text-slate-300 mt-1">Lifetime access to this unit • Unlimited re-tests</p>
+
+                <!-- PG Buttons preview -->
+                <div class="mt-4 pt-4 border-t border-slate-800">
+                    <button 
+                        type="button"
+                        onclick="alert('Razorpay / PhonePe Payment Gateway is being connected! Please contact admin@pscranker.com for instant access.')"
+                        class="w-full py-3.5 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-black text-sm rounded-xl shadow-lg transition flex items-center justify-center gap-2 active:scale-95"
+                    >
+                        <span>Unlock with UPI / PhonePe / Razorpay 🚀</span>
+                    </button>
+                    <div class="flex items-center justify-center gap-3 mt-2 text-[10px] text-slate-400">
+                        <span>🔒 256-Bit Encrypted</span>
+                        <span>•</span>
+                        <span>PhonePe / GPay / Cards</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Back -->
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-3 text-xs font-bold">
+                @if($previousSession)
+                    <a href="{{ route('session.show', $previousSession->slug) }}" class="text-slate-600 hover:text-slate-900 hover:underline">
+                        ← Back to Previous Unit: {{ Str::limit($previousSession->title, 20) }}
+                    </a>
+                @endif
+                <a href="{{ route('sessions.index') }}" class="text-[#0052FF] hover:underline">
+                    Browse All Free Units →
+                </a>
+            </div>
+
+        </div>
+    </div>
+@else
     <div class="max-w-4xl mx-auto px-3 sm:px-6">
 
         <!-- Top Breadcrumbs & Phase Stepper Header -->
         <div class="bg-white/90 backdrop-blur-md rounded-2xl sm:rounded-3xl border border-blue-100/90 shadow-sm p-3.5 sm:p-5 mb-5 sm:mb-6">
             <div class="flex flex-wrap items-center justify-between gap-3 mb-3 sm:mb-4">
-                <div class="flex items-center gap-2">
+                <div class="flex flex-wrap items-center gap-2">
                     <a href="{{ route('sessions.index') }}" class="inline-flex items-center gap-1.5 text-xs font-black text-[#0052FF] hover:underline bg-blue-50/80 px-3 py-1.5 rounded-full border border-blue-100 transition">
-                        <span>← All Sessions</span>
+                        <span>← Course Units</span>
                     </a>
+                    
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-black bg-blue-100 text-blue-900 border border-blue-200">
+                        <span>Unit {{ $unitNumber }} of {{ $totalUnits }}</span>
+                    </span>
+
                     <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-black bg-purple-100 text-purple-800">
                         <span>⚡</span>
                         <span x-text="categoryName"></span>
                     </span>
+
+                    @if($session->is_premium)
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 shadow-xs">
+                            <span>👑 PRO</span>
+                            <span>{{ $session->formatted_price }}</span>
+                        </span>
+                    @else
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">
+                            FREE UNIT
+                        </span>
+                    @endif
                 </div>
 
-                <!-- Live XP Pill & Sound Indicator -->
-                <div class="flex items-center gap-2.5">
+                <!-- Unit Navigation & Live XP Pill -->
+                <div class="flex flex-wrap items-center gap-2">
+                    <!-- Previous & Next Unit Navigation buttons -->
+                    @if($previousSession)
+                        <a 
+                            href="{{ route('session.show', $previousSession->slug) }}" 
+                            class="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-bold border border-slate-200 transition flex items-center gap-1"
+                            title="Go to previous unit: {{ $previousSession->title }}"
+                        >
+                            <span>← Prev Unit</span>
+                        </a>
+                    @endif
+
+                    @if($nextSession)
+                        <a 
+                            href="{{ route('session.show', $nextSession->slug) }}" 
+                            class="px-2.5 py-1 bg-[#0052FF] hover:bg-blue-700 text-white rounded-lg text-xs font-black transition flex items-center gap-1 shadow-xs"
+                            title="Go to next unit: {{ $nextSession->title }}"
+                        >
+                            <span>Next Unit →</span>
+                        </a>
+                    @endif
+
                     <div class="flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200 text-amber-900 rounded-full text-xs font-black shadow-xs">
                         <span class="text-amber-500 animate-pulse">⚡</span>
                         <span x-text="totalXpEarned"></span> <span class="text-[10px] text-amber-700 font-bold uppercase">XP</span>
@@ -51,6 +182,11 @@
 
             <!-- Session Title & Malayalam Micro-copy -->
             <div class="mb-4">
+                <div class="flex items-center gap-2 text-xs font-bold text-slate-500 mb-1">
+                    <span>UNIT {{ $unitNumber }}</span>
+                    <span>•</span>
+                    <span>{{ $session->category ? $session->category->name : 'General Syllabus' }}</span>
+                </div>
                 <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
                     <span>{{ $session->title }}</span>
                 </h1>
@@ -929,28 +1065,53 @@
                     </div>
                 </template>
 
-                <!-- Navigation CTAs: Retake or Next Session -->
+                <!-- Sequential Unit Navigation CTAs: Previous Unit, Retake, and Next Unit -->
                 <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-slate-200">
-                    <button 
-                        @click="restartSession()" 
-                        class="w-full sm:w-auto px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl transition flex items-center justify-center gap-2"
-                    >
-                        <span>Retake Session 🔄</span>
-                    </button>
+                    <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                        @if($previousSession)
+                            <a 
+                                href="{{ route('session.show', $previousSession->slug) }}" 
+                                class="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs sm:text-sm rounded-xl transition flex items-center justify-center gap-1.5 border border-slate-300"
+                            >
+                                <span>← Prev Unit ({{ Str::limit($previousSession->title, 18) }})</span>
+                            </a>
+                        @endif
 
-                    <div class="flex items-center gap-3 w-full sm:w-auto">
+                        <button 
+                            @click="restartSession()" 
+                            class="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs sm:text-sm rounded-xl transition flex items-center justify-center gap-1.5"
+                            title="Retake this unit"
+                        >
+                            <span>Retake 🔄</span>
+                        </button>
+
                         <a 
                             href="{{ route('sessions.index') }}" 
-                            class="w-full sm:w-auto px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white font-black text-sm rounded-xl transition text-center"
+                            class="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs sm:text-sm rounded-xl transition text-center"
                         >
-                            All Sessions Catalog
+                            All Units
                         </a>
-                        <a 
-                            href="{{ route('drill.show') }}" 
-                            class="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-[#0052FF] to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white font-black text-sm rounded-xl shadow-lg transition text-center flex items-center justify-center gap-2 border border-yellow-400"
-                        >
-                            <span>Daily Speed Blitz ⚡</span>
-                        </a>
+                    </div>
+
+                    <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+                        @if($nextSession)
+                            <a 
+                                href="{{ route('session.show', $nextSession->slug) }}" 
+                                class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-[#0052FF] via-blue-600 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-black text-sm sm:text-base rounded-2xl shadow-xl shadow-blue-500/30 transition text-center flex items-center justify-center gap-2 border-2 border-yellow-400 group active:scale-95 animate-pulse"
+                            >
+                                <span>CONTINUE TO NEXT UNIT ➔</span>
+                                <span class="text-yellow-300 group-hover:translate-x-1.5 transition-transform font-bold text-xs">
+                                    ({{ Str::limit($nextSession->title, 22) }})
+                                </span>
+                            </a>
+                        @else
+                            <a 
+                                href="{{ route('sessions.index') }}" 
+                                class="w-full sm:w-auto px-8 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm rounded-xl shadow-lg transition text-center flex items-center justify-center gap-2"
+                            >
+                                <span>🎉 CURRICULUM MASTERED! VIEW ALL UNITS</span>
+                            </a>
+                        @endif
                     </div>
                 </div>
 
@@ -958,6 +1119,7 @@
         </div>
 
     </div>
+@endif
 </div>
 
 @push('scripts')

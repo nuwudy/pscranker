@@ -55,6 +55,8 @@ class AdminSessionController extends Controller
             'order' => 'required|integer',
             'xp_reward' => 'required|integer|min:0',
             'is_active' => 'boolean',
+            'is_premium' => 'boolean',
+            'price' => 'nullable|numeric|min:0',
             'contents' => 'nullable|array',
             'contents.*.type' => 'required|string|in:image,video,audio,text,html',
             'contents.*.content_data' => 'required|array',
@@ -76,6 +78,8 @@ class AdminSessionController extends Controller
             'order' => $validated['order'],
             'xp_reward' => $validated['xp_reward'],
             'is_active' => $request->boolean('is_active', true),
+            'is_premium' => $request->boolean('is_premium'),
+            'price' => $request->boolean('is_premium') ? ($request->input('price') ?: 199.00) : null,
         ]);
 
         $this->syncContentsAndQuestions($session, $request);
@@ -121,6 +125,8 @@ class AdminSessionController extends Controller
             'order' => 'required|integer',
             'xp_reward' => 'required|integer|min:0',
             'is_active' => 'boolean',
+            'is_premium' => 'boolean',
+            'price' => 'nullable|numeric|min:0',
         ]);
 
         $session->update([
@@ -131,6 +137,8 @@ class AdminSessionController extends Controller
             'order' => $validated['order'],
             'xp_reward' => $validated['xp_reward'],
             'is_active' => $request->boolean('is_active', true),
+            'is_premium' => $request->boolean('is_premium'),
+            'price' => $request->boolean('is_premium') ? ($request->input('price') ?: 199.00) : null,
         ]);
 
         $this->syncContentsAndQuestions($session, $request);

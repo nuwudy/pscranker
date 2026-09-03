@@ -115,9 +115,20 @@
                                 <div class="bg-white rounded-2xl border-2 border-slate-200/90 hover:border-blue-500 transition-all p-5 sm:p-6 flex flex-col justify-between shadow-xs hover:shadow-lg group">
                                     <div>
                                         <div class="flex items-center justify-between text-xs text-slate-500 font-bold mb-3">
-                                            <span class="px-2.5 py-0.5 rounded-full bg-blue-50 text-[#0052FF] font-black">
-                                                Capsule #{{ $session->order }}
-                                            </span>
+                                            <div class="flex items-center gap-1.5">
+                                                <span class="px-2.5 py-0.5 rounded-full bg-blue-50 text-[#0052FF] font-black">
+                                                    Unit #{{ $session->order }}
+                                                </span>
+                                                @if($session->is_premium)
+                                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 shadow-xs">
+                                                        👑 PRO {{ $session->formatted_price }}
+                                                    </span>
+                                                @else
+                                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">
+                                                        FREE
+                                                    </span>
+                                                @endif
+                                            </div>
                                             <span class="text-amber-600 flex items-center gap-1 font-mono">
                                                 ⚡ +{{ $session->xp_reward }} XP
                                             </span>
@@ -143,9 +154,13 @@
                                     <div class="mt-5">
                                         <a 
                                             href="{{ route('session.show', $session->slug) }}" 
-                                            class="w-full py-2.5 px-4 bg-blue-50 hover:bg-[#0052FF] text-[#0052FF] hover:text-white font-bold text-xs rounded-xl transition-all text-center flex items-center justify-center gap-1.5 group-hover:bg-[#0052FF] group-hover:text-white"
+                                            class="w-full py-2.5 px-4 font-bold text-xs rounded-xl transition-all text-center flex items-center justify-center gap-1.5 {{ $session->is_premium ? 'bg-amber-100 hover:bg-amber-200 text-amber-950 font-black border border-amber-300' : 'bg-blue-50 hover:bg-[#0052FF] text-[#0052FF] hover:text-white group-hover:bg-[#0052FF] group-hover:text-white' }}"
                                         >
-                                            <span>Start Capsule</span>
+                                            @if($session->is_premium)
+                                                <span>👑 Unlock Unit ({{ $session->formatted_price }})</span>
+                                            @else
+                                                <span>Start Unit #{{ $session->order }}</span>
+                                            @endif
                                             <span>→</span>
                                         </a>
                                     </div>

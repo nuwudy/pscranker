@@ -24,50 +24,62 @@
                 <!-- Malayalam Value Pill -->
                 <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-[#0052FF] text-xs font-black uppercase tracking-wider mb-5 w-fit shadow-xs">
                     <span class="text-amber-500 text-sm">⚡</span>
-                    <span>പഠിക്കാം, ചിരിക്കാം, റാങ്ക് നേടാം! • Kerala's #1 Gamified PSC Portal</span>
+                    <span>സിലബസ് യൂണിറ്റുകൾ തിരിച്ച് പഠിക്കാം • Unit-by-Unit Kerala PSC Course</span>
                 </div>
 
-                <!-- Main Bold Headline (Behance Exact: CRACK KERALA PSC WITH SUPER SPEED!) -->
+                <!-- Main Bold Headline -->
                 <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black text-slate-950 tracking-tight leading-[1.08] uppercase">
                     CRACK KERALA PSC <br class="hidden sm:block">
-                    WITH <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 via-[#FFD200] to-yellow-400 drop-shadow-xs">SUPER SPEED!</span>
+                    <span class="text-[#0052FF]">UNIT BY UNIT</span> WITH <br class="hidden sm:block">
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 via-[#FFD200] to-yellow-400 drop-shadow-xs">SUPER SPEED!</span>
                 </h1>
 
                 <!-- Subtitle -->
-                <p class="text-lg sm:text-2xl font-bold text-slate-600 mt-4 leading-relaxed max-w-xl">
-                    Gamified Prep, Funny Memes, Instant Results. <br class="hidden sm:block">
-                    <span class="text-[#0052FF] font-black">Your rank is waiting!</span>
+                <p class="text-base sm:text-xl font-bold text-slate-600 mt-4 leading-relaxed max-w-xl">
+                    Modular 4-Phase Micro-Learning Capsules: <br class="hidden sm:block">
+                    <span class="text-[#0052FF] font-black">Pre-Test Hook ➔ SCERT Media ➔ Speed Blitz ➔ OMR Exam.</span> <br class="hidden sm:block">
+                    Complete each unit, dodge PSC negative traps, and advance seamlessly to the next unit!
                 </p>
 
-                <!-- Primary CTA Button (Behance exact: Electric blue pill with yellow border and glowing arrow) -->
-                <div class="mt-8 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <!-- Primary and Secondary CTA Buttons -->
+                <div class="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5">
+                    <!-- Primary CTA leading to Course / Sessions page -->
                     <a 
-                        href="#drill-section" 
-                        class="px-8 sm:px-10 py-4 sm:py-4.5 bg-[#0052FF] hover:bg-[#003ECC] text-white font-black text-lg sm:text-xl rounded-full shadow-xl shadow-blue-500/35 hover:shadow-blue-500/50 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-3 border-2 border-[#FFD200] group"
+                        href="{{ route('sessions.index') }}" 
+                        class="px-8 sm:px-10 py-4 sm:py-4.5 bg-[#0052FF] hover:bg-[#003ECC] text-white font-black text-base sm:text-lg rounded-full shadow-xl shadow-blue-500/35 hover:shadow-blue-500/50 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 border-2 border-[#FFD200] group"
                     >
-                        <span>START FREE 3-MIN SPEED DRILL</span>
-                        <span class="text-yellow-300 group-hover:translate-x-1.5 transition-transform text-2xl font-black">→</span>
+                        <span>START COURSE UNITS</span>
+                        <span class="text-yellow-300 group-hover:translate-x-1.5 transition-transform text-2xl font-black">➔</span>
                     </a>
 
-                    <div class="flex items-center gap-2 text-xs font-bold text-slate-500 pl-1">
-                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span>Zero sign up needed to drill • Free forever</span>
-                    </div>
+                    <!-- Secondary CTA for Speed Drill -->
+                    <a 
+                        href="#drill-section" 
+                        class="px-6 py-4 bg-white hover:bg-slate-100 text-slate-900 font-black text-sm sm:text-base rounded-full border-2 border-slate-200 shadow-sm hover:shadow transition flex items-center justify-center gap-2"
+                    >
+                        <span>⚡ 3-Min Speed Drill</span>
+                    </a>
+                </div>
+
+                <!-- Unit <> Unit Roadmap Micro-Pill -->
+                <div class="mt-6 flex items-center gap-2 text-xs font-bold text-slate-500">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Sequential Units (Unit 1 ➔ Unit 2 ➔ Unit 3) • Free &amp; PRO Tracks</span>
                 </div>
 
                 <!-- Mini Mascot Badges / Key Metrics -->
                 <div class="mt-8 pt-6 border-t border-slate-200/80 grid grid-cols-3 gap-4 max-w-lg">
                     <div>
-                        <div class="text-xl sm:text-2xl font-black text-slate-900">20 Sec</div>
-                        <div class="text-xs font-semibold text-slate-500">Fast Reflex Timers</div>
+                        <div class="text-xl sm:text-2xl font-black text-[#0052FF]">10-Min</div>
+                        <div class="text-xs font-semibold text-slate-500">Bite-Sized Units</div>
                     </div>
                     <div>
                         <div class="text-xl sm:text-2xl font-black text-red-600">-0.33</div>
-                        <div class="text-xs font-semibold text-slate-500">Trap Reflex Defense</div>
+                        <div class="text-xs font-semibold text-slate-500">Strict PSC Marking</div>
                     </div>
                     <div>
-                        <div class="text-xl sm:text-2xl font-black text-[#0052FF]">100% Free</div>
-                        <div class="text-xs font-semibold text-slate-500">SCERT & Renaissance</div>
+                        <div class="text-xl sm:text-2xl font-black text-amber-500">Free + PRO</div>
+                        <div class="text-xs font-semibold text-slate-500">Flexible Access</div>
                     </div>
                 </div>
 

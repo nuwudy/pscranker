@@ -22,13 +22,64 @@ class Session extends Model
         'order',
         'xp_reward',
         'is_active',
+        'is_premium',
+        'price',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'is_premium' => 'boolean',
+        'price' => 'decimal:2',
         'order' => 'integer',
         'xp_reward' => 'integer',
     ];
+
+    public function isFree(): bool
+    {
+        return !$this->is_premium;
+    }
+
+    public function getFormattedPriceAttribute(): string
+    {
+        if ($this->isFree() || !$this->price) {
+            return 'FREE';
+        }
+        return '₹' . number_format($this->price, 0);
+    }
+
+    public function getPreviousSession(): ?self
+    {
+        return self::where('is_active', true)
+            ->where(function ($q) {
+                if ($this->category_id) {
+                    $q->where('category_id', $this->category_id);
+                }
+            })
+            ->where('order', '<', $this->order)
+            ->orderBy('order', 'desc')
+            ->first() 
+            ?? self::where('is_active', true)
+                ->where('order', '<', $this->order)
+                ->orderBy('order', 'desc')
+                ->first();
+    }
+
+    public function getNextSession(): ?self
+    {
+        return self::where('is_active', true)
+            ->where(function ($q) {
+                if ($this->category_id) {
+                    $q->where('category_id', $this->category_id);
+                }
+            })
+            ->where('order', '>', $this->order)
+            ->orderBy('order', 'asc')
+            ->first()
+            ?? self::where('is_active', true)
+                ->where('order', '>', $this->order)
+                ->orderBy('order', 'asc')
+                ->first();
+    }
 
     public function category(): BelongsTo
     {
