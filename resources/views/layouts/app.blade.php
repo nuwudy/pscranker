@@ -117,8 +117,11 @@
 
                     @auth
                         <div class="flex items-center gap-2">
-                            <a href="{{ route('admin.sessions.index') }}" class="px-3.5 py-1.5 text-xs font-black text-[#0052FF] bg-blue-50 hover:bg-blue-100 rounded-lg transition border border-blue-200">
-                                ⚙️ Admin Panel
+                            <a href="{{ route('admin.sessions.index') }}" class="px-3 py-1.5 text-xs font-black text-[#0052FF] bg-blue-50 hover:bg-blue-100 rounded-lg transition border border-blue-200">
+                                ⚙️ Sessions
+                            </a>
+                            <a href="{{ route('admin.media.index') }}" class="px-3 py-1.5 text-xs font-black text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-lg transition border border-purple-200">
+                                📁 Media Library
                             </a>
                             <span class="text-xs font-bold text-slate-600 hidden lg:inline">{{ Auth::user()->name }}</span>
                             <form action="{{ route('logout') }}" method="POST" class="inline">
@@ -171,7 +174,8 @@
 
                         @auth
                             <div class="pt-2 border-t border-slate-100 flex flex-col gap-2">
-                                <a href="{{ route('admin.sessions.index') }}" class="px-4 py-2.5 rounded-xl bg-blue-50 text-[#0052FF] font-black">⚙️ Admin Panel</a>
+                                <a href="{{ route('admin.sessions.index') }}" class="px-4 py-2.5 rounded-xl bg-blue-50 text-[#0052FF] font-black">⚙️ Manage Sessions</a>
+                                <a href="{{ route('admin.media.index') }}" class="px-4 py-2.5 rounded-xl bg-purple-50 text-purple-700 font-black">📁 Media Library</a>
                                 <form action="{{ route('logout') }}" method="POST">
                                     @csrf
                                     <button type="submit" class="w-full text-left px-4 py-2 text-xs font-bold text-red-600 rounded-xl hover:bg-red-50">

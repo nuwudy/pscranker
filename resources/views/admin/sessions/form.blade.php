@@ -26,15 +26,25 @@
                 </span>
             </div>
 
-            @if($isEdit)
+            <div class="flex items-center gap-2">
                 <a 
-                    href="{{ route('session.show', $session->slug) }}" 
+                    href="{{ route('admin.media.index') }}" 
                     target="_blank"
-                    class="px-4 py-1.5 bg-blue-50 text-[#0052FF] hover:bg-blue-100 text-xs font-black rounded-lg transition"
+                    class="px-3.5 py-1.5 bg-purple-50 text-purple-700 hover:bg-purple-100 text-xs font-black rounded-lg transition border border-purple-200 flex items-center gap-1.5"
                 >
-                    Preview Runner ↗
+                    <span>📁 Media Library ↗</span>
                 </a>
-            @endif
+
+                @if($isEdit)
+                    <a 
+                        href="{{ route('session.show', $session->slug) }}" 
+                        target="_blank"
+                        class="px-3.5 py-1.5 bg-blue-50 text-[#0052FF] hover:bg-blue-100 text-xs font-black rounded-lg transition border border-blue-200"
+                    >
+                        Preview Runner ↗
+                    </a>
+                @endif
+            </div>
         </div>
 
         @if(session('success'))
@@ -233,8 +243,17 @@
                             <template x-if="block.type === 'image'">
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                                     <div>
-                                        <label class="font-bold text-slate-600 block mb-1">Image URL *</label>
-                                        <input type="text" x-model="block.content_data.url" placeholder="https://..." class="w-full px-3 py-1.5 rounded-lg border border-slate-300">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <label class="font-bold text-slate-600">Image URL *</label>
+                                            <button 
+                                                type="button" 
+                                                @click="openMediaPicker(idx, 'image')" 
+                                                class="text-[11px] font-black text-[#0052FF] hover:underline flex items-center gap-1 bg-blue-50 px-2 py-0.5 rounded border border-blue-200"
+                                            >
+                                                <span>🖼️ Choose from Media Library</span>
+                                            </button>
+                                        </div>
+                                        <input type="text" x-model="block.content_data.url" placeholder="https://... or /storage/media/images/..." class="w-full px-3 py-1.5 rounded-lg border border-slate-300">
                                     </div>
                                     <div>
                                         <label class="font-bold text-slate-600 block mb-1">Title / Label</label>
@@ -244,6 +263,16 @@
                                         <label class="font-bold text-slate-600 block mb-1">Caption (Malayalam / English)</label>
                                         <input type="text" x-model="block.content_data.caption" placeholder="അരുവിപ്പുറം ശിവപ്രതിഷ്ഠ - 1888" class="w-full px-3 py-1.5 rounded-lg border border-slate-300 font-['Noto_Sans_Malayalam']">
                                     </div>
+                                    <!-- Live Image Preview -->
+                                    <template x-if="block.content_data.url">
+                                        <div class="sm:col-span-2 mt-1 p-2 bg-slate-100 rounded-xl border border-slate-200 flex items-center gap-3">
+                                            <img :src="block.content_data.url" class="w-16 h-16 object-cover rounded-lg border border-slate-300" alt="Preview">
+                                            <div class="text-[11px] text-slate-600 truncate">
+                                                <span class="font-bold block text-slate-800">Preview:</span>
+                                                <span class="font-mono text-[10px] text-slate-500" x-text="block.content_data.url"></span>
+                                            </div>
+                                        </div>
+                                    </template>
                                 </div>
                             </template>
 
@@ -251,8 +280,17 @@
                             <template x-if="block.type === 'audio'">
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                                     <div>
-                                        <label class="font-bold text-slate-600 block mb-1">Audio Stream URL (MP3) *</label>
-                                        <input type="text" x-model="block.content_data.url" placeholder="https://..." class="w-full px-3 py-1.5 rounded-lg border border-slate-300">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <label class="font-bold text-slate-600">Audio Stream URL (MP3) *</label>
+                                            <button 
+                                                type="button" 
+                                                @click="openMediaPicker(idx, 'audio')" 
+                                                class="text-[11px] font-black text-blue-700 hover:underline flex items-center gap-1 bg-blue-50 px-2 py-0.5 rounded border border-blue-200"
+                                            >
+                                                <span>🎙️ Choose from Media Library</span>
+                                            </button>
+                                        </div>
+                                        <input type="text" x-model="block.content_data.url" placeholder="https://... or /storage/media/audios/..." class="w-full px-3 py-1.5 rounded-lg border border-slate-300">
                                     </div>
                                     <div>
                                         <label class="font-bold text-slate-600 block mb-1">Duration string</label>
@@ -266,6 +304,15 @@
                                         <label class="font-bold text-slate-600 block mb-1">Summary / Transcript (Malayalam)</label>
                                         <input type="text" x-model="block.content_data.transcript" placeholder="ശ്രീനാരായണഗുരുവിന്റെ പ്രധാന ചരിത്ര വസ്തുതകൾ..." class="w-full px-3 py-1.5 rounded-lg border border-slate-300 font-['Noto_Sans_Malayalam']">
                                     </div>
+                                    <!-- Live Audio Preview -->
+                                    <template x-if="block.content_data.url">
+                                        <div class="sm:col-span-2 mt-1 p-2 bg-blue-50/70 rounded-xl border border-blue-200 flex items-center gap-3">
+                                            <span class="text-xl">🎙️</span>
+                                            <div class="flex-grow">
+                                                <audio controls class="w-full h-8" :src="block.content_data.url" preload="none"></audio>
+                                            </div>
+                                        </div>
+                                    </template>
                                 </div>
                             </template>
 
@@ -273,8 +320,17 @@
                             <template x-if="block.type === 'video'">
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                                     <div>
-                                        <label class="font-bold text-slate-600 block mb-1">Video URL (YouTube or MP4) *</label>
-                                        <input type="text" x-model="block.content_data.url" placeholder="https://youtube.com/..." class="w-full px-3 py-1.5 rounded-lg border border-slate-300">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <label class="font-bold text-slate-600">Video URL (YouTube or MP4) *</label>
+                                            <button 
+                                                type="button" 
+                                                @click="openMediaPicker(idx, 'video')" 
+                                                class="text-[11px] font-black text-red-700 hover:underline flex items-center gap-1 bg-red-50 px-2 py-0.5 rounded border border-red-200"
+                                            >
+                                                <span>🎬 Choose from Media Library</span>
+                                            </button>
+                                        </div>
+                                        <input type="text" x-model="block.content_data.url" placeholder="https://youtube.com/... or /storage/media/videos/..." class="w-full px-3 py-1.5 rounded-lg border border-slate-300">
                                     </div>
                                     <div>
                                         <label class="font-bold text-slate-600 block mb-1">Video Title</label>
@@ -453,6 +509,187 @@
         </form>
 
     </div>
+
+    <!-- Media Library Picker Modal -->
+    <div 
+        x-show="showMediaModal" 
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/60 backdrop-blur-xs"
+        style="display: none;"
+    >
+        <div 
+            @click.outside="showMediaModal = false"
+            class="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden relative"
+        >
+            <!-- Modal Header -->
+            <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-2xl">📁</span>
+                    <div>
+                        <h3 class="text-sm sm:text-base font-black text-slate-900">
+                            Select Media from Library
+                        </h3>
+                        <p class="text-[11px] text-slate-500 font-medium">
+                            Choose an existing file or upload a new photo, audio, or video directly.
+                        </p>
+                    </div>
+                </div>
+
+                <button 
+                    type="button"
+                    @click="showMediaModal = false" 
+                    class="w-8 h-8 rounded-full bg-white hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center font-bold text-sm transition"
+                >
+                    ✕
+                </button>
+            </div>
+
+            <!-- Modal Subheader: Filter & Direct Upload Bar -->
+            <div class="p-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-white">
+                
+                <!-- Type Tabs -->
+                <div class="flex items-center gap-1.5 text-xs font-bold">
+                    <button 
+                        type="button" 
+                        @click="mediaFilterType = 'all'; fetchMediaItems()"
+                        :class="mediaFilterType === 'all' ? 'bg-slate-900 text-white font-black' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                        class="px-3 py-1.5 rounded-lg transition"
+                    >
+                        All
+                    </button>
+                    <button 
+                        type="button" 
+                        @click="mediaFilterType = 'image'; fetchMediaItems()"
+                        :class="mediaFilterType === 'image' ? 'bg-purple-600 text-white font-black' : 'bg-purple-50 text-purple-700 hover:bg-purple-100'"
+                        class="px-3 py-1.5 rounded-lg transition"
+                    >
+                        🖼️ Photos
+                    </button>
+                    <button 
+                        type="button" 
+                        @click="mediaFilterType = 'audio'; fetchMediaItems()"
+                        :class="mediaFilterType === 'audio' ? 'bg-blue-600 text-white font-black' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'"
+                        class="px-3 py-1.5 rounded-lg transition"
+                    >
+                        🎙️ Audio
+                    </button>
+                    <button 
+                        type="button" 
+                        @click="mediaFilterType = 'video'; fetchMediaItems()"
+                        :class="mediaFilterType === 'video' ? 'bg-red-600 text-white font-black' : 'bg-red-50 text-red-700 hover:bg-red-100'"
+                        class="px-3 py-1.5 rounded-lg transition"
+                    >
+                        🎬 Videos
+                    </button>
+                </div>
+
+                <!-- Instant Upload Input & Button -->
+                <div class="flex items-center gap-2">
+                    <label class="cursor-pointer px-3.5 py-1.5 bg-[#0052FF] hover:bg-blue-700 text-white text-xs font-black rounded-lg transition flex items-center gap-1.5 shadow-sm">
+                        <span x-show="!isUploadingInModal">⬆️ Upload & Use</span>
+                        <span x-show="isUploadingInModal" class="flex items-center gap-1">
+                            <span class="w-3 h-3 border-2 border-white border-t-yellow-400 rounded-full animate-spin"></span>
+                            <span>Uploading...</span>
+                        </span>
+                        <input 
+                            type="file" 
+                            class="hidden" 
+                            accept="image/*,audio/*,video/*"
+                            :disabled="isUploadingInModal"
+                            @change="uploadDirectFromModal($event)"
+                        >
+                    </label>
+                </div>
+
+            </div>
+
+            <!-- Media Grid Body -->
+            <div class="p-4 sm:p-5 overflow-y-auto flex-grow bg-slate-50/50 min-h-[300px]">
+                
+                <!-- Loading state -->
+                <template x-if="isLoadingMedia">
+                    <div class="py-12 text-center">
+                        <div class="w-8 h-8 border-3 border-blue-600 border-t-yellow-400 rounded-full animate-spin mx-auto mb-2"></div>
+                        <p class="text-xs text-slate-500 font-bold">Loading media items...</p>
+                    </div>
+                </template>
+
+                <!-- Empty State -->
+                <template x-if="!isLoadingMedia && mediaItems.length === 0">
+                    <div class="py-12 text-center text-slate-500">
+                        <span class="text-3xl block mb-2">📁</span>
+                        <p class="text-xs font-bold text-slate-700">No media found for this category</p>
+                        <p class="text-[11px] text-slate-400 mt-1">Use the "Upload & Use" button above to upload a file directly.</p>
+                    </div>
+                </template>
+
+                <!-- Items Grid -->
+                <template x-if="!isLoadingMedia && mediaItems.length > 0">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                        <template x-for="item in mediaItems" :key="item.id">
+                            <div 
+                                @click="selectMediaItem(item)"
+                                class="p-2.5 rounded-xl border-2 border-slate-200 bg-white hover:border-[#0052FF] hover:shadow-md cursor-pointer transition flex flex-col justify-between group active:scale-95"
+                            >
+                                <div class="h-28 rounded-lg bg-slate-100 overflow-hidden flex items-center justify-center relative mb-2">
+                                    <template x-if="item.file_type === 'image'">
+                                        <img :src="item.url" class="w-full h-full object-cover" loading="lazy">
+                                    </template>
+                                    <template x-if="item.file_type === 'audio'">
+                                        <div class="text-3xl text-blue-600">🎙️</div>
+                                    </template>
+                                    <template x-if="item.file_type === 'video'">
+                                        <div class="text-3xl text-red-600">🎬</div>
+                                    </template>
+                                    <template x-if="item.file_type === 'document'">
+                                        <div class="text-3xl text-slate-400">📄</div>
+                                    </template>
+                                    <span 
+                                        class="absolute top-1 left-1 px-1.5 py-0.5 rounded text-[9px] font-black uppercase text-white"
+                                        :class="{
+                                            'bg-purple-600': item.file_type === 'image',
+                                            'bg-blue-600': item.file_type === 'audio',
+                                            'bg-red-600': item.file_type === 'video',
+                                            'bg-slate-600': item.file_type === 'document'
+                                        }"
+                                        x-text="item.file_type"
+                                    ></span>
+                                </div>
+
+                                <div class="text-[11px] font-bold text-slate-800 truncate" x-text="item.name"></div>
+                                <div class="text-[10px] text-slate-400 font-mono mt-0.5" x-text="item.formatted_size"></div>
+
+                                <div class="mt-2 text-center">
+                                    <span class="text-[10px] font-black text-[#0052FF] group-hover:underline">
+                                        ✓ Select Item
+                                    </span>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-3.5 bg-white border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                <span>Tip: Click any media card to instantly insert it into the active block.</span>
+                <button 
+                    type="button" 
+                    @click="showMediaModal = false"
+                    class="px-4 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg transition"
+                >
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 @push('scripts')
@@ -486,6 +723,85 @@ function adminSessionBuilder(initial) {
         ],
 
         allQuestions: [],
+
+        // Media Picker Modal State
+        showMediaModal: false,
+        activeMediaTargetBlockIndex: null,
+        mediaFilterType: 'all',
+        mediaItems: [],
+        isLoadingMedia: false,
+        isUploadingInModal: false,
+
+        openMediaPicker(blockIdx, type) {
+            this.activeMediaTargetBlockIndex = blockIdx;
+            this.mediaFilterType = type || 'all';
+            this.showMediaModal = true;
+            this.fetchMediaItems();
+        },
+
+        async fetchMediaItems() {
+            this.isLoadingMedia = true;
+            try {
+                const url = '{{ route("admin.media.api-list") }}?type=' + (this.mediaFilterType === 'all' ? '' : this.mediaFilterType);
+                const response = await fetch(url, {
+                    headers: { 'Accept': 'application/json' }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    this.mediaItems = data.files || [];
+                }
+            } catch (err) {
+                console.error('Fetch media error:', err);
+            } finally {
+                this.isLoadingMedia = false;
+            }
+        },
+
+        selectMediaItem(item) {
+            if (this.activeMediaTargetBlockIndex !== null && this.contentBlocks[this.activeMediaTargetBlockIndex]) {
+                const block = this.contentBlocks[this.activeMediaTargetBlockIndex];
+                block.content_data.url = item.url;
+                if (!block.content_data.title && item.name) {
+                    block.content_data.title = item.name;
+                }
+            }
+            this.showMediaModal = false;
+        },
+
+        async uploadDirectFromModal(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+
+            const file = files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('title', file.name);
+
+            this.isUploadingInModal = true;
+            try {
+                const response = await fetch('{{ route("admin.media.store") }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                });
+                const data = await response.json();
+                if (data.success && data.media) {
+                    // Auto select newly uploaded media into the block
+                    this.selectMediaItem(data.media);
+                } else {
+                    alert('Upload failed: ' + (data.message || 'Please check file size/type.'));
+                }
+            } catch (err) {
+                console.error('Direct upload error:', err);
+                alert('Upload failed. Please try again.');
+            } finally {
+                this.isUploadingInModal = false;
+                event.target.value = '';
+            }
+        },
 
         addContentBlock(type) {
             const defaults = {

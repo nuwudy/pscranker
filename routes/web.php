@@ -39,9 +39,15 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // Interactive OMR Bubble Simulator
 Route::get('/omr-simulator', [OmrController::class, 'index'])->name('omr.simulator');
 
-// Admin Content Builder Routes (Protected by Auth)
+use App\Http\Controllers\Admin\MediaController;
+
+// Admin Content Builder & Media Library Routes (Protected by Auth)
 Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::resource('sessions', AdminSessionController::class);
+    Route::get('media', [MediaController::class, 'index'])->name('media.index');
+    Route::get('media/api-list', [MediaController::class, 'apiList'])->name('media.api-list');
+    Route::post('media', [MediaController::class, 'store'])->name('media.store');
+    Route::delete('media/{medium}', [MediaController::class, 'destroy'])->name('media.destroy');
 });
 
 // Quick Aliases for Navigation links
