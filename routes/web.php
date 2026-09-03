@@ -6,9 +6,17 @@ use App\Http\Controllers\DrillController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\MemeBankController;
 use App\Http\Controllers\OmrController;
+use App\Http\Controllers\SessionController;
+use App\Http\Controllers\Admin\AdminSessionController;
 
 // Main Homepage matching Behance Mockup
 Route::get('/', [HomeController::class, 'index'])->name('home');
+
+// 4-Phase Micro-Learning Sessions Engine
+Route::get('/sessions', [SessionController::class, 'index'])->name('sessions.index');
+Route::get('/session/{slug}', [SessionController::class, 'show'])->name('session.show');
+Route::post('/api/session/{id}/progress', [SessionController::class, 'saveProgress'])->name('api.session.progress');
+Route::post('/api/session/{id}/omr-submit', [SessionController::class, 'submitOmr'])->name('api.session.omr-submit');
 
 // Speed Drills - Rapid Fire 3-minute Engine
 Route::get('/drill/{slug?}', [DrillController::class, 'show'])->name('drill.show');
@@ -24,10 +32,13 @@ Route::get('/memebank', [MemeBankController::class, 'index'])->name('memebank');
 // Interactive OMR Bubble Simulator
 Route::get('/omr-simulator', [OmrController::class, 'index'])->name('omr.simulator');
 
-// Quick Stubs for Navigation links
-Route::get('/courses', function () {
-    return redirect()->route('home')->with('info', 'Free Kerala PSC Micro-Courses launching this week!');
-})->name('courses');
+// Admin Content Builder Routes
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::resource('sessions', AdminSessionController::class);
+});
+
+// Quick Aliases for Navigation links
+Route::get('/courses', [SessionController::class, 'index'])->name('courses');
 
 Route::get('/profile', function () {
     return redirect()->route('leaderboard');

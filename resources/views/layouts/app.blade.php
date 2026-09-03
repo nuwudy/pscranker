@@ -134,6 +134,7 @@
                         style="display: none;"
                     >
                         <a href="{{ route('home') }}" class="px-4 py-2.5 rounded-xl hover:bg-blue-50 text-slate-800">🏠 Home</a>
+                        <a href="{{ route('sessions.index') }}" class="px-4 py-2.5 rounded-xl hover:bg-blue-50 text-slate-800">🎓 Micro-Learning Sessions</a>
                         <a href="{{ route('drill.show') }}" class="px-4 py-2.5 rounded-xl bg-blue-50 text-[#0052FF] flex items-center justify-between font-black">
                             <span>⚡ 3-Min Speed Drills</span>
                             <span class="text-xs bg-amber-400 text-slate-950 px-2 py-0.5 rounded-full">Active</span>

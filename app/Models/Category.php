@@ -29,4 +29,9 @@ class Category extends Model
     {
         return $this->hasMany(Quiz::class);
     }
+
+    public function sessions(): HasMany
+    {
+        return $this->hasMany(Session::class);
+    }
 }
