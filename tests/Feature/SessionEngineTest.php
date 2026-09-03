@@ -160,12 +160,37 @@ test('omr submission strictly applies Kerala PSC scoring rules (+1.00, -0.33, 0.
     expect($data['summary']['rank_badge'])->not->toBeEmpty();
 });
 
-test('admin session manager routes are accessible', function () {
-    $response = $this->get(route('admin.sessions.index'));
+test('admin session manager routes redirect guest to login and allow authenticated user', function () {
+    // Guest redirected to login
+    $guestResponse = $this->get(route('admin.sessions.index'));
+    $guestResponse->assertRedirect(route('login'));
+
+    // Authenticated user can access
+    $user = \App\Models\User::factory()->create();
+    $response = $this->actingAs($user)->get(route('admin.sessions.index'));
     $response->assertStatus(200);
     $response->assertSee('Learning Sessions Manager');
 
-    $editResponse = $this->get(route('admin.sessions.edit', $this->session));
+    $editResponse = $this->actingAs($user)->get(route('admin.sessions.edit', $this->session));
     $editResponse->assertStatus(200);
     $editResponse->assertSee('adminSessionBuilder');
+});
+
+test('login page can be rendered and user can log in', function () {
+    $user = \App\Models\User::factory()->create([
+        'email' => 'admin@pscranker.com',
+        'password' => bcrypt('Amter9388$'),
+    ]);
+
+    $response = $this->get(route('login'));
+    $response->assertStatus(200);
+    $response->assertSee('Welcome Back');
+
+    $loginResponse = $this->post(route('login'), [
+        'email' => 'admin@pscranker.com',
+        'password' => 'Amter9388$',
+    ]);
+
+    $loginResponse->assertRedirect(route('admin.sessions.index'));
+    $this->assertAuthenticatedAs($user);
 });

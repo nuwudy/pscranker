@@ -103,15 +103,32 @@
                     </a>
                 </nav>
 
-                <!-- Action CTA Buttons (Behance mockup: Login, Sign Up Free [Yellow Pill]) -->
+                <!-- Action CTA Buttons (Guest vs Authenticated Admin) -->
                 <div class="hidden sm:flex items-center gap-3">
-                    <a href="{{ route('leaderboard') }}" class="px-4 py-2 text-sm font-bold text-slate-700 hover:text-[#0052FF] rounded-lg transition">
-                        Login
-                    </a>
-                    <a href="{{ route('drill.show') }}" class="px-5 py-2.5 text-sm font-extrabold text-slate-950 bg-[#FFD200] hover:bg-[#F5C500] active:scale-95 rounded-full shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 border border-yellow-400">
-                        <span>Sign Up Free</span>
-                        <span class="text-xs">⚡</span>
-                    </a>
+                    @guest
+                        <a href="{{ route('login') }}" class="px-4 py-2 text-sm font-bold text-slate-700 hover:text-[#0052FF] rounded-lg transition">
+                            Login
+                        </a>
+                        <a href="{{ route('drill.show') }}" class="px-5 py-2.5 text-sm font-extrabold text-slate-950 bg-[#FFD200] hover:bg-[#F5C500] active:scale-95 rounded-full shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 border border-yellow-400">
+                            <span>Sign Up Free</span>
+                            <span class="text-xs">⚡</span>
+                        </a>
+                    @endguest
+
+                    @auth
+                        <div class="flex items-center gap-2">
+                            <a href="{{ route('admin.sessions.index') }}" class="px-3.5 py-1.5 text-xs font-black text-[#0052FF] bg-blue-50 hover:bg-blue-100 rounded-lg transition border border-blue-200">
+                                ⚙️ Admin Panel
+                            </a>
+                            <span class="text-xs font-bold text-slate-600 hidden lg:inline">{{ Auth::user()->name }}</span>
+                            <form action="{{ route('logout') }}" method="POST" class="inline">
+                                @csrf
+                                <button type="submit" class="px-3 py-1.5 text-xs font-bold text-slate-500 hover:text-red-600 rounded-lg hover:bg-slate-100 transition">
+                                    Logout
+                                </button>
+                            </form>
+                        </div>
+                    @endauth
                 </div>
 
                 <!-- Mobile Hamburger Menu Toggle -->
@@ -142,11 +159,27 @@
                         <a href="{{ route('leaderboard') }}" class="px-4 py-2.5 rounded-xl hover:bg-blue-50 text-slate-800">🏆 Daily Leaderboard</a>
                         <a href="{{ route('memebank') }}" class="px-4 py-2.5 rounded-xl hover:bg-blue-50 text-slate-800">😂 MemeBank Mnemonics</a>
                         <a href="{{ route('omr.simulator') }}" class="px-4 py-2.5 rounded-xl hover:bg-blue-50 text-slate-800">📝 OMR Bubble Simulator</a>
-                        <div class="pt-2 border-t border-slate-100 flex gap-2">
-                            <a href="{{ route('drill.show') }}" class="w-full text-center py-3 bg-[#FFD200] font-black text-slate-950 rounded-xl">
-                                Start Free Drill
-                            </a>
-                        </div>
+                        
+                        @guest
+                            <div class="pt-2 border-t border-slate-100 flex flex-col gap-2">
+                                <a href="{{ route('login') }}" class="px-4 py-2.5 rounded-xl hover:bg-blue-50 text-slate-800">🔐 Login to Account</a>
+                                <a href="{{ route('drill.show') }}" class="w-full text-center py-3 bg-[#FFD200] font-black text-slate-950 rounded-xl">
+                                    Start Free Drill
+                                </a>
+                            </div>
+                        @endguest
+
+                        @auth
+                            <div class="pt-2 border-t border-slate-100 flex flex-col gap-2">
+                                <a href="{{ route('admin.sessions.index') }}" class="px-4 py-2.5 rounded-xl bg-blue-50 text-[#0052FF] font-black">⚙️ Admin Panel</a>
+                                <form action="{{ route('logout') }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="w-full text-left px-4 py-2 text-xs font-bold text-red-600 rounded-xl hover:bg-red-50">
+                                        🚪 Logout ({{ Auth::user()->name }})
+                                    </button>
+                                </form>
+                            </div>
+                        @endauth
                     </div>
                 </div>
 

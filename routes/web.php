@@ -29,11 +29,18 @@ Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leade
 // Meme Mnemonics Bank
 Route::get('/memebank', [MemeBankController::class, 'index'])->name('memebank');
 
+use App\Http\Controllers\AuthController;
+
+// Authentication Routes
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
 // Interactive OMR Bubble Simulator
 Route::get('/omr-simulator', [OmrController::class, 'index'])->name('omr.simulator');
 
-// Admin Content Builder Routes
-Route::prefix('admin')->name('admin.')->group(function () {
+// Admin Content Builder Routes (Protected by Auth)
+Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::resource('sessions', AdminSessionController::class);
 });
 
