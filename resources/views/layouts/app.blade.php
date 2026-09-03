@@ -249,6 +249,181 @@
         </div>
     </footer>
 
+    <!-- ============================================================= -->
+    <!-- PWA INSTALL FLOATING BANNER / BUTTON (Auto-hides if installed)-->
+    <!-- ============================================================= -->
+    <div 
+        x-data="pwaInstaller()"
+        x-init="initPwa()"
+        x-show="shouldShow()"
+        x-transition:enter="transition ease-out duration-300 transform"
+        x-transition:enter-start="translate-y-12 opacity-0 scale-95"
+        x-transition:enter-end="translate-y-0 opacity-100 scale-100"
+        x-transition:leave="transition ease-in duration-200 transform"
+        x-transition:leave-start="translate-y-0 opacity-100 scale-100"
+        x-transition:leave-end="translate-y-12 opacity-0 scale-95"
+        class="fixed bottom-4 left-3 right-3 sm:left-auto sm:right-6 sm:bottom-6 z-50 max-w-md"
+        style="display: none;"
+    >
+        <div class="bg-gradient-to-r from-slate-950 via-slate-900 to-blue-950 text-white rounded-2xl p-3.5 sm:p-4 shadow-2xl border-2 border-yellow-400/90 flex items-center justify-between gap-3 relative overflow-hidden ring-4 ring-black/10">
+            
+            <!-- Glow Accent -->
+            <div class="absolute -right-8 -top-8 w-24 h-24 bg-blue-500/20 rounded-full blur-xl pointer-events-none"></div>
+
+            <div class="flex items-center gap-3 relative z-10 min-w-0">
+                <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-[#0052FF] to-blue-600 text-white flex items-center justify-center text-xl font-black shrink-0 shadow-md border border-white/20">
+                    ⚡
+                </div>
+                <div class="min-w-0">
+                    <div class="flex items-center gap-1.5">
+                        <h4 class="text-xs sm:text-sm font-black text-white truncate">Install PSCRanker App</h4>
+                        <span class="px-1.5 py-0.2 rounded text-[9px] font-black uppercase bg-yellow-400 text-slate-950">Free</span>
+                    </div>
+                    <p class="text-[10px] sm:text-[11px] text-slate-300 font-medium truncate mt-0.5">
+                        <span x-show="!isIos">One-click launch &amp; offline practice</span>
+                        <span x-show="isIos">Tap Share <span class="text-yellow-300 font-bold">⎋</span> &amp; <span class="text-yellow-300 font-bold">"Add to Home Screen"</span></span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 shrink-0 relative z-10">
+                <button 
+                    type="button"
+                    @click="installApp()" 
+                    class="px-4 py-2 bg-[#FFD200] hover:bg-yellow-400 active:scale-95 text-slate-950 font-black text-xs rounded-xl shadow-md transition flex items-center gap-1.5 border border-yellow-300"
+                >
+                    <span x-text="isIos ? 'How to Add 📲' : 'Install 📲'"></span>
+                </button>
+
+                <button 
+                    type="button"
+                    @click="dismiss()" 
+                    class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-slate-400 hover:text-white flex items-center justify-center text-xs transition"
+                    title="Dismiss"
+                >
+                    ✕
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- iOS / Desktop Manual Install Helper Modal -->
+    <div 
+        x-data="{ showModal: false }"
+        @open-install-guide.window="showModal = true"
+        x-show="showModal"
+        x-transition 
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs"
+        style="display: none;"
+    >
+        <div @click.outside="showModal = false" class="bg-white rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl border border-slate-200">
+            <div class="w-14 h-14 rounded-2xl bg-blue-100 text-[#0052FF] flex items-center justify-center text-2xl mx-auto mb-3">
+                📲
+            </div>
+            <h3 class="text-base font-black text-slate-900">Install PSCRanker</h3>
+            <p class="text-xs text-slate-600 mt-1">
+                Install as a native application on your PC, Android, or iPhone for instant access and zero distraction.
+            </p>
+
+            <div class="my-4 p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-left text-xs font-medium space-y-2 text-slate-700">
+                <div class="flex items-start gap-2">
+                    <span class="font-bold text-[#0052FF]">iPhone/iPad:</span>
+                    <span>Tap <strong>Share ⎋</strong> at bottom of Safari, then scroll down and tap <strong>"Add to Home Screen ⊞"</strong>.</span>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span class="font-bold text-[#0052FF]">PC / Mac:</span>
+                    <span>Click the <strong>Install (⊕ or 📥)</strong> icon in the right corner of your browser's address bar.</span>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span class="font-bold text-[#0052FF]">Android:</span>
+                    <span>Tap <strong>Install</strong> on the banner or tap the 3-dots menu <strong>⋮</strong> ➔ <strong>"Add to Home screen"</strong>.</span>
+                </div>
+            </div>
+
+            <button type="button" @click="showModal = false" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-black text-xs rounded-xl transition">
+                Got It! 👍
+            </button>
+        </div>
+    </div>
+
+    <script>
+    function pwaInstaller() {
+        return {
+            deferredPrompt: null,
+            isInstalled: false,
+            isDismissed: false,
+            isIos: false,
+            canInstallPrompt: false,
+
+            initPwa() {
+                // 1. Detect if already installed / standalone
+                const isStandalone = window.matchMedia('(display-mode: standalone)').matches 
+                    || window.navigator.standalone === true 
+                    || (document.referrer && document.referrer.includes('android-app://'));
+
+                const hasInstalledFlag = localStorage.getItem('pscranker_pwa_installed') === 'true';
+
+                if (isStandalone || hasInstalledFlag) {
+                    this.isInstalled = true;
+                    return;
+                }
+
+                // 2. Check if user dismissed recently
+                if (sessionStorage.getItem('pscranker_install_dismissed') === 'true') {
+                    this.isDismissed = true;
+                }
+
+                // 3. Detect iOS Safari
+                const ua = window.navigator.userAgent.toLowerCase();
+                this.isIos = /iphone|ipad|ipod/.test(ua) && !window.MSStream;
+
+                // 4. Capture native beforeinstallprompt (Android Chrome, Windows Edge/Chrome, etc.)
+                window.addEventListener('beforeinstallprompt', (e) => {
+                    e.preventDefault();
+                    this.deferredPrompt = e;
+                    this.canInstallPrompt = true;
+                });
+
+                // 5. Hide immediately when app is installed in PC or mobile
+                window.addEventListener('appinstalled', () => {
+                    this.isInstalled = true;
+                    this.deferredPrompt = null;
+                    localStorage.setItem('pscranker_pwa_installed', 'true');
+                });
+            },
+
+            shouldShow() {
+                // If installed in PC or mobile, NEVER show!
+                if (this.isInstalled) return false;
+                if (this.isDismissed) return false;
+
+                return true;
+            },
+
+            async installApp() {
+                if (this.deferredPrompt) {
+                    this.deferredPrompt.prompt();
+                    const choiceResult = await this.deferredPrompt.userChoice;
+                    if (choiceResult && choiceResult.outcome === 'accepted') {
+                        this.isInstalled = true;
+                        localStorage.setItem('pscranker_pwa_installed', 'true');
+                    }
+                    this.deferredPrompt = null;
+                } else {
+                    // Open visual guide for iOS or desktop address bar install
+                    window.dispatchEvent(new CustomEvent('open-install-guide'));
+                }
+            },
+
+            dismiss() {
+                this.isDismissed = true;
+                sessionStorage.setItem('pscranker_install_dismissed', 'true');
+            }
+        };
+    }
+    </script>
+
     @stack('scripts')
 </body>
 </html>
