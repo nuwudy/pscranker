@@ -75,7 +75,7 @@
 
                                     @if($session->is_premium)
                                         <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300">
-                                            👑 PRO ({{ $session->formatted_price }})
+                                            👑 PRO (Prepaid Pass)
                                         </span>
                                     @else
                                         <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-100 text-slate-700">

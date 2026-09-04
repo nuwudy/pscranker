@@ -170,36 +170,21 @@
                         </div>
 
                         <!-- Monetization Settings (Free vs Premium) -->
-                        <div 
-                            x-data="{ isPremium: {{ old('is_premium', $session->is_premium ?? false) ? 'true' : 'false' }} }"
-                            class="flex flex-wrap items-center gap-4 bg-amber-50/70 border border-amber-200 px-4 py-2 rounded-xl"
-                        >
-                            <div class="flex items-center gap-2">
-                                <input 
-                                    type="checkbox" 
-                                    id="is_premium" 
-                                    name="is_premium" 
-                                    value="1" 
-                                    x-model="isPremium"
-                                    {{ old('is_premium', $session->is_premium ?? false) ? 'checked' : '' }}
-                                    class="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
-                                >
-                                <label for="is_premium" class="text-xs font-black text-amber-950 flex items-center gap-1">
-                                    <span>👑 Premium Unit (PRO Paywall)</span>
+                        <div class="flex items-center gap-3 bg-amber-50/80 border border-amber-300/80 px-4 py-2.5 rounded-xl">
+                            <input 
+                                type="checkbox" 
+                                id="is_premium" 
+                                name="is_premium" 
+                                value="1" 
+                                {{ old('is_premium', $session->is_premium ?? false) ? 'checked' : '' }}
+                                class="w-4 h-4 rounded text-amber-600 focus:ring-amber-500 cursor-pointer"
+                            >
+                            <div>
+                                <label for="is_premium" class="text-xs font-black text-amber-950 flex items-center gap-1.5 cursor-pointer">
+                                    <span>👑 Premium Unit</span>
+                                    <span class="px-2 py-0.2 rounded-full text-[9px] font-black uppercase bg-amber-200 text-amber-900">Prepaid Pass</span>
                                 </label>
-                            </div>
-
-                            <div x-show="isPremium" class="flex items-center gap-2">
-                                <label class="text-xs font-bold text-slate-700">Unit Price (₹):</label>
-                                <input 
-                                    type="number" 
-                                    name="price" 
-                                    step="1"
-                                    min="0"
-                                    value="{{ old('price', $session->price ?? 199) }}" 
-                                    placeholder="199" 
-                                    class="w-24 px-2.5 py-1 text-xs font-bold rounded-lg border border-amber-300 bg-white font-mono text-slate-900"
-                                >
+                                <p class="text-[10px] text-amber-800 font-medium">Unchecked = Free Unit for all learners • Checked = Included in Prepaid Pass</p>
                             </div>
                         </div>
                     </div>

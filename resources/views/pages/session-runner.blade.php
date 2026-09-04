@@ -75,13 +75,13 @@
 
             <!-- Price and Payment Gateway CTA -->
             <div class="p-5 rounded-2xl bg-gradient-to-br from-slate-900 to-blue-950 text-white shadow-xl mb-6">
-                <span class="text-[10px] uppercase font-bold text-slate-400 tracking-widest block mb-1">
-                    One-Time Unit Unlock Pass
+                <span class="text-[10px] uppercase font-bold text-yellow-400 tracking-widest block mb-1">
+                    👑 Premium Unit • Prepaid Pass Required
                 </span>
-                <div class="text-3xl sm:text-4xl font-black text-yellow-400 font-mono">
-                    {{ $session->formatted_price }}
+                <div class="text-2xl sm:text-3xl font-black text-white font-mono">
+                    Prepaid Learning Pass
                 </div>
-                <p class="text-[11px] text-slate-300 mt-1">Lifetime access to this unit • Unlimited re-tests</p>
+                <p class="text-[11px] text-slate-300 mt-1">Unlocks all current &amp; upcoming PSC units • Plans start from ₹{{ (int)\App\Models\SiteSetting::get('course_base_monthly_fee', 299) }} (Save up to 40%)</p>
 
                 <!-- PG Buttons preview -->
                 <div class="mt-4 pt-4 border-t border-slate-800">
@@ -135,8 +135,7 @@
 
                     @if($session->is_premium)
                         <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 shadow-xs">
-                            <span>👑 PRO</span>
-                            <span>{{ $session->formatted_price }}</span>
+                            <span>👑 PRO PASS</span>
                         </span>
                     @else
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">

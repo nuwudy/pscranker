@@ -121,7 +121,7 @@
                                                 </span>
                                                 @if($session->is_premium)
                                                     <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 shadow-xs">
-                                                        👑 PRO {{ $session->formatted_price }}
+                                                        👑 PRO PASS
                                                     </span>
                                                 @else
                                                     <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">
@@ -157,7 +157,7 @@
                                             class="w-full py-2.5 px-4 font-bold text-xs rounded-xl transition-all text-center flex items-center justify-center gap-1.5 {{ $session->is_premium ? 'bg-amber-100 hover:bg-amber-200 text-amber-950 font-black border border-amber-300' : 'bg-blue-50 hover:bg-[#0052FF] text-[#0052FF] hover:text-white group-hover:bg-[#0052FF] group-hover:text-white' }}"
                                         >
                                             @if($session->is_premium)
-                                                <span>👑 Unlock Unit ({{ $session->formatted_price }})</span>
+                                                <span>👑 PRO Unit (Prepaid Pass)</span>
                                             @else
                                                 <span>Start Unit #{{ $session->order }}</span>
                                             @endif
