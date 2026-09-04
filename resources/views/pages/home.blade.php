@@ -114,7 +114,8 @@
                 <!-- Mascot Illustration Image -->
                 <div class="relative z-10 w-full max-w-[380px] sm:max-w-[430px] rounded-3xl p-2 group">
                     <img 
-                        src="/images/mascot.jpg" 
+                        src="{{ asset('storage/media/images/psc-ranker-1788495865.webp') }}" 
+                        onerror="this.onerror=null; this.src='/images/mascot.jpg'"
                         alt="Kerala PSC Candidate Mascot with Pen of Success" 
                         class="w-full h-auto object-cover rounded-3xl shadow-2xl border-4 border-white transition-transform duration-300 group-hover:scale-[1.01]"
                     >
