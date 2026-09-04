@@ -21,24 +21,21 @@
             <!-- Left Hero Content (Cols 7) -->
             <div class="lg:col-span-7 flex flex-col justify-center text-left z-10">
                 
-                <!-- Malayalam Value Pill -->
+                <!-- Value Pill -->
                 <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-[#0052FF] text-xs font-black uppercase tracking-wider mb-5 w-fit shadow-xs">
                     <span class="text-amber-500 text-sm">⚡</span>
-                    <span>സിലബസ് യൂണിറ്റുകൾ തിരിച്ച് പഠിക്കാം • Unit-by-Unit Kerala PSC Course</span>
+                    <span>സിലബസ് യൂണിറ്റുകൾ തിരിച്ച് പഠിക്കാം • UNIT BY UNIT COURSE</span>
                 </div>
 
-                <!-- Main Bold Headline -->
-                <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black text-slate-950 tracking-tight leading-[1.08] uppercase">
+                <!-- Main Bold Headline: Punchy, Uncrowded 2-line Powerhouse -->
+                <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black text-slate-950 tracking-tight leading-[1.1] uppercase">
                     CRACK KERALA PSC <br class="hidden sm:block">
-                    <span class="text-[#0052FF]">UNIT BY UNIT</span> WITH <br class="hidden sm:block">
-                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 via-[#FFD200] to-yellow-400 drop-shadow-xs">SUPER SPEED!</span>
+                    WITH <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#0052FF] via-blue-600 to-amber-500">SUPER SPEED!</span>
                 </h1>
 
-                <!-- Subtitle -->
-                <p class="text-base sm:text-xl font-bold text-slate-600 mt-4 leading-relaxed max-w-xl">
-                    Modular 4-Phase Micro-Learning Capsules: <br class="hidden sm:block">
-                    <span class="text-[#0052FF] font-black">Pre-Test Hook ➔ SCERT Media ➔ Speed Blitz ➔ OMR Exam.</span> <br class="hidden sm:block">
-                    Complete each unit, dodge PSC negative traps, and advance seamlessly to the next unit!
+                <!-- Crisp, High-Converting Subtitle -->
+                <p class="text-base sm:text-lg font-medium text-slate-600 mt-4 leading-relaxed max-w-xl">
+                    Master syllabus units through 10-minute micro-capsules. Practice real OMR exams, dodge negative marks, and accelerate your rank.
                 </p>
 
                 <!-- Primary and Secondary CTA Buttons -->
