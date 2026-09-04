@@ -288,6 +288,10 @@
                     <p class="text-[10px] text-slate-400 mt-1">
                         Supported: JPG, PNG, WebP, SVG, MP3, WAV, OGG, MP4, WebM (Max 100MB).
                     </p>
+                    <p class="text-[10px] text-emerald-600 font-bold mt-1 flex items-center gap-1">
+                        <span>⚡ Smart Engine:</span>
+                        <span class="font-normal text-slate-600">JPG &amp; PNG photos are automatically converted into super-light, crisp WebP!</span>
+                    </p>
                 </div>
 
                 <!-- Custom Title / Label -->

@@ -82,25 +82,31 @@ class MediaController extends Controller
         $mimeType = $file->getMimeType();
         $fileSize = $file->getSize();
         $extension = strtolower($file->getClientOriginalExtension());
+        $nameOnly = pathinfo($originalName, PATHINFO_FILENAME);
 
         // Determine file type category
         if (str_starts_with($mimeType, 'image/')) {
             $fileType = 'image';
-        } elseif (str_starts_with($mimeType, 'audio/')) {
-            $fileType = 'audio';
-        } elseif (str_starts_with($mimeType, 'video/')) {
-            $fileType = 'video';
+            $folder = 'media/images';
+            
+            // Automatic WebP conversion & optimization pipeline
+            $stored = $this->processAndStoreImage($file, $folder, $nameOnly, $extension);
+            $filePath = $stored['file_path'];
+            $mimeType = $stored['mime_type'];
+            $fileSize = $stored['file_size'];
         } else {
-            $fileType = 'document';
+            if (str_starts_with($mimeType, 'audio/')) {
+                $fileType = 'audio';
+            } elseif (str_starts_with($mimeType, 'video/')) {
+                $fileType = 'video';
+            } else {
+                $fileType = 'document';
+            }
+            $folder = "media/{$fileType}s";
+            $safeName = Str::slug($nameOnly) . '-' . time() . '.' . $extension;
+            $filePath = $file->storeAs($folder, $safeName, 'public');
         }
 
-        // Generate safe unique filename
-        $nameOnly = pathinfo($originalName, PATHINFO_FILENAME);
-        $safeName = Str::slug($nameOnly) . '-' . time() . '.' . $extension;
-        $folder = "media/{$fileType}s";
-
-        // Store file onto public disk
-        $filePath = $file->storeAs($folder, $safeName, 'public');
         $url = Storage::url($filePath);
 
         $media = MediaFile::create([
@@ -146,5 +152,133 @@ class MediaController extends Controller
 
         return redirect()->route('admin.media.index')
             ->with('success', "Media file \"{$name}\" deleted successfully.");
+    }
+
+    /**
+     * Convert uploaded image to high-efficiency WebP format if supported.
+     * Preserves alpha channel for transparent PNGs, scales oversized images (>1920px),
+     * and falls back cleanly if GD/Imagick WebP is unavailable.
+     *
+     * @return array{file_path: string, mime_type: string, file_size: int, safe_name: string}
+     */
+    private function processAndStoreImage($file, string $folder, string $nameOnly, string $extension): array
+    {
+        // 1. If already WebP, SVG, or GIF (animated), store as-is
+        if (in_array($extension, ['webp', 'svg', 'gif'])) {
+            $safeName = Str::slug($nameOnly) . '-' . time() . '.' . $extension;
+            $filePath = $file->storeAs($folder, $safeName, 'public');
+            return [
+                'file_path' => $filePath,
+                'mime_type' => $file->getMimeType(),
+                'file_size' => $file->getSize(),
+                'safe_name' => $safeName,
+            ];
+        }
+
+        // 2. Try conversion using PHP GD
+        if (function_exists('imagewebp')) {
+            $sourcePath = $file->getRealPath();
+            $image = null;
+
+            if ($extension === 'jpg' || $extension === 'jpeg') {
+                if (function_exists('imagecreatefromjpeg')) {
+                    $image = @imagecreatefromjpeg($sourcePath);
+                }
+            } elseif ($extension === 'png') {
+                if (function_exists('imagecreatefrompng')) {
+                    $image = @imagecreatefrompng($sourcePath);
+                    if ($image) {
+                        imagepalettetotruecolor($image);
+                        imagealphablending($image, true);
+                        imagesavealpha($image, true);
+                    }
+                }
+            }
+
+            if ($image) {
+                // Constrain max dimensions to 1920px
+                $origWidth = imagesx($image);
+                $origHeight = imagesy($image);
+                $maxDim = 1920;
+
+                if ($origWidth > $maxDim || $origHeight > $maxDim) {
+                    if ($origWidth >= $origHeight) {
+                        $newWidth = $maxDim;
+                        $newHeight = (int) round(($origHeight / $origWidth) * $maxDim);
+                    } else {
+                        $newHeight = $maxDim;
+                        $newWidth = (int) round(($origWidth / $origHeight) * $maxDim);
+                    }
+                    $scaled = imagescale($image, $newWidth, $newHeight);
+                    if ($scaled) {
+                        imagedestroy($image);
+                        $image = $scaled;
+                    }
+                }
+
+                $safeName = Str::slug($nameOnly) . '-' . time() . '.webp';
+                $tempPath = tempnam(sys_get_temp_dir(), 'webp_');
+                $converted = imagewebp($image, $tempPath, 82);
+                imagedestroy($image);
+
+                if ($converted && file_exists($tempPath)) {
+                    $relativeFilePath = "{$folder}/{$safeName}";
+                    Storage::disk('public')->put($relativeFilePath, file_get_contents($tempPath));
+                    $fileSize = filesize($tempPath);
+                    @unlink($tempPath);
+
+                    return [
+                        'file_path' => $relativeFilePath,
+                        'mime_type' => 'image/webp',
+                        'file_size' => $fileSize,
+                        'safe_name' => $safeName,
+                    ];
+                }
+            }
+        }
+
+        // 3. Try conversion using Imagick if GD is not available
+        if (class_exists(\Imagick::class)) {
+            try {
+                $imagick = new \Imagick($file->getRealPath());
+                if (in_array('WEBP', $imagick->queryFormats())) {
+                    $imagick->setImageFormat('webp');
+                    $imagick->setImageCompressionQuality(82);
+
+                    $w = $imagick->getImageWidth();
+                    $h = $imagick->getImageHeight();
+                    if ($w > 1920 || $h > 1920) {
+                        $imagick->scaleImage(min($w, 1920), min($h, 1920), true);
+                    }
+
+                    $safeName = Str::slug($nameOnly) . '-' . time() . '.webp';
+                    $relativeFilePath = "{$folder}/{$safeName}";
+                    Storage::disk('public')->put($relativeFilePath, $imagick->getImageBlob());
+                    $fileSize = strlen($imagick->getImageBlob());
+                    $imagick->clear();
+                    $imagick->destroy();
+
+                    return [
+                        'file_path' => $relativeFilePath,
+                        'mime_type' => 'image/webp',
+                        'file_size' => $fileSize,
+                        'safe_name' => $safeName,
+                    ];
+                }
+            } catch (\Throwable $e) {
+                // Fallback to normal upload
+            }
+        }
+
+        // 4. Safe fallback: Store original file without modification
+        $safeName = Str::slug($nameOnly) . '-' . time() . '.' . $extension;
+        $filePath = $file->storeAs($folder, $safeName, 'public');
+
+        return [
+            'file_path' => $filePath,
+            'mime_type' => $file->getMimeType(),
+            'file_size' => $file->getSize(),
+            'safe_name' => $safeName,
+        ];
     }
 }
