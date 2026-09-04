@@ -1,10 +1,12 @@
 // Service Worker for PSCRanker PWA
-const CACHE_NAME = 'pscranker-v2';
+const CACHE_NAME = 'pscranker-v3';
 const STATIC_ASSETS = [
     '/',
     '/manifest.json',
-    '/images/mascot.jpg',
-    '/images/meme_card.jpg'
+    '/images/logo.png',
+    '/images/hero-mascot.webp',
+    '/images/hero-mascot.jpg',
+    '/images/mascot.jpg'
 ];
 
 self.addEventListener('install', (event) => {

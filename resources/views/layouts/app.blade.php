@@ -441,19 +441,23 @@
             canInstallPrompt: false,
 
             initPwa() {
-                // 1. Detect if already installed / standalone
+                // Remove legacy persistent localStorage flag that blocked reappearing after uninstall
+                try {
+                    localStorage.removeItem('pscranker_pwa_installed');
+                } catch (e) {}
+
+                // 1. Detect if currently running inside the installed standalone PWA window
                 const isStandalone = window.matchMedia('(display-mode: standalone)').matches 
                     || window.navigator.standalone === true 
-                    || (document.referrer && document.referrer.includes('android-app://'));
+                    || (document.referrer && document.referrer.includes('android-app://'))
+                    || window.location.search.includes('source=pwa');
 
-                const hasInstalledFlag = localStorage.getItem('pscranker_pwa_installed') === 'true';
-
-                if (isStandalone || hasInstalledFlag) {
+                if (isStandalone) {
                     this.isInstalled = true;
-                    return;
+                    return; // Inside standalone app window, do not show install prompt
                 }
 
-                // 2. Check if user dismissed recently
+                // 2. Check if user dismissed recently in this browser session
                 if (sessionStorage.getItem('pscranker_install_dismissed') === 'true') {
                     this.isDismissed = true;
                 }
@@ -467,18 +471,33 @@
                     e.preventDefault();
                     this.deferredPrompt = e;
                     this.canInstallPrompt = true;
+                    // Prompt is actively available, which means app is NOT currently installed!
+                    this.isInstalled = false;
+                    this.isDismissed = false; // Always re-show when installable
                 });
 
-                // 5. Hide immediately when app is installed in PC or mobile
+                // 5. Query modern getInstalledRelatedApps API if supported
+                if ('getInstalledRelatedApps' in navigator) {
+                    navigator.getInstalledRelatedApps().then((relatedApps) => {
+                        if (relatedApps && relatedApps.length > 0) {
+                            if (!this.deferredPrompt) {
+                                this.isInstalled = true;
+                            }
+                        } else {
+                            this.isInstalled = false;
+                        }
+                    }).catch(() => {});
+                }
+
+                // 6. When app installation completes, hide immediately
                 window.addEventListener('appinstalled', () => {
                     this.isInstalled = true;
                     this.deferredPrompt = null;
-                    localStorage.setItem('pscranker_pwa_installed', 'true');
                 });
             },
 
             shouldShow() {
-                // If installed in PC or mobile, NEVER show!
+                // If running inside the standalone app, never show!
                 if (this.isInstalled) return false;
                 if (this.isDismissed) return false;
 
@@ -491,7 +510,6 @@
                     const choiceResult = await this.deferredPrompt.userChoice;
                     if (choiceResult && choiceResult.outcome === 'accepted') {
                         this.isInstalled = true;
-                        localStorage.setItem('pscranker_pwa_installed', 'true');
                     }
                     this.deferredPrompt = null;
                 } else {
