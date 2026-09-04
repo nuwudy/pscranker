@@ -811,10 +811,224 @@
                     </div>
                 </div>
 
-                <!-- Two-Column / Stacked Layout: Questions on Left, OMR Sheet on Right -->
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- ========================================================= -->
+                <!-- MOBILE VIEW (< lg): Slidable Question Booklet + Instant OMR -->
+                <!-- ========================================================= -->
+                <div class="block lg:hidden space-y-4">
                     
-                    <!-- Left: Questions Viewer (7 cols on lg) -->
+                    <!-- 1. Slidable Active Question Card -->
+                    <template x-if="omrQuestions.length > 0 && omrQuestions[omrActiveIndex]">
+                        <div class="bg-white rounded-2xl border-2 border-slate-200 shadow-md p-4 transition-all">
+                            
+                            <!-- Card Header: Question Counter & Jumper Pills -->
+                            <div class="flex items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-100">
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-200 text-[#0052FF] font-black text-xs">
+                                        Question <span x-text="omrActiveIndex + 1"></span> of <span x-text="omrQuestions.length"></span>
+                                    </span>
+                                    <span x-show="omrAnswers[omrQuestions[omrActiveIndex].id]" class="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+                                        ✓ Bubbled
+                                    </span>
+                                </div>
+
+                                <!-- Prev / Next Mini Controls -->
+                                <div class="flex items-center gap-1">
+                                    <button 
+                                        type="button" 
+                                        @click="prevOmrQuestion()" 
+                                        :disabled="omrActiveIndex === 0"
+                                        class="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-bold text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition"
+                                    >
+                                        ◀
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        @click="nextOmrQuestion()" 
+                                        :disabled="omrActiveIndex === omrQuestions.length - 1"
+                                        class="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-bold text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition"
+                                    >
+                                        ▶
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Question Quick Jump Carousel -->
+                            <div class="flex items-center gap-1.5 overflow-x-auto pb-2 mb-3 scrollbar-none">
+                                <template x-for="(q, idx) in omrQuestions" :key="q.id">
+                                    <button 
+                                        type="button"
+                                        @click="selectOmrQuestion(idx)"
+                                        class="px-2.5 py-1 rounded-lg text-xs font-black transition-all shrink-0 flex items-center gap-1"
+                                        :class="omrActiveIndex === idx 
+                                            ? 'bg-[#0052FF] text-white ring-2 ring-blue-400 scale-105 shadow-xs' 
+                                            : (omrAnswers[q.id] 
+                                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' 
+                                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200')"
+                                    >
+                                        <span x-text="'Q' + (idx + 1)"></span>
+                                        <span x-show="omrAnswers[q.id]" class="text-[9px]">✓</span>
+                                    </button>
+                                </template>
+                            </div>
+
+                            <!-- Swipeable Question Content Area -->
+                            <div 
+                                @touchstart="handleTouchStart($event)" 
+                                @touchend="handleTouchEnd($event)"
+                                class="touch-pan-y"
+                            >
+                                <div class="mb-3">
+                                    <p class="text-xs sm:text-sm font-bold text-slate-900 font-['Outfit'] leading-relaxed" x-text="omrQuestions[omrActiveIndex].question_text"></p>
+                                    <template x-if="omrQuestions[omrActiveIndex].question_text_malayalam">
+                                        <p class="text-xs sm:text-sm font-semibold text-[#0052FF] mt-1.5 font-['Noto_Sans_Malayalam'] leading-relaxed" x-text="omrQuestions[omrActiveIndex].question_text_malayalam"></p>
+                                    </template>
+                                </div>
+
+                                <!-- 4 Tap-to-Bubble Options -->
+                                <div class="space-y-2 mt-3 text-xs font-['Noto_Sans_Malayalam']">
+                                    <template x-for="opt in getQuestionOptions(omrQuestions[omrActiveIndex])" :key="opt.key">
+                                        <button 
+                                            type="button"
+                                            @click="fillOmrBubble(omrQuestions[omrActiveIndex].id, opt.key)"
+                                            class="w-full p-3 rounded-xl border-2 transition-all flex items-center justify-between gap-2.5 text-left active:scale-[0.98] select-none"
+                                            :class="omrAnswers[omrQuestions[omrActiveIndex].id] === opt.key 
+                                                ? 'bg-slate-950 text-white border-slate-950 shadow-md ring-2 ring-yellow-400' 
+                                                : 'bg-slate-50 text-slate-800 border-slate-200 hover:border-blue-400 hover:bg-blue-50/40'"
+                                        >
+                                            <div class="flex items-center gap-2.5 min-w-0">
+                                                <span 
+                                                    class="w-6 h-6 rounded-full border-2 flex items-center justify-center text-[10px] font-black shrink-0 transition"
+                                                    :class="omrAnswers[omrQuestions[omrActiveIndex].id] === opt.key 
+                                                        ? 'bg-[#FFD200] text-slate-950 border-[#FFD200]' 
+                                                        : 'border-slate-300 text-slate-600'" 
+                                                    x-text="opt.key"
+                                                ></span>
+                                                <span class="truncate leading-snug" x-text="opt.text"></span>
+                                            </div>
+                                            <span x-show="omrAnswers[omrQuestions[omrActiveIndex].id] === opt.key" class="text-[9px] font-black px-2 py-0.5 rounded-full bg-yellow-400 text-slate-950 shrink-0">
+                                                ● BUBBLED
+                                            </span>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <!-- Card Bottom Navigation Bar -->
+                            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold">
+                                <button 
+                                    type="button" 
+                                    @click="prevOmrQuestion()" 
+                                    :disabled="omrActiveIndex === 0" 
+                                    class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 disabled:opacity-30 flex items-center gap-1 transition active:scale-95"
+                                >
+                                    <span>◀ Previous</span>
+                                </button>
+                                <span class="text-[10px] text-slate-400 hidden sm:inline">👈 Swipe to slide question 👉</span>
+                                <button 
+                                    type="button" 
+                                    @click="nextOmrQuestion()" 
+                                    :disabled="omrActiveIndex === omrQuestions.length - 1" 
+                                    class="px-3 py-1.5 rounded-lg bg-[#0052FF] text-white disabled:opacity-30 flex items-center gap-1 transition active:scale-95 shadow-xs"
+                                >
+                                    <span>Next Question ▶</span>
+                                </button>
+                            </div>
+
+                        </div>
+                    </template>
+
+                    <!-- 2. Mobile OMR Sheet (Directly Below Question Card) -->
+                    <div class="bg-[#FAFBFD] border-2 border-dashed border-slate-400/90 rounded-2xl p-4 font-mono shadow-sm">
+                        
+                        <!-- OMR Top Banner -->
+                        <div class="border-b-2 border-slate-300 pb-2 mb-3 text-center">
+                            <div class="text-[11px] font-bold text-slate-800 uppercase tracking-wider">KERALA PUBLIC SERVICE COMMISSION</div>
+                            <div class="text-[9px] text-slate-500 uppercase">OFFICIAL OBJECTIVE OMR SHEET</div>
+                            <div class="flex items-center justify-between text-[10px] text-slate-600 mt-1 font-bold">
+                                <span>SERIES: <strong>A</strong></span>
+                                <span>BUBBLED: <strong class="text-[#0052FF]" x-text="Object.keys(omrAnswers).length + ' / ' + omrQuestions.length"></strong></span>
+                            </div>
+                        </div>
+
+                        <!-- Bubble Rows -->
+                        <div class="space-y-2">
+                            <template x-for="(q, idx) in omrQuestions" :key="q.id">
+                                <div 
+                                    @click="selectOmrQuestion(idx)"
+                                    class="flex items-center justify-between p-2 rounded-xl transition cursor-pointer"
+                                    :class="omrActiveIndex === idx 
+                                        ? 'bg-blue-50/90 border-2 border-blue-500 ring-2 ring-blue-500/20 shadow-xs' 
+                                        : 'bg-white border border-slate-200/90'"
+                                >
+                                    <!-- Question Number & Active Indicator -->
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="text-xs font-black text-slate-800 w-5" x-text="(idx + 1) < 10 ? '0' + (idx + 1) : (idx + 1)"></span>
+                                        <span x-show="omrActiveIndex === idx" class="w-1.5 h-1.5 rounded-full bg-[#0052FF] animate-ping"></span>
+                                    </div>
+                                    
+                                    <!-- Bubble Options A B C D -->
+                                    <div class="flex items-center gap-2">
+                                        <template x-for="opt in ['A', 'B', 'C', 'D']" :key="opt">
+                                            <button 
+                                                type="button"
+                                                @click.stop="fillOmrBubble(q.id, opt); selectOmrQuestion(idx)"
+                                                class="w-7 h-7 rounded-full border-2 flex items-center justify-center text-[11px] font-bold transition-all duration-150 active:scale-90"
+                                                :class="omrAnswers[q.id] === opt 
+                                                    ? 'bg-slate-900 border-slate-950 text-white shadow-inner scale-105 ring-1 ring-slate-950' 
+                                                    : 'bg-white border-slate-400 text-slate-700 hover:border-slate-800'"
+                                            >
+                                                <span x-text="opt"></span>
+                                            </button>
+                                        </template>
+                                    </div>
+
+                                    <!-- Clear / Erase Button -->
+                                    <button 
+                                        type="button"
+                                        @click.stop="clearOmrBubble(q.id)" 
+                                        x-show="omrAnswers[q.id]"
+                                        class="text-slate-400 hover:text-red-500 text-xs transition p-1"
+                                        title="Erase bubble"
+                                    >
+                                        ✕
+                                    </button>
+                                    <span x-show="!omrAnswers[q.id]" class="w-4"></span>
+                                </div>
+                            </template>
+                        </div>
+
+                        <!-- OMR Micro Instructions -->
+                        <div class="mt-3 pt-2.5 border-t border-slate-200 text-[9px] text-slate-500 leading-tight space-y-1">
+                            <p>⚠️ Tap question row or options to bubble automatically.</p>
+                            <p>⚠️ Kerala PSC penalty: <strong>-0.33 marks</strong> for wrong bubbles.</p>
+                        </div>
+
+                        <!-- Submit OMR Button -->
+                        <div class="mt-4">
+                            <button 
+                                type="button"
+                                @click="submitOmrSheet()"
+                                :disabled="isSubmittingOmr"
+                                class="w-full py-3.5 px-4 bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-black text-sm rounded-xl shadow-lg transition flex items-center justify-center gap-2 border-2 border-yellow-400"
+                            >
+                                <span x-show="!isSubmittingOmr">SUBMIT OMR SHEET 📝</span>
+                                <span x-show="isSubmittingOmr" class="flex items-center gap-2">
+                                    <span class="w-4 h-4 border-2 border-white border-t-yellow-400 rounded-full animate-spin"></span>
+                                    <span>Calculating Rank Score...</span>
+                                </span>
+                            </button>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- ========================================================= -->
+                <!-- DESKTOP VIEW (>= lg): The Classic "Cute" Side-by-Side View -->
+                <!-- ========================================================= -->
+                <div class="hidden lg:grid lg:grid-cols-12 gap-6">
+                    
+                    <!-- Left: Questions Viewer with Clickable Options (7 cols) -->
                     <div class="lg:col-span-7 space-y-4">
                         <div class="bg-blue-50/60 p-3 rounded-xl border border-blue-100 text-xs font-bold text-blue-900 flex items-center justify-between">
                             <span>📋 Read questions carefully before darkening bubbles:</span>
@@ -837,15 +1051,27 @@
                                         </div>
                                     </div>
 
-                                    <!-- 4 Options in compact format -->
+                                    <!-- 4 Options in compact format: Now directly clickable with live bubbling! -->
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 text-xs font-['Noto_Sans_Malayalam']">
                                         <template x-for="opt in getQuestionOptions(q)" :key="opt.key">
                                             <div 
-                                                class="p-2 rounded-lg border transition-colors flex items-center gap-2"
-                                                :class="omrAnswers[q.id] === opt.key ? 'bg-slate-900 text-white font-bold border-slate-900' : 'bg-slate-50 text-slate-700 border-slate-200'"
+                                                @click="fillOmrBubble(q.id, opt.key)"
+                                                class="p-2.5 rounded-lg border transition-all flex items-center justify-between gap-2 cursor-pointer select-none active:scale-[0.99]"
+                                                :class="omrAnswers[q.id] === opt.key 
+                                                    ? 'bg-slate-900 text-white font-bold border-slate-900 shadow-xs ring-2 ring-yellow-400' 
+                                                    : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-blue-400 hover:bg-blue-50/50'"
                                             >
-                                                <span class="w-4 h-4 rounded-full border flex items-center justify-center text-[10px] font-black shrink-0" :class="omrAnswers[q.id] === opt.key ? 'border-white text-white' : 'border-slate-400 text-slate-600'" x-text="opt.key"></span>
-                                                <span class="truncate" x-text="opt.text"></span>
+                                                <div class="flex items-center gap-2 min-w-0">
+                                                    <span 
+                                                        class="w-4 h-4 rounded-full border flex items-center justify-center text-[10px] font-black shrink-0 transition"
+                                                        :class="omrAnswers[q.id] === opt.key ? 'bg-yellow-400 text-slate-950 border-yellow-400' : 'border-slate-400 text-slate-600'" 
+                                                        x-text="opt.key"
+                                                    ></span>
+                                                    <span class="truncate" x-text="opt.text"></span>
+                                                </div>
+                                                <span x-show="omrAnswers[q.id] === opt.key" class="text-[9px] font-black text-yellow-300">
+                                                    ✓ Bubbled
+                                                </span>
                                             </div>
                                         </template>
                                     </div>
@@ -905,7 +1131,7 @@
 
                             <!-- OMR Micro Instructions -->
                             <div class="mt-4 pt-3 border-t border-slate-200 text-[9px] text-slate-500 leading-tight space-y-1">
-                                <p>⚠️ Click/tap circles to simulate dark ballpoint pen filling.</p>
+                                <p>⚠️ Click/tap circles or options to simulate dark ballpoint pen filling.</p>
                                 <p>⚠️ Kerala PSC penalty: <strong>-0.33 marks</strong> for wrong bubbles.</p>
                             </div>
 
@@ -1174,6 +1400,9 @@ function sessionEngine(config) {
 
         // Phase 4: OMR Grid State
         omrAnswers: {},
+        omrActiveIndex: 0,
+        mobileOmrView: 'slide', // 'slide' (compact slidable booklet) or 'all' (full list)
+        touchStartX: 0,
         isSubmittingOmr: false,
         omrSummary: null,
         omrDetails: [],
@@ -1372,9 +1601,47 @@ function sessionEngine(config) {
         // -------------------------------------------------------------
         // Phase 4: OMR Sheet Simulation Logic
         // -------------------------------------------------------------
+        selectOmrQuestion(index) {
+            if (index >= 0 && index < this.omrQuestions.length) {
+                this.omrActiveIndex = index;
+            }
+        },
+
+        nextOmrQuestion() {
+            if (this.omrActiveIndex + 1 < this.omrQuestions.length) {
+                this.omrActiveIndex++;
+            }
+        },
+
+        prevOmrQuestion() {
+            if (this.omrActiveIndex > 0) {
+                this.omrActiveIndex--;
+            }
+        },
+
+        handleTouchStart(e) {
+            if (e.changedTouches && e.changedTouches[0]) {
+                this.touchStartX = e.changedTouches[0].screenX;
+            }
+        },
+
+        handleTouchEnd(e) {
+            if (!this.touchStartX || !e.changedTouches || !e.changedTouches[0]) return;
+            const diff = e.changedTouches[0].screenX - this.touchStartX;
+            if (diff > 45) this.prevOmrQuestion();
+            if (diff < -45) this.nextOmrQuestion();
+            this.touchStartX = 0;
+        },
+
         fillOmrBubble(questionId, option) {
             this.omrAnswers[questionId] = option;
             if (window.PscSound) window.PscSound.playTick();
+
+            // Sync active index to this question
+            const qIdx = this.omrQuestions.findIndex(q => q.id === questionId);
+            if (qIdx !== -1) {
+                this.omrActiveIndex = qIdx;
+            }
         },
 
         clearOmrBubble(questionId) {
