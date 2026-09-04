@@ -101,6 +101,9 @@
                     <a href="{{ route('omr.simulator') }}" class="px-3.5 py-2 rounded-lg transition {{ request()->routeIs('omr.*') ? 'text-[#0052FF] bg-blue-50 font-extrabold' : 'hover:text-[#0052FF] hover:bg-slate-50' }}">
                         OMR Practice
                     </a>
+                    <a href="{{ route('pricing') }}" class="px-3.5 py-2 rounded-lg transition {{ request()->routeIs('pricing') ? 'text-[#0052FF] bg-blue-50 font-extrabold' : 'hover:text-[#0052FF] hover:bg-slate-50' }}">
+                        Pricing ⚡
+                    </a>
                 </nav>
 
                 <!-- Action CTA Buttons (Guest vs Authenticated Admin) -->
@@ -165,6 +168,7 @@
                         <a href="{{ route('leaderboard') }}" class="px-4 py-2.5 rounded-xl hover:bg-blue-50 text-slate-800">🏆 Daily Leaderboard</a>
                         <a href="{{ route('memebank') }}" class="px-4 py-2.5 rounded-xl hover:bg-blue-50 text-slate-800">😂 MemeBank Mnemonics</a>
                         <a href="{{ route('omr.simulator') }}" class="px-4 py-2.5 rounded-xl hover:bg-blue-50 text-slate-800">📝 OMR Bubble Simulator</a>
+                        <a href="{{ route('pricing') }}" class="px-4 py-2.5 rounded-xl hover:bg-blue-50 text-[#0052FF] font-black">⚡ Pricing &amp; Prepaid Plans</a>
                         
                         @guest
                             <div class="pt-2 border-t border-slate-100 flex flex-col gap-2">
@@ -200,52 +204,126 @@
         @yield('content')
     </main>
 
-    <!-- Footer with Kerala PSC Disclaimer & Quick Links -->
-    <footer class="bg-slate-900 text-slate-300 border-t border-slate-800 pt-12 pb-8 mt-16">
+    <!-- ============================================================= -->
+    <!-- FOOTER WITH RAZORPAY COMPLIANCE, POLICIES & PAYMENT BADGES -->
+    <!-- ============================================================= -->
+    <footer class="bg-slate-950 text-slate-300 border-t border-slate-800 pt-14 pb-10 mt-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-                <!-- Brand Info -->
-                <div class="col-span-1 md:col-span-2">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
+                
+                <!-- Brand Info & Mission (Col 1-2) -->
+                <div class="lg:col-span-2">
                     <div class="flex items-center gap-2 mb-3">
                         <span class="text-2xl text-yellow-400">⚡</span>
                         <span class="text-2xl font-black text-white">PSC<span class="text-blue-400">RANKER</span><span class="text-amber-400">.com</span></span>
                     </div>
-                    <p class="text-sm text-slate-400 max-w-md leading-relaxed">
-                        Kerala's first high-energy gamified exam preparation platform. We turn dry PSC textbooks into fast-paced speed drills, funny meme mnemonics, and real-time negative marking mastery!
+                    <p class="text-xs sm:text-sm text-slate-400 max-w-sm leading-relaxed mb-4">
+                        Kerala's gamified competitive exam training ecosystem. Real-time OMR simulation with negative marking penalty practice, Malayalam meme mnemonics, and speed drills.
                     </p>
-                    <p class="text-xs text-slate-500 mt-2 font-mono">
-                        Designed for LDC, Secretariat Assistant, CPO, LGS, KAS & Fireman aspirants.
-                    </p>
+
+                    <!-- Razorpay Accepted Payments Badge -->
+                    <div class="p-3.5 bg-slate-900 rounded-2xl border border-slate-800 max-w-md">
+                        <div class="flex items-center justify-between text-[11px] font-bold text-slate-300 mb-2">
+                            <span>100% Secure Payments</span>
+                            <span class="text-blue-400 flex items-center gap-1 font-mono">
+                                🔒 Razorpay Verified
+                            </span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2 text-[10px] font-mono">
+                            <span class="px-2 py-1 bg-slate-800 text-yellow-400 rounded-md font-black">UPI</span>
+                            <span class="px-2 py-1 bg-slate-800 text-emerald-400 rounded-md font-black">PhonePe</span>
+                            <span class="px-2 py-1 bg-slate-800 text-blue-400 rounded-md font-black">Google Pay</span>
+                            <span class="px-2 py-1 bg-slate-800 text-amber-300 rounded-md font-black">Paytm</span>
+                            <span class="px-2 py-1 bg-slate-800 text-slate-200 rounded-md font-black">RuPay</span>
+                            <span class="px-2 py-1 bg-slate-800 text-slate-200 rounded-md font-black">Visa/MC</span>
+                            <span class="px-2 py-1 bg-slate-800 text-purple-300 rounded-md font-black">NetBanking</span>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Fast Links -->
+                <!-- Column 2: Gamified Modules -->
                 <div>
-                    <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-3">Gamified Prep</h4>
-                    <ul class="space-y-2 text-sm">
-                        <li><a href="{{ route('drill.show') }}" class="hover:text-yellow-400 transition">3-Min Rapid Fire Drill</a></li>
+                    <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-4 border-b border-slate-800 pb-2">Training Engine</h4>
+                    <ul class="space-y-2.5 text-xs">
+                        <li><a href="{{ route('courses') }}" class="hover:text-yellow-400 transition">4-Phase Course Units</a></li>
+                        <li><a href="{{ route('drill.show') }}" class="hover:text-yellow-400 transition">3-Min Speed Blitz</a></li>
                         <li><a href="{{ route('omr.simulator') }}" class="hover:text-yellow-400 transition">OMR Bubble Simulator</a></li>
                         <li><a href="{{ route('memebank') }}" class="hover:text-yellow-400 transition">Meme Mnemonics Vault</a></li>
                         <li><a href="{{ route('leaderboard') }}" class="hover:text-yellow-400 transition">Daily Speed Duel</a></li>
                     </ul>
                 </div>
 
-                <!-- Disclaimer & Tech -->
+                <!-- Column 3: Razorpay Mandatory Compliance Links -->
                 <div>
-                    <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-3">Community & Safety</h4>
-                    <p class="text-xs text-slate-400 leading-relaxed">
-                        PSCRanker.com is an independent community learning portal. Not affiliated with the official Kerala Public Service Commission (KPSC).
-                    </p>
-                    <div class="mt-4 flex items-center gap-2 text-xs text-slate-400">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        <span>All systems operational on OpenLiteSpeed</span>
+                    <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-4 border-b border-slate-800 pb-2">Policy &amp; Legal</h4>
+                    <ul class="space-y-2.5 text-xs">
+                        <li>
+                            <a href="{{ route('terms') }}" class="hover:text-yellow-400 transition flex items-center gap-1.5">
+                                <span>Terms &amp; Conditions</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('privacy') }}" class="hover:text-yellow-400 transition flex items-center gap-1.5">
+                                <span>Privacy Policy</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('refund-policy') }}" class="hover:text-yellow-400 transition flex items-center gap-1.5">
+                                <span>Cancellation &amp; Refund Policy</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('pricing') }}" class="hover:text-yellow-400 transition flex items-center gap-1.5">
+                                <span>Prepaid Plans &amp; Pricing</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('contact') }}" class="hover:text-yellow-400 transition flex items-center gap-1.5">
+                                <span>Contact Us &amp; Grievance</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Column 4: Contact & Grievance Details -->
+                <div>
+                    <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-4 border-b border-slate-800 pb-2">Support Desk</h4>
+                    <div class="space-y-2.5 text-xs text-slate-400">
+                        <div>
+                            <span class="block text-slate-300 font-bold">Email Support:</span>
+                            <a href="mailto:admin@pscranker.com" class="text-[#0052FF] hover:underline font-mono">admin@pscranker.com</a>
+                        </div>
+                        <div>
+                            <span class="block text-slate-300 font-bold">Operating Hours:</span>
+                            <span>Mon – Sat: 9:00 AM – 7:00 PM</span>
+                        </div>
+                        <div>
+                            <span class="block text-slate-300 font-bold">Location:</span>
+                            <span>Kerala, India</span>
+                        </div>
+                        <div class="pt-2 text-[10px] text-slate-500">
+                            PSCRanker.com is an independent learning portal and is not affiliated with the official Kerala PSC.
+                        </div>
                     </div>
+                </div>
+
+            </div>
+
+            <!-- Bottom Legal Bar -->
+            <div class="pt-6 border-t border-slate-800/80 text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-3">
+                <div class="flex flex-wrap items-center gap-4">
+                    <span>&copy; {{ date('Y') }} PSCRANKER.com. All rights reserved.</span>
+                    <a href="{{ route('terms') }}" class="hover:underline">Terms</a>
+                    <a href="{{ route('privacy') }}" class="hover:underline">Privacy</a>
+                    <a href="{{ route('refund-policy') }}" class="hover:underline">Refunds</a>
+                    <a href="{{ route('contact') }}" class="hover:underline">Contact</a>
+                </div>
+                <div class="text-slate-400 font-semibold font-['Noto_Sans_Malayalam']">
+                    പഠിക്കാം, ജയിക്കാം, ജോലി വാങ്ങാം! 🚀
                 </div>
             </div>
 
-            <div class="pt-6 border-t border-slate-800 text-center text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-3">
-                <span>&copy; {{ date('Y') }} PSCRANKER.com. All rights reserved. Crafted with passion for Malayali exam warriors.</span>
-                <span class="text-slate-400 font-semibold">പഠിക്കാം, ജയിക്കാം, ജോലി വാങ്ങാം! 🚀</span>
-            </div>
         </div>
     </footer>
 

@@ -85,17 +85,16 @@
 
                 <!-- PG Buttons preview -->
                 <div class="mt-4 pt-4 border-t border-slate-800">
-                    <button 
-                        type="button"
-                        onclick="alert('Razorpay / PhonePe Payment Gateway is being connected! Please contact admin@pscranker.com for instant access.')"
+                    <a 
+                        href="{{ route('pricing') }}" 
                         class="w-full py-3.5 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-black text-sm rounded-xl shadow-lg transition flex items-center justify-center gap-2 active:scale-95"
                     >
                         <span>Unlock with UPI / PhonePe / Razorpay 🚀</span>
-                    </button>
-                    <div class="flex items-center justify-center gap-3 mt-2 text-[10px] text-slate-400">
-                        <span>🔒 256-Bit Encrypted</span>
+                    </a>
+                    <div class="flex items-center justify-center gap-3 mt-2.5 text-[10px] text-slate-400">
+                        <span>🔒 256-Bit Razorpay</span>
                         <span>•</span>
-                        <span>PhonePe / GPay / Cards</span>
+                        <span>UPI / PhonePe / GPay / Cards</span>
                     </div>
                 </div>
             </div>

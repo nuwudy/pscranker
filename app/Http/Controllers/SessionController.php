@@ -57,9 +57,10 @@ class SessionController extends Controller
         $totalUnits = (clone $categorySessionsQuery)->count();
         $unitNumber = (clone $categorySessionsQuery)->where('order', '<=', $session->order)->count() ?: $session->order;
 
-        // Premium gating check (Admins always bypass)
+        // Premium gating check (Admins and active subscribers bypass)
         $isAdmin = auth()->check() && (auth()->user()->email === 'admin@pscranker.com' || auth()->user()->is_admin ?? false);
-        $isLocked = $session->is_premium && !$isAdmin;
+        $isSubscribed = auth()->check() && auth()->user()->isSubscribed();
+        $isLocked = $session->is_premium && !($isAdmin || $isSubscribed);
 
         return view('pages.session-runner', compact(
             'session',

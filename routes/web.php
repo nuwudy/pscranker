@@ -41,11 +41,24 @@ Route::get('/omr-simulator', [OmrController::class, 'index'])->name('omr.simulat
 
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\MediaController;
+use App\Http\Controllers\PricingController;
+
+// Prepaid Pricing Engine & Razorpay Checkout
+Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
+Route::post('/subscription/create-order', [PricingController::class, 'createOrder'])->name('subscription.create-order');
+Route::post('/subscription/verify-payment', [PricingController::class, 'verifyPayment'])->name('subscription.verify-payment');
+
+// Mandatory Razorpay Compliance & Policy Pages
+Route::get('/terms', [PricingController::class, 'terms'])->name('terms');
+Route::get('/privacy', [PricingController::class, 'privacy'])->name('privacy');
+Route::get('/refund-policy', [PricingController::class, 'refundPolicy'])->name('refund-policy');
+Route::get('/contact', [PricingController::class, 'contact'])->name('contact');
 
 // Admin Mission Control Dashboard & Content Builder Routes (Protected by Auth)
 Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('dashboard', [DashboardController::class, 'index']);
+    Route::post('settings/pricing', [DashboardController::class, 'updatePricingSettings'])->name('settings.pricing');
     Route::resource('sessions', AdminSessionController::class);
     Route::get('media', [MediaController::class, 'index'])->name('media.index');
     Route::get('media/api-list', [MediaController::class, 'apiList'])->name('media.api-list');
