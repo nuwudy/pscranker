@@ -194,3 +194,70 @@ test('login page can be rendered and user can log in', function () {
     $loginResponse->assertRedirect(route('admin.dashboard'));
     $this->assertAuthenticatedAs($user);
 });
+
+test('mcq added in admin session builder automatically appears on omr sheet and powers omr scoring', function () {
+    $user = \App\Models\User::factory()->create();
+
+    $response = $this->actingAs($user)->put(route('admin.sessions.update', $this->session), [
+        'title' => 'Updated Unified Session',
+        'slug' => 'updated-unified-session',
+        'order' => 1,
+        'xp_reward' => 200,
+        'is_active' => '1',
+        'questions_json' => json_encode([
+            [
+                'phase_type' => 'reinforcement',
+                'question_text' => 'Where did the Aruvipuram consecration take place?',
+                'option_a' => 'Neyyar Riverbank',
+                'option_b' => 'Karamana',
+                'option_c' => 'Periyar',
+                'option_d' => 'Alappuzha',
+                'correct_option' => 'A',
+            ]
+        ]),
+    ]);
+
+    $response->assertRedirect();
+
+    // Verify question is present as both reinforcement and omr
+    $this->assertDatabaseHas('questions', [
+        'session_id' => $this->session->id,
+        'phase_type' => 'reinforcement',
+        'question_text' => 'Where did the Aruvipuram consecration take place?',
+    ]);
+
+    $this->assertDatabaseHas('questions', [
+        'session_id' => $this->session->id,
+        'phase_type' => 'omr',
+        'question_text' => 'Where did the Aruvipuram consecration take place?',
+    ]);
+
+    // Verify session runner loads this question for both reinforcement and omr
+    $runnerResponse = $this->get(route('session.show', 'updated-unified-session'));
+    $runnerResponse->assertStatus(200);
+    $runnerResponse->assertSee('Where did the Aruvipuram consecration take place?');
+
+    // Verify OMR submission scores properly against this question
+    $omrQuestion = \App\Models\Question::where('session_id', $this->session->id)
+        ->where('phase_type', 'omr')
+        ->first();
+
+    $submitResponse = $this->postJson(route('api.session.omr-submit', $this->session->id), [
+        'answers' => [
+            $omrQuestion->id => 'A',
+        ],
+        'time_taken_seconds' => 10,
+    ]);
+
+    $submitResponse->assertStatus(200);
+    $submitResponse->assertJson([
+        'success' => true,
+        'summary' => [
+            'total_questions' => 1,
+            'correct' => 1,
+            'wrong' => 0,
+            'net_marks' => 1,
+        ]
+    ]);
+});
+

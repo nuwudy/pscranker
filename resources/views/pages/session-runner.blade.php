@@ -12,8 +12,8 @@
         categoryName: @js($session->category ? $session->category->name : 'Kerala PSC'),
         diagnostic: @js($session->diagnosticQuestion),
         contents: @js($session->contents),
-        reinforcement: @js($session->reinforcementQuestions),
-        omrQuestions: @js($session->omrQuestions),
+        reinforcement: @js($session->effective_reinforcement_questions),
+        omrQuestions: @js($session->effective_omr_questions),
         progressSaveUrl: @js(route('api.session.progress', $session->id)),
         omrSubmitUrl: @js(route('api.session.omr-submit', $session->id)),
         csrfToken: '{{ csrf_token() }}'

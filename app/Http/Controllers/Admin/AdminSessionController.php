@@ -98,8 +98,15 @@ class AdminSessionController extends Controller
 
         $contents = $session->contents()->orderBy('order', 'asc')->get();
         $diagnosticQuestions = $session->questions()->where('phase_type', 'diagnostic')->get();
-        $reinforcementQuestions = $session->questions()->where('phase_type', 'reinforcement')->get();
-        $omrQuestions = $session->questions()->where('phase_type', 'omr')->get();
+
+        // Unified MCQs: union of reinforcement and omr (deduplicated so each question appears only once)
+        $reinforcementQuestions = $session->questions()
+            ->whereIn('phase_type', ['reinforcement', 'omr'])
+            ->get()
+            ->unique(fn($q) => trim($q->question_text . '|' . $q->question_text_malayalam))
+            ->values();
+
+        $omrQuestions = $reinforcementQuestions;
 
         return view('admin.sessions.form', [
             'session' => $session,
@@ -186,10 +193,12 @@ class AdminSessionController extends Controller
 
             foreach ($questionsData as $q) {
                 if (!empty($q['question_text'])) {
+                    $phaseType = $q['phase_type'] ?? 'reinforcement';
+
                     Question::create([
                         'session_id' => $session->id,
                         'category_id' => $session->category_id,
-                        'phase_type' => $q['phase_type'] ?? 'reinforcement',
+                        'phase_type' => $phaseType,
                         'question_text' => $q['question_text'],
                         'question_text_malayalam' => $q['question_text_malayalam'] ?? null,
                         'option_a' => $q['option_a'] ?? '',
@@ -205,6 +214,29 @@ class AdminSessionController extends Controller
                         'points' => 1.00,
                         'negative_points' => 0.33,
                     ]);
+
+                    // Auto-mirror reinforcement MCQs as OMR questions so they appear in OMR test automatically
+                    if ($phaseType === 'reinforcement') {
+                        Question::create([
+                            'session_id' => $session->id,
+                            'category_id' => $session->category_id,
+                            'phase_type' => 'omr',
+                            'question_text' => $q['question_text'],
+                            'question_text_malayalam' => $q['question_text_malayalam'] ?? null,
+                            'option_a' => $q['option_a'] ?? '',
+                            'option_b' => $q['option_b'] ?? '',
+                            'option_c' => $q['option_c'] ?? '',
+                            'option_d' => $q['option_d'] ?? '',
+                            'correct_option' => strtoupper(trim($q['correct_option'] ?? 'A')),
+                            'explanation' => $q['explanation'] ?? null,
+                            'explanation_malayalam' => $q['explanation_malayalam'] ?? null,
+                            'trap_warning' => $q['trap_warning_text'] ?? ($q['trap_warning'] ?? null),
+                            'trap_warning_text' => $q['trap_warning_text'] ?? ($q['trap_warning'] ?? null),
+                            'psc_exam_reference' => $q['psc_exam_reference'] ?? null,
+                            'points' => 1.00,
+                            'negative_points' => 0.33,
+                        ]);
+                    }
                 }
             }
         }

@@ -111,6 +111,20 @@ class Session extends Model
         return $this->hasMany(Question::class, 'session_id')->where('phase_type', 'omr');
     }
 
+    public function getEffectiveOmrQuestionsAttribute()
+    {
+        return $this->omrQuestions->isNotEmpty()
+            ? $this->omrQuestions
+            : $this->reinforcementQuestions;
+    }
+
+    public function getEffectiveReinforcementQuestionsAttribute()
+    {
+        return $this->reinforcementQuestions->isNotEmpty()
+            ? $this->reinforcementQuestions
+            : $this->omrQuestions;
+    }
+
     public function progress(): HasMany
     {
         return $this->hasMany(UserSessionProgress::class, 'session_id');

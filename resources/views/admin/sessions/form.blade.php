@@ -385,22 +385,25 @@
                 </div>
             </div>
 
-            <!-- 3. Question Bank per Phase -->
+            <!-- 3. Question Bank: Diagnostic Hook & Unified MCQs -->
             <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs mb-8">
-                <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-100">
                     <div>
-                        <h2 class="text-base font-black text-slate-900">
-                            3. Questions by Phase (Diagnostic, Reinforcement, OMR)
+                        <h2 class="text-base font-black text-slate-900 flex items-center gap-2">
+                            <span>3. Questions by Phase (Diagnostic Hook &amp; Unified MCQs)</span>
+                            <span class="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-black uppercase tracking-wider">
+                                ⚡ Auto-Synced with OMR
+                            </span>
                         </h2>
-                        <p class="text-xs text-slate-500 font-medium">Assign questions with options A-D, correct answer, and PSC trap warning copy.</p>
+                        <p class="text-xs text-slate-500 font-medium mt-1">
+                            Any question added below automatically powers both <strong>Phase 3 (Speed Blitz Practice)</strong> AND <strong>Phase 4 (Timed Kerala PSC OMR Sheet)</strong>. You only edit questions in this one place!
+                        </p>
                     </div>
 
-                    <div class="flex items-center gap-2">
-                        <button type="button" @click="addQuestion('reinforcement')" class="px-2.5 py-1.5 bg-yellow-50 text-yellow-800 border border-yellow-300 text-xs font-bold rounded-lg hover:bg-yellow-100 transition">
-                            + Blitz MCQ
-                        </button>
-                        <button type="button" @click="addQuestion('omr')" class="px-2.5 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition">
-                            + OMR Question
+                    <div class="flex items-center gap-2 shrink-0">
+                        <button type="button" @click="addQuestion('reinforcement')" class="px-4 py-2 bg-[#0052FF] hover:bg-blue-700 active:scale-95 text-white text-xs font-black rounded-xl shadow-md transition flex items-center gap-1.5">
+                            <span>+ Add Question</span>
+                            <span>⚡</span>
                         </button>
                     </div>
                 </div>
@@ -464,19 +467,18 @@
                     </div>
                 </div>
 
-                <!-- B. Phase 3 & 4 Questions List -->
+                <!-- B. Phase 3 & 4 Unified Questions List -->
                 <div class="space-y-4">
                     <template x-for="(q, idx) in nonDiagnosticQuestions" :key="idx">
-                        <div class="p-4 rounded-xl border border-slate-200 bg-white text-xs">
-                            <div class="flex items-center justify-between mb-2">
+                        <div class="p-4 rounded-xl border border-slate-200 bg-white text-xs shadow-xs">
+                            <div class="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
                                 <div class="flex items-center gap-2">
-                                    <span class="w-5 h-5 rounded bg-slate-700 text-white font-bold flex items-center justify-center" x-text="idx + 1"></span>
-                                    <select x-model="q.phase_type" class="px-2 py-0.5 rounded border border-slate-300 font-bold">
-                                        <option value="reinforcement">Phase 3: Speed Blitz MCQ</option>
-                                        <option value="omr">Phase 4: Final OMR Question</option>
-                                    </select>
+                                    <span class="w-6 h-6 rounded-lg bg-[#0052FF] text-white font-black text-xs flex items-center justify-center shadow-xs" x-text="'Q' + (idx + 1)"></span>
+                                    <span class="px-2.5 py-0.5 rounded-full bg-blue-50 text-[#0052FF] border border-blue-200 font-black text-[10px] tracking-wide flex items-center gap-1">
+                                        <span>⚡ Synced: Phase 3 (Blitz MCQ) &amp; Phase 4 (OMR Sheet)</span>
+                                    </span>
                                 </div>
-                                <button type="button" @click="removeQuestion(idx)" class="text-red-500 hover:text-red-700 font-bold">
+                                <button type="button" @click="removeQuestion(idx)" class="text-red-500 hover:text-red-700 font-bold hover:bg-red-50 px-2.5 py-1 rounded-lg transition">
                                     ✕ Remove
                                 </button>
                             </div>
@@ -859,9 +861,9 @@ function adminSessionBuilder(initial) {
             }
         },
 
-        addQuestion(phase) {
+        addQuestion(phase = 'reinforcement') {
             this.nonDiagnosticQuestions.push({
-                phase_type: phase,
+                phase_type: 'reinforcement',
                 question_text: '',
                 question_text_malayalam: '',
                 option_a: '',
@@ -885,6 +887,9 @@ function adminSessionBuilder(initial) {
                 this.diagnosticQ.phase_type = 'diagnostic';
                 this.allQuestions.push(this.diagnosticQ);
             }
+            this.nonDiagnosticQuestions.forEach(q => {
+                q.phase_type = 'reinforcement';
+            });
             this.allQuestions.push(...this.nonDiagnosticQuestions);
         }
     };

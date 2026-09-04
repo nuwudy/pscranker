@@ -138,7 +138,7 @@ class SessionController extends Controller
      */
     public function submitOmr(Request $request, int $id): JsonResponse
     {
-        $session = Session::with('omrQuestions')->findOrFail($id);
+        $session = Session::with(['omrQuestions', 'reinforcementQuestions'])->findOrFail($id);
 
         $validated = $request->validate([
             'answers' => 'required|array', // [question_id => selected_option (A/B/C/D)]
@@ -146,7 +146,7 @@ class SessionController extends Controller
             'guest_token' => 'nullable|string',
         ]);
 
-        $omrQuestions = $session->omrQuestions;
+        $omrQuestions = $session->effective_omr_questions;
         $submittedAnswers = $validated['answers'];
 
         $correctCount = 0;
