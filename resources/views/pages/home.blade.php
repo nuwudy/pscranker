@@ -112,12 +112,12 @@
                 </div>
 
                 <!-- Mascot Illustration Image -->
-                <div class="relative z-10 w-full max-w-[380px] sm:max-w-[430px] rounded-3xl p-2 group">
+                <div class="relative z-10 w-full max-w-[380px] sm:max-w-[440px] rounded-3xl p-2 group">
                     <img 
-                        src="{{ asset('images/hero-mascot.webp') }}" 
-                        onerror="this.onerror=null; this.src='{{ asset('images/hero-mascot.jpg') }}'"
+                        src="{{ asset('images/hero-mascot.webp?v=2') }}" 
+                        onerror="this.onerror=null; this.src='{{ asset('images/hero-mascot.jpg?v=2') }}'"
                         alt="Kerala PSC Candidate Super Speed Runner" 
-                        class="w-full h-auto object-cover rounded-3xl shadow-2xl border-4 border-white transition-transform duration-300 group-hover:scale-[1.01]"
+                        class="w-full h-auto object-contain rounded-3xl shadow-2xl border-4 border-white transition-transform duration-300 group-hover:scale-[1.01] bg-white"
                     >
                 </div>
 
