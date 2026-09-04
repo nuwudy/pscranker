@@ -9,12 +9,29 @@
     <meta name="description" content="Gamified Kerala PSC exam prep with 3-minute rapid speed drills, Malayalam meme mnemonics, OMR bubble simulator, and real-time negative marking training.">
     <meta name="theme-color" content="#0052FF">
 
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="48x48" href="/images/favicon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+    <link rel="shortcut icon" href="/favicon.ico">
+
     <!-- PWA Web App Manifest & Apple Mobile Tags -->
     <link rel="manifest" href="/manifest.json">
-    <link rel="apple-touch-icon" href="/images/mascot.jpg">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="PSCRanker">
+
+    <!-- Social Share & Open Graph Meta Tags (WhatsApp, Telegram, Facebook, Twitter) -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="PSCRanker.com">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:title" content="@yield('title', 'PSCRanker.com — Crack Kerala PSC with Super Speed!')">
+    <meta property="og:description" content="Gamified Kerala PSC exam prep with 3-minute rapid speed drills, Malayalam meme mnemonics, OMR bubble simulator, and real-time negative marking training.">
+    <meta property="og:image" content="{{ asset('images/og-share.png') }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="@yield('title', 'PSCRanker.com — Crack Kerala PSC with Super Speed!')">
+    <meta name="twitter:description" content="Gamified Kerala PSC exam prep with 3-minute rapid speed drills, Malayalam meme mnemonics, OMR bubble simulator, and real-time negative marking training.">
+    <meta name="twitter:image" content="{{ asset('images/og-share.png') }}">
 
     <!-- Google Fonts: Outfit & Noto Sans Malayalam -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -61,20 +78,9 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-20">
                 
-                <!-- Logo: ⚡ PSCRANKER.com (Behance Exact Style) -->
-                <a href="{{ route('home') }}" class="flex items-center gap-2 group transition-transform active:scale-95">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#0052FF] to-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/25 group-hover:shadow-blue-500/40 transition">
-                        <span class="text-2xl transform group-hover:rotate-12 transition">⚡</span>
-                    </div>
-                    <div class="flex flex-col">
-                        <div class="flex items-center tracking-tight">
-                            <span class="text-2xl sm:text-3xl font-black text-[#0052FF] tracking-tighter">PSC</span>
-                            <span class="text-2xl sm:text-3xl font-black text-[#0052FF] tracking-tighter">RANKER</span>
-                            <span class="text-lg sm:text-xl font-black text-amber-500">.com</span>
-                            <span class="text-xs text-yellow-500 ml-0.5">★</span>
-                        </div>
-                        <span class="text-[9px] font-bold tracking-wider text-slate-500 uppercase -mt-1 hidden sm:block">Kerala PSC Gamified Drill</span>
-                    </div>
+                <!-- Logo: Official Brand Logo -->
+                <a href="{{ route('home') }}" class="flex items-center gap-3 group transition-transform active:scale-95 py-1">
+                    <img src="{{ asset('images/logo.png') }}" alt="PSCRanker.com" class="h-9 sm:h-11 w-auto object-contain">
                 </a>
 
                 <!-- Desktop Navigation Links (Behance Mockup: Home, Courses, Speed Drills, Leaderboard, MemeBank, My Profile) -->
