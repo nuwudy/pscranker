@@ -816,121 +816,92 @@
                 <!-- ========================================================= -->
                 <div class="block lg:hidden space-y-4">
                     
-                    <!-- 1. Slidable Active Question Card -->
+                    <!-- 1. Slidable Active Question Card (Authentic Non-Clickable PSC Booklet Format) -->
                     <template x-if="omrQuestions.length > 0 && omrQuestions[omrActiveIndex]">
-                        <div class="bg-white rounded-2xl border-2 border-slate-200 shadow-md p-4 transition-all">
+                        <div class="bg-white rounded-2xl border-2 border-slate-300 shadow-sm p-4 transition-all">
                             
                             <!-- Card Header: Question Counter & Jumper Pills -->
-                            <div class="flex items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-100">
+                            <div class="flex items-center justify-between gap-2 pb-2.5 mb-2.5 border-b border-slate-200">
                                 <div class="flex items-center gap-2">
-                                    <span class="px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-200 text-[#0052FF] font-black text-xs">
+                                    <span class="px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-300 text-slate-800 font-mono font-bold text-xs">
                                         Question <span x-text="omrActiveIndex + 1"></span> of <span x-text="omrQuestions.length"></span>
                                     </span>
-                                    <span x-show="omrAnswers[omrQuestions[omrActiveIndex].id]" class="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+                                    <span x-show="omrAnswers[omrQuestions[omrActiveIndex].id]" class="text-[10px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-300 flex items-center gap-1">
                                         ✓ Bubbled
                                     </span>
                                 </div>
 
-                                <!-- Prev / Next Mini Controls -->
-                                <div class="flex items-center gap-1">
-                                    <button 
-                                        type="button" 
-                                        @click="prevOmrQuestion()" 
-                                        :disabled="omrActiveIndex === 0"
-                                        class="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-bold text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition"
-                                    >
-                                        ◀
-                                    </button>
-                                    <button 
-                                        type="button" 
-                                        @click="nextOmrQuestion()" 
-                                        :disabled="omrActiveIndex === omrQuestions.length - 1"
-                                        class="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-bold text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition"
-                                    >
-                                        ▶
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Question Quick Jump Carousel -->
-                            <div class="flex items-center gap-1.5 overflow-x-auto pb-2 mb-3 scrollbar-none">
-                                <template x-for="(q, idx) in omrQuestions" :key="q.id">
-                                    <button 
-                                        type="button"
-                                        @click="selectOmrQuestion(idx)"
-                                        class="px-2.5 py-1 rounded-lg text-xs font-black transition-all shrink-0 flex items-center gap-1"
-                                        :class="omrActiveIndex === idx 
-                                            ? 'bg-[#0052FF] text-white ring-2 ring-blue-400 scale-105 shadow-xs' 
-                                            : (omrAnswers[q.id] 
-                                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' 
-                                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200')"
-                                    >
-                                        <span x-text="'Q' + (idx + 1)"></span>
-                                        <span x-show="omrAnswers[q.id]" class="text-[9px]">✓</span>
-                                    </button>
-                                </template>
-                            </div>
-
-                            <!-- Swipeable Question Content Area -->
-                            <div 
-                                @touchstart="handleTouchStart($event)" 
-                                @touchend="handleTouchEnd($event)"
-                                class="touch-pan-y"
-                            >
-                                <div class="mb-3">
-                                    <p class="text-xs sm:text-sm font-bold text-slate-900 font-['Outfit'] leading-relaxed" x-text="omrQuestions[omrActiveIndex].question_text"></p>
-                                    <template x-if="omrQuestions[omrActiveIndex].question_text_malayalam">
-                                        <p class="text-xs sm:text-sm font-semibold text-[#0052FF] mt-1.5 font-['Noto_Sans_Malayalam'] leading-relaxed" x-text="omrQuestions[omrActiveIndex].question_text_malayalam"></p>
-                                    </template>
-                                </div>
-
-                                <!-- 4 Tap-to-Bubble Options -->
-                                <div class="space-y-2 mt-3 text-xs font-['Noto_Sans_Malayalam']">
-                                    <template x-for="opt in getQuestionOptions(omrQuestions[omrActiveIndex])" :key="opt.key">
+                                <!-- Question Quick Jump Carousel -->
+                                <div class="flex items-center gap-1 overflow-x-auto scrollbar-none">
+                                    <template x-for="(q, idx) in omrQuestions" :key="q.id">
                                         <button 
                                             type="button"
-                                            @click="fillOmrBubble(omrQuestions[omrActiveIndex].id, opt.key)"
-                                            class="w-full p-3 rounded-xl border-2 transition-all flex items-center justify-between gap-2.5 text-left active:scale-[0.98] select-none"
-                                            :class="omrAnswers[omrQuestions[omrActiveIndex].id] === opt.key 
-                                                ? 'bg-slate-950 text-white border-slate-950 shadow-md ring-2 ring-yellow-400' 
-                                                : 'bg-slate-50 text-slate-800 border-slate-200 hover:border-blue-400 hover:bg-blue-50/40'"
+                                            @click="selectOmrQuestion(idx)"
+                                            class="px-2 py-0.5 rounded-md text-[11px] font-black transition-all shrink-0 flex items-center gap-0.5"
+                                            :class="omrActiveIndex === idx 
+                                                ? 'bg-[#0052FF] text-white ring-2 ring-blue-300 shadow-xs' 
+                                                : (omrAnswers[q.id] 
+                                                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' 
+                                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200')"
+                                            :title="'Jump to Q' + (idx + 1)"
                                         >
-                                            <div class="flex items-center gap-2.5 min-w-0">
-                                                <span 
-                                                    class="w-6 h-6 rounded-full border-2 flex items-center justify-center text-[10px] font-black shrink-0 transition"
-                                                    :class="omrAnswers[omrQuestions[omrActiveIndex].id] === opt.key 
-                                                        ? 'bg-[#FFD200] text-slate-950 border-[#FFD200]' 
-                                                        : 'border-slate-300 text-slate-600'" 
-                                                    x-text="opt.key"
-                                                ></span>
-                                                <span class="truncate leading-snug" x-text="opt.text"></span>
-                                            </div>
-                                            <span x-show="omrAnswers[omrQuestions[omrActiveIndex].id] === opt.key" class="text-[9px] font-black px-2 py-0.5 rounded-full bg-yellow-400 text-slate-950 shrink-0">
-                                                ● BUBBLED
-                                            </span>
+                                            <span x-text="'Q' + (idx + 1)"></span>
+                                            <span x-show="omrAnswers[q.id]" class="text-[8px]">✓</span>
                                         </button>
                                     </template>
                                 </div>
                             </div>
 
-                            <!-- Card Bottom Navigation Bar -->
-                            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold">
+                            <!-- Swipeable Question Content Area (Pure Printed Exam Paper Format - Non-Clickable) -->
+                            <div 
+                                @touchstart="handleTouchStart($event)" 
+                                @touchend="handleTouchEnd($event)"
+                                class="touch-pan-y py-1 select-text"
+                            >
+                                <div class="flex items-start gap-2">
+                                    <span class="text-sm sm:text-base font-black text-slate-900 font-serif shrink-0 mt-0.5" x-text="(omrActiveIndex + 1) + '.'"></span>
+                                    <div class="flex-1 space-y-1">
+                                        <template x-if="omrQuestions[omrActiveIndex].question_text_malayalam">
+                                            <p class="text-sm sm:text-base font-bold text-slate-950 leading-relaxed font-['Noto_Sans_Malayalam']" x-text="omrQuestions[omrActiveIndex].question_text_malayalam"></p>
+                                        </template>
+                                        <template x-if="omrQuestions[omrActiveIndex].question_text">
+                                            <p class="text-xs sm:text-sm font-semibold text-slate-800 leading-snug font-['Outfit']" x-text="omrQuestions[omrActiveIndex].question_text"></p>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <!-- Ordinary 4 Options Text (NO button borders, NO clickable look - Pure Printed Exam Style) -->
+                                <div class="grid grid-cols-2 gap-x-4 gap-y-2 mt-3 pt-2.5 border-t border-dashed border-slate-200 text-xs sm:text-sm text-slate-900 font-['Noto_Sans_Malayalam']">
+                                    <template x-for="opt in getQuestionOptions(omrQuestions[omrActiveIndex])" :key="opt.key">
+                                        <div class="flex items-start gap-1.5 py-0.5 select-text">
+                                            <span class="font-bold text-slate-900 shrink-0" x-text="'(' + opt.key + ')'"></span>
+                                            <span class="leading-relaxed text-slate-900" x-text="opt.text"></span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <!-- Card Bottom Navigation Bar with Prominent Next Button -->
+                            <div class="mt-3.5 pt-3 border-t border-slate-200 flex items-center justify-between gap-3">
                                 <button 
                                     type="button" 
                                     @click="prevOmrQuestion()" 
                                     :disabled="omrActiveIndex === 0" 
-                                    class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 disabled:opacity-30 flex items-center gap-1 transition active:scale-95"
+                                    class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs disabled:opacity-30 disabled:cursor-not-allowed transition flex items-center gap-1 active:scale-95"
                                 >
-                                    <span>◀ Previous</span>
+                                    <span>◀ Prev</span>
                                 </button>
-                                <span class="text-[10px] text-slate-400 hidden sm:inline">👈 Swipe to slide question 👉</span>
+
+                                <span class="text-[10px] text-slate-400 font-medium hidden sm:inline">👈 Swipe to slide 👉</span>
+
                                 <button 
                                     type="button" 
                                     @click="nextOmrQuestion()" 
                                     :disabled="omrActiveIndex === omrQuestions.length - 1" 
-                                    class="px-3 py-1.5 rounded-lg bg-[#0052FF] text-white disabled:opacity-30 flex items-center gap-1 transition active:scale-95 shadow-xs"
+                                    class="px-5 py-2.5 rounded-xl bg-[#0052FF] hover:bg-blue-700 active:scale-95 text-white font-black text-xs sm:text-sm shadow-md shadow-blue-500/20 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-2 border border-blue-600"
                                 >
-                                    <span>Next Question ▶</span>
+                                    <span>Next Question</span>
+                                    <span class="text-base leading-none">▶</span>
                                 </button>
                             </div>
 
@@ -966,13 +937,13 @@
                                         <span x-show="omrActiveIndex === idx" class="w-1.5 h-1.5 rounded-full bg-[#0052FF] animate-ping"></span>
                                     </div>
                                     
-                                    <!-- Bubble Options A B C D -->
+                                    <!-- Bubble Options A B C D (The ONLY clickable answer targets) -->
                                     <div class="flex items-center gap-2">
                                         <template x-for="opt in ['A', 'B', 'C', 'D']" :key="opt">
                                             <button 
                                                 type="button"
                                                 @click.stop="fillOmrBubble(q.id, opt); selectOmrQuestion(idx)"
-                                                class="w-7 h-7 rounded-full border-2 flex items-center justify-center text-[11px] font-bold transition-all duration-150 active:scale-90"
+                                                class="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 flex items-center justify-center text-[11px] font-bold transition-all duration-150 active:scale-90"
                                                 :class="omrAnswers[q.id] === opt 
                                                     ? 'bg-slate-900 border-slate-950 text-white shadow-inner scale-105 ring-1 ring-slate-950' 
                                                     : 'bg-white border-slate-400 text-slate-700 hover:border-slate-800'"
@@ -999,7 +970,7 @@
 
                         <!-- OMR Micro Instructions -->
                         <div class="mt-3 pt-2.5 border-t border-slate-200 text-[9px] text-slate-500 leading-tight space-y-1">
-                            <p>⚠️ Tap question row or options to bubble automatically.</p>
+                            <p>⚠️ Darken circles on this OMR sheet with black pen ink simulation.</p>
                             <p>⚠️ Kerala PSC penalty: <strong>-0.33 marks</strong> for wrong bubbles.</p>
                         </div>
 
@@ -1024,56 +995,41 @@
                 </div>
 
                 <!-- ========================================================= -->
-                <!-- DESKTOP VIEW (>= lg): The Classic "Cute" Side-by-Side View -->
+                <!-- DESKTOP VIEW (>= lg): Authentic Question Booklet + OMR    -->
                 <!-- ========================================================= -->
                 <div class="hidden lg:grid lg:grid-cols-12 gap-6">
                     
-                    <!-- Left: Questions Viewer with Clickable Options (7 cols) -->
+                    <!-- Left: Authentic Kerala PSC Question Booklet (Non-clickable) (7 cols) -->
                     <div class="lg:col-span-7 space-y-4">
-                        <div class="bg-blue-50/60 p-3 rounded-xl border border-blue-100 text-xs font-bold text-blue-900 flex items-center justify-between">
-                            <span>📋 Read questions carefully before darkening bubbles:</span>
-                            <span class="text-[10px] uppercase tracking-wide bg-white px-2 py-0.5 rounded border border-blue-200 text-blue-700">Kerala PSC Format</span>
+                        <div class="bg-slate-100 p-3 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 flex items-center justify-between font-mono">
+                            <span class="tracking-wide">📖 KERALA PUBLIC SERVICE COMMISSION — QUESTION BOOKLET</span>
+                            <span class="text-[10px] uppercase bg-white px-2 py-0.5 rounded border border-slate-300 text-slate-700 font-sans">Series A</span>
                         </div>
 
-                        <div class="space-y-4 max-h-[600px] overflow-y-auto pr-1">
+                        <div class="space-y-4 max-h-[620px] overflow-y-auto pr-2">
                             <template x-for="(q, idx) in omrQuestions" :key="q.id">
-                                <div 
-                                    class="p-4 rounded-2xl border-2 transition-all bg-white"
-                                    :class="omrAnswers[q.id] ? 'border-slate-300 shadow-xs' : 'border-slate-200'"
-                                >
-                                    <div class="flex items-start gap-2.5 mb-2">
-                                        <span class="w-6 h-6 rounded-full bg-slate-900 text-white font-black text-xs flex items-center justify-center shrink-0 mt-0.5" x-text="idx + 1"></span>
-                                        <div>
-                                            <p class="text-xs sm:text-sm font-bold text-slate-900 font-['Outfit']" x-text="q.question_text"></p>
+                                <div class="p-4 rounded-xl border border-slate-200 bg-white shadow-xs">
+                                    <!-- Question Number + Text -->
+                                    <div class="flex items-start gap-2.5">
+                                        <span class="font-bold text-slate-900 text-sm shrink-0 font-serif" x-text="(idx + 1) + '.'"></span>
+                                        <div class="space-y-1 flex-1">
                                             <template x-if="q.question_text_malayalam">
-                                                <p class="text-xs sm:text-sm font-semibold text-[#0052FF] mt-1 font-['Noto_Sans_Malayalam']" x-text="q.question_text_malayalam"></p>
+                                                <p class="text-sm font-bold text-slate-950 leading-relaxed font-['Noto_Sans_Malayalam']" x-text="q.question_text_malayalam"></p>
                                             </template>
-                                        </div>
-                                    </div>
-
-                                    <!-- 4 Options in compact format: Now directly clickable with live bubbling! -->
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 text-xs font-['Noto_Sans_Malayalam']">
-                                        <template x-for="opt in getQuestionOptions(q)" :key="opt.key">
-                                            <div 
-                                                @click="fillOmrBubble(q.id, opt.key)"
-                                                class="p-2.5 rounded-lg border transition-all flex items-center justify-between gap-2 cursor-pointer select-none active:scale-[0.99]"
-                                                :class="omrAnswers[q.id] === opt.key 
-                                                    ? 'bg-slate-900 text-white font-bold border-slate-900 shadow-xs ring-2 ring-yellow-400' 
-                                                    : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-blue-400 hover:bg-blue-50/50'"
-                                            >
-                                                <div class="flex items-center gap-2 min-w-0">
-                                                    <span 
-                                                        class="w-4 h-4 rounded-full border flex items-center justify-center text-[10px] font-black shrink-0 transition"
-                                                        :class="omrAnswers[q.id] === opt.key ? 'bg-yellow-400 text-slate-950 border-yellow-400' : 'border-slate-400 text-slate-600'" 
-                                                        x-text="opt.key"
-                                                    ></span>
-                                                    <span class="truncate" x-text="opt.text"></span>
-                                                </div>
-                                                <span x-show="omrAnswers[q.id] === opt.key" class="text-[9px] font-black text-yellow-300">
-                                                    ✓ Bubbled
-                                                </span>
+                                            <template x-if="q.question_text">
+                                                <p class="text-xs sm:text-sm font-semibold text-slate-800 leading-snug font-['Outfit']" x-text="q.question_text"></p>
+                                            </template>
+                                            
+                                            <!-- Authentic 2-column ordinary question options (NON-CLICKABLE) -->
+                                            <div class="grid grid-cols-2 gap-x-6 gap-y-2 mt-2.5 pt-2 border-t border-dashed border-slate-200 text-xs text-slate-900 font-['Noto_Sans_Malayalam']">
+                                                <template x-for="opt in getQuestionOptions(q)" :key="opt.key">
+                                                    <div class="flex items-start gap-1.5 py-0.5 select-text">
+                                                        <span class="font-bold text-slate-900 shrink-0" x-text="'(' + opt.key + ')'"></span>
+                                                        <span class="leading-relaxed text-slate-900" x-text="opt.text"></span>
+                                                    </div>
+                                                </template>
                                             </div>
-                                        </template>
+                                        </div>
                                     </div>
                                 </div>
                             </template>
@@ -1131,7 +1087,7 @@
 
                             <!-- OMR Micro Instructions -->
                             <div class="mt-4 pt-3 border-t border-slate-200 text-[9px] text-slate-500 leading-tight space-y-1">
-                                <p>⚠️ Click/tap circles or options to simulate dark ballpoint pen filling.</p>
+                                <p>⚠️ Darken circles on this OMR sheet with black pen ink simulation.</p>
                                 <p>⚠️ Kerala PSC penalty: <strong>-0.33 marks</strong> for wrong bubbles.</p>
                             </div>
 
