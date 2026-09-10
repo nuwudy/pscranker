@@ -17,8 +17,8 @@ class HomeController extends Controller
             ->where('slug', '3-min-rapid-blitz')
             ->first() ?? Quiz::with(['questions.category'])->first();
 
-        // Fetch categories with question count
-        $categories = Category::withCount('questions')
+        // Fetch 6 official PSC categories with sessions and question count
+        $categories = Category::withCount(['questions', 'sessions'])
             ->orderBy('order')
             ->get();
 

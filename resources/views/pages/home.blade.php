@@ -49,12 +49,12 @@
                         <span class="text-yellow-300 group-hover:translate-x-1.5 transition-transform text-2xl font-black">➔</span>
                     </a>
 
-                    <!-- Secondary CTA for Speed Drill -->
+                    <!-- Secondary CTA for 6 PSC Subjects -->
                     <a 
-                        href="#drill-section" 
+                        href="#special-subjects" 
                         class="px-6 py-4 bg-white hover:bg-slate-100 text-slate-900 font-black text-sm sm:text-base rounded-full border-2 border-slate-200 shadow-sm hover:shadow transition flex items-center justify-center gap-2"
                     >
-                        <span>⚡ 3-Min Speed Drill</span>
+                        <span>📚 6 Core PSC Subjects</span>
                     </a>
                 </div>
 
@@ -125,266 +125,246 @@
 
         </div>
 
-        <!-- 3 QUICK-ACCESS FEATURE CARDS: Behance Mockup Exact Layout -->
-        <div class="mt-12 sm:mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            <!-- Card 1: Daily Speed Duel Live Leaderboard (Behance Blue Card) -->
-            <div class="bg-white rounded-3xl p-6 border-2 border-blue-200/80 shadow-xl shadow-blue-500/5 hover:shadow-blue-500/15 transition-all flex flex-col justify-between group">
-                <div>
-                    <!-- Header with Trophy -->
-                    <div class="flex items-center gap-3 mb-5">
-                        <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center text-2xl shadow-inner">
-                            🏆
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-black text-slate-900 leading-tight">Daily Speed Duel</h3>
-                            <p class="text-xs font-bold text-[#0052FF] uppercase tracking-wider">Live Leaderboard</p>
-                        </div>
-                    </div>
-
-                    <!-- Top 3 Candidates Row (Rahul K., Mini S., Arun P. from screenshot) -->
-                    <div class="space-y-2.5 mb-6">
-                        @foreach($leaderboardTop as $idx => $candidate)
-                            <div class="flex items-center justify-between p-2.5 rounded-xl {{ $idx === 0 ? 'bg-amber-50/70 border border-amber-200/80' : 'bg-slate-50 border border-slate-100' }}">
-                                <div class="flex items-center gap-2.5">
-                                    <span class="w-6 h-6 rounded-full {{ $idx === 0 ? 'bg-amber-400 text-slate-950' : ($idx === 1 ? 'bg-slate-300 text-slate-800' : 'bg-amber-600 text-white') }} flex items-center justify-center font-black text-xs">
-                                        {{ $idx + 1 }}
-                                    </span>
-                                    <div class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs uppercase">
-                                        {{ substr($candidate->candidate_name, 0, 1) }}
-                                    </div>
-                                    <span class="text-sm font-bold text-slate-800">{{ $candidate->candidate_name }}</span>
-                                </div>
-                                <div class="flex items-center gap-1.5 font-black text-sm text-slate-900">
-                                    <span>{{ number_format($candidate->score * 400 + rand(10, 50)) }}</span>
-                                    <span class="text-xs text-amber-500">★</span>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-
-                <!-- CTA Button (Behance: Challenge Now) -->
-                <a 
-                    href="{{ route('leaderboard') }}" 
-                    class="w-full py-3 text-center font-black text-sm text-white bg-[#0052FF] hover:bg-blue-700 active:scale-95 rounded-2xl shadow-md transition"
-                >
-                    Challenge Now ⚡
-                </a>
-            </div>
-
-            <!-- Card 2: Meme Mnemonics (Behance Yellow Card) -->
-            <div class="bg-gradient-to-br from-[#FFD200] to-amber-400 rounded-3xl p-6 border-2 border-yellow-300 shadow-xl shadow-yellow-500/15 flex flex-col justify-between group">
-                <div>
-                    <!-- Header with Laughing Emoji -->
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-12 h-12 rounded-2xl bg-white/90 text-slate-900 flex items-center justify-center text-2xl shadow-sm">
-                            😂
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-black text-slate-950 leading-tight">Meme Mnemonics</h3>
-                            <p class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Funny Kerala GK Capsules</p>
-                        </div>
-                    </div>
-
-                    <!-- Meme Image Preview (Behance exact: Malayalam movie comedy scene) -->
-                    <div class="relative rounded-2xl overflow-hidden shadow-md border-2 border-white/60 mb-5 bg-slate-900">
-                        <img 
-                            src="/images/meme_card.jpg" 
-                            alt="PSC Exam Meme Mnemonics" 
-                            class="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
-                        >
-                        <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-slate-950/90 to-transparent p-2 text-center">
-                            <span class="text-[11px] font-black text-yellow-300">ക്യാപ്സൂളിൽ കുടുങ്ങിയ PSC ചോദ്യങ്ങൾ!</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- CTA Button (Behance: Learn Now) -->
-                <a 
-                    href="{{ route('memebank') }}" 
-                    class="w-full py-3 text-center font-black text-sm text-slate-950 bg-white hover:bg-slate-50 active:scale-95 rounded-2xl shadow-md transition"
-                >
-                    Learn Now 💡
-                </a>
-            </div>
-
-            <!-- Card 3: OMR Bubble Simulator (Behance White Card with OMR preview) -->
-            <div class="bg-white rounded-3xl p-6 border-2 border-blue-200/80 shadow-xl shadow-blue-500/5 hover:shadow-blue-500/15 transition-all flex flex-col justify-between group">
-                <div>
-                    <!-- Header with OMR Icon -->
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-12 h-12 rounded-2xl bg-blue-100 text-[#0052FF] flex items-center justify-center text-2xl shadow-inner">
-                            📝
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-black text-slate-900 leading-tight">OMR Bubble Simulator</h3>
-                            <p class="text-xs font-bold text-[#0052FF] uppercase tracking-wider">Practice Negative Marking</p>
-                        </div>
-                    </div>
-
-                    <!-- Interactive OMR Sheet Preview (from Behance mockup) -->
-                    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 mb-5 font-mono text-[11px]">
-                        <div class="flex justify-between items-center text-slate-500 font-bold border-b border-slate-200 pb-1.5 mb-2">
-                            <span>OMR Sheet</span>
-                            <span class="text-slate-400">A B C D</span>
-                        </div>
-                        
-                        <!-- Sample Mini Bubbles Row -->
-                        <div class="space-y-1.5">
-                            <div class="flex items-center justify-between text-slate-600">
-                                <span class="font-bold">01</span>
-                                <div class="flex gap-2">
-                                    <span class="w-3.5 h-3.5 rounded-full border border-slate-400 inline-block"></span>
-                                    <span class="w-3.5 h-3.5 rounded-full bg-slate-900 border border-slate-900 inline-block"></span>
-                                    <span class="w-3.5 h-3.5 rounded-full border border-slate-400 inline-block"></span>
-                                    <span class="w-3.5 h-3.5 rounded-full border border-slate-400 inline-block"></span>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between text-slate-600">
-                                <span class="font-bold">02</span>
-                                <div class="flex gap-2">
-                                    <span class="w-3.5 h-3.5 rounded-full border border-slate-400 inline-block"></span>
-                                    <span class="w-3.5 h-3.5 rounded-full border border-slate-400 inline-block"></span>
-                                    <span class="w-3.5 h-3.5 rounded-full bg-slate-900 border border-slate-900 inline-block"></span>
-                                    <span class="w-3.5 h-3.5 rounded-full border border-slate-400 inline-block"></span>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between text-slate-600">
-                                <span class="font-bold">03</span>
-                                <div class="flex gap-2">
-                                    <span class="w-3.5 h-3.5 rounded-full bg-slate-900 border border-slate-900 inline-block"></span>
-                                    <span class="w-3.5 h-3.5 rounded-full border border-slate-400 inline-block"></span>
-                                    <span class="w-3.5 h-3.5 rounded-full border border-slate-400 inline-block"></span>
-                                    <span class="w-3.5 h-3.5 rounded-full border border-slate-400 inline-block"></span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mt-3 pt-2 border-t border-slate-200 flex justify-between items-center text-[10px] font-bold text-slate-500">
-                            <span>Time remaining:</span>
-                            <span class="text-blue-600">15m 00s</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- CTA Button (Behance: Practice Now) -->
-                <a 
-                    href="{{ route('omr.simulator') }}" 
-                    class="w-full py-3 text-center font-black text-sm text-white bg-[#0052FF] hover:bg-blue-700 active:scale-95 rounded-2xl shadow-md transition"
-                >
-                    Practice Now 🎯
-                </a>
-            </div>
-
-        </div>
-
     </div>
 </section>
 
-<!-- INTERACTIVE 3-MINUTE SPEED DRILL SECTION (Live Playable on Homepage) -->
-<section id="drill-section" class="py-16 bg-gradient-to-b from-blue-50/50 to-white relative">
+<!-- 6 OFFICIAL KERALA PSC SPECIAL SUBJECTS -->
+<section id="special-subjects" class="py-16 sm:py-20 bg-gradient-to-b from-slate-50 via-white to-slate-50 border-b border-slate-200/80">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        <div class="text-center max-w-3xl mx-auto mb-10">
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-yellow-100 text-yellow-900 text-xs font-black uppercase tracking-wider mb-2">
-                <span>⚡ Free Live Drill Engine</span>
+        <!-- Section Header -->
+        <div class="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+            <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-100 text-[#0052FF] text-xs font-black uppercase tracking-wider mb-3 shadow-sm border border-blue-200">
+                <span>🎯 Official Kerala PSC Syllabus 2026</span>
             </span>
             <h2 class="text-3xl sm:text-5xl font-black text-slate-950 tracking-tight">
-                Experience the 3-Minute Rapid Fire
+                6 PSC Special Subjects
             </h2>
-            <p class="text-base sm:text-lg font-semibold text-slate-600 mt-2">
-                Standard Kerala PSC Negative Marking: <strong class="text-emerald-600">+1.00 Mark</strong> for right, <strong class="text-red-600">-0.33 Mark</strong> for wrong!
+            <p class="text-base sm:text-lg font-semibold text-slate-600 mt-3">
+                പ്രത്യേക പാഠങ്ങൾ — സിലബസ് അടിസ്ഥാനമാക്കി ഓരോ വിഷയവും യൂണിറ്റുകളായി തിരിച്ച് പഠിക്കാം. Diagnostic Test ➔ Media Lesson ➔ MCQs ➔ Authentic OMR Test!
             </p>
         </div>
 
-        <!-- The Speed Drill Alpine Component -->
-        <x-speed-drill :quizId="$featuredQuiz ? $featuredQuiz->id : 1" :standalone="false" />
+        <!-- 6 Subject Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            @php
+                $subjectThemes = [
+                    'english' => [
+                        'emoji' => '📖',
+                        'gradient' => 'from-blue-600 to-indigo-600',
+                        'bg_light' => 'bg-blue-50/80',
+                        'border' => 'border-blue-200',
+                        'accent' => 'text-[#0052FF]',
+                        'button_bg' => 'bg-[#0052FF] hover:bg-blue-700',
+                        'features' => ['Grammar Rules & Tenses', 'Active & Passive Voice', 'Idioms, Phrasal Verbs & PYQs'],
+                    ],
+                    'maths' => [
+                        'emoji' => '🧮',
+                        'gradient' => 'from-amber-500 to-orange-600',
+                        'bg_light' => 'bg-amber-50/80',
+                        'border' => 'border-amber-200',
+                        'accent' => 'text-amber-700',
+                        'button_bg' => 'bg-amber-600 hover:bg-amber-700',
+                        'features' => ['Speed Math Short Tricks', 'BODMAS, Percentage & Ratio', 'Time & Work, Reasoning Series'],
+                    ],
+                    'science' => [
+                        'emoji' => '🔬',
+                        'gradient' => 'from-emerald-500 to-teal-600',
+                        'bg_light' => 'bg-emerald-50/80',
+                        'border' => 'border-emerald-200',
+                        'accent' => 'text-emerald-700',
+                        'button_bg' => 'bg-emerald-600 hover:bg-emerald-700',
+                        'features' => ['SCERT Standard 5-10 Topics', 'Human Body & Diseases', 'Physics & Chemistry PYQs'],
+                    ],
+                    'history' => [
+                        'emoji' => '🏛️',
+                        'gradient' => 'from-purple-600 to-fuchsia-700',
+                        'bg_light' => 'bg-purple-50/80',
+                        'border' => 'border-purple-200',
+                        'accent' => 'text-purple-700',
+                        'button_bg' => 'bg-purple-700 hover:bg-purple-800',
+                        'features' => ['Kerala Renaissance Leaders', 'Freedom Movement in Kerala', 'Travancore & Cochin History'],
+                    ],
+                    'geography' => [
+                        'emoji' => '🌍',
+                        'gradient' => 'from-teal-600 to-cyan-700',
+                        'bg_light' => 'bg-teal-50/80',
+                        'border' => 'border-teal-200',
+                        'accent' => 'text-teal-800',
+                        'button_bg' => 'bg-teal-700 hover:bg-teal-800',
+                        'features' => ['44 Kerala Rivers & Dams', 'Western Ghats & Sanctuaries', 'Districts & Physical Features'],
+                    ],
+                    'current-affairs' => [
+                        'emoji' => '📰',
+                        'gradient' => 'from-rose-600 to-pink-700',
+                        'bg_light' => 'bg-rose-50/80',
+                        'border' => 'border-rose-200',
+                        'accent' => 'text-rose-700',
+                        'button_bg' => 'bg-rose-600 hover:bg-rose-700',
+                        'features' => ['Monthly Kerala Current Affairs', 'Awards, Sports & Honors', 'Indian Constitution & PYQ GK'],
+                    ],
+                ];
+            @endphp
 
-    </div>
-</section>
-
-<!-- CATEGORY EXPLORATION & TOPIC VAULT -->
-<section class="py-16 bg-white border-t border-slate-100">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        <div class="flex flex-col md:flex-row md:items-end justify-between mb-10">
-            <div>
-                <span class="text-xs font-black uppercase text-[#0052FF] tracking-wider">Targeted Exam Practice</span>
-                <h2 class="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight mt-1">
-                    Drill by Kerala PSC Syllabus
-                </h2>
-            </div>
-            <p class="text-sm font-semibold text-slate-500 mt-2 md:mt-0">
-                Direct questions curated from Previous Question Papers (PYQ) and SCERT Textbooks.
-            </p>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             @foreach($categories as $category)
-                <div class="p-6 rounded-3xl border-2 border-slate-100 hover:border-[#0052FF] bg-gradient-to-b from-slate-50 to-white shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
+                @php
+                    $theme = $subjectThemes[$category->slug] ?? [
+                        'emoji' => '📚',
+                        'gradient' => 'from-blue-600 to-indigo-600',
+                        'bg_light' => 'bg-slate-50',
+                        'border' => 'border-slate-200',
+                        'accent' => 'text-slate-900',
+                        'button_bg' => 'bg-blue-600 hover:bg-blue-700',
+                        'features' => ['Syllabus Based Lessons', 'Interactive Practice Sets', 'Real OMR Negative Marking'],
+                    ];
+                @endphp
+                <div class="bg-white rounded-3xl p-6 sm:p-7 border-2 {{ $theme['border'] }} shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between group relative overflow-hidden">
+                    
+                    <!-- Decorative top accent bar -->
+                    <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r {{ $theme['gradient'] }}"></div>
+
                     <div>
-                        <div class="w-12 h-12 rounded-2xl bg-blue-50 text-[#0052FF] flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition">
-                            @if($category->icon === 'sparkles') ✨
-                            @elseif($category->icon === 'book-open') 📚
-                            @elseif($category->icon === 'calculator') 🧮
-                            @else 🌍
-                            @endif
+                        <!-- Header with Emoji Icon & Unit Count Badge -->
+                        <div class="flex items-center justify-between mb-5">
+                            <div class="w-14 h-14 rounded-2xl bg-white shadow-md border border-slate-100 flex items-center justify-center text-3xl group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+                                {{ $theme['emoji'] }}
+                            </div>
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full {{ $theme['bg_light'] }} {{ $theme['accent'] }} text-xs font-black border {{ $theme['border'] }}">
+                                <span>📚 {{ $category->sessions_count }} {{ Str::plural('Unit', $category->sessions_count) }}</span>
+                            </span>
                         </div>
-                        <h3 class="text-lg font-black text-slate-900 leading-snug">{{ $category->name }}</h3>
-                        <p class="text-xs font-bold text-[#0052FF] mt-0.5">{{ $category->name_malayalam }}</p>
-                        <p class="text-xs text-slate-500 mt-2.5 leading-relaxed">{{ $category->description }}</p>
+
+                        <!-- Subject Names -->
+                        <h3 class="text-xl font-black text-slate-950 leading-tight group-hover:text-[#0052FF] transition-colors">
+                            {{ $category->name }}
+                        </h3>
+                        <p class="text-xs font-bold {{ $theme['accent'] }} mt-1">
+                            {{ $category->name_malayalam }}
+                        </p>
+
+                        <!-- Description -->
+                        <p class="text-xs sm:text-sm text-slate-600 mt-3 leading-relaxed">
+                            {{ $category->description }}
+                        </p>
+
+                        <!-- Key Syllabus Bullets -->
+                        <div class="mt-4 pt-4 border-t border-slate-100 space-y-2">
+                            @foreach($theme['features'] as $feature)
+                                <div class="flex items-center gap-2 text-xs font-semibold text-slate-600">
+                                    <span class="text-emerald-500 font-bold">✓</span>
+                                    <span>{{ $feature }}</span>
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
 
-                    <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
-                        <span class="text-xs font-bold text-slate-400">{{ $category->questions_count }} Trap Questions</span>
-                        <a href="{{ route('drill.show') }}" class="text-xs font-black text-[#0052FF] group-hover:translate-x-1 transition flex items-center gap-1">
-                            Drill →
+                    <!-- Direct 1-Click Action to Units -->
+                    <div class="mt-6 pt-4">
+                        <a 
+                            href="{{ route('sessions.index', ['subject' => $category->slug]) }}" 
+                            class="w-full py-3.5 px-5 text-center font-black text-sm text-white {{ $theme['button_bg'] }} active:scale-95 rounded-2xl shadow-md flex items-center justify-center gap-2 transition"
+                        >
+                            <span>Explore {{ $category->name }} Units</span>
+                            <span class="text-base font-bold">➔</span>
                         </a>
                     </div>
                 </div>
             @endforeach
         </div>
 
+        <!-- 4-Phase Learning Process Banner -->
+        <div class="mt-14 sm:mt-16 bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 rounded-3xl p-8 sm:p-10 text-white shadow-2xl border border-slate-800">
+            <div class="max-w-4xl mx-auto text-center">
+                <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-yellow-400 text-slate-950 text-xs font-black uppercase tracking-wider mb-3">
+                    ⭐ PSC Rank-Maker Methodology
+                </span>
+                <h3 class="text-2xl sm:text-4xl font-black tracking-tight text-white">
+                    Every Special Lesson Follows the Proven 4-Phase Flow
+                </h3>
+                <p class="text-sm sm:text-base text-slate-300 mt-2 max-w-2xl mx-auto">
+                    Designed to identify weaknesses, deliver high-yield concepts through multimedia, and drill exam reflexes under actual Kerala PSC negative marking.
+                </p>
+
+                <!-- 4 Steps Cards -->
+                <div class="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4 text-left">
+                    <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/15">
+                        <div class="text-2xl mb-1">🧪</div>
+                        <div class="text-xs font-black text-yellow-300 uppercase tracking-wider">Phase 1</div>
+                        <div class="text-sm font-bold text-white mt-0.5">Diagnostic Test</div>
+                        <p class="text-[11px] text-slate-300 mt-1">Pinpoint your knowledge gaps before studying.</p>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/15">
+                        <div class="text-2xl mb-1">📖</div>
+                        <div class="text-xs font-black text-yellow-300 uppercase tracking-wider">Phase 2</div>
+                        <div class="text-sm font-bold text-white mt-0.5">Media Lesson</div>
+                        <p class="text-[11px] text-slate-300 mt-1">Notes with audio, visual diagrams &amp; video.</p>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/15">
+                        <div class="text-2xl mb-1">💡</div>
+                        <div class="text-xs font-black text-yellow-300 uppercase tracking-wider">Phase 3</div>
+                        <div class="text-sm font-bold text-white mt-0.5">Interactive MCQs</div>
+                        <p class="text-[11px] text-slate-300 mt-1">Practice questions with detailed trap explanations.</p>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/15">
+                        <div class="text-2xl mb-1">📝</div>
+                        <div class="text-xs font-black text-yellow-300 uppercase tracking-wider">Phase 4</div>
+                        <div class="text-sm font-bold text-white mt-0.5">PSC OMR Test</div>
+                        <p class="text-[11px] text-slate-300 mt-1">Authentic OMR bubbles with -0.33 negative marking.</p>
+                    </div>
+                </div>
+
+                <!-- Call to Action -->
+                <div class="mt-8">
+                    <a 
+                        href="{{ route('sessions.index') }}" 
+                        class="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-[#0052FF] hover:bg-blue-500 text-white font-black text-base shadow-xl shadow-blue-500/30 active:scale-95 transition border-2 border-yellow-300"
+                    >
+                        <span>Start Learning Units Now</span>
+                        <span class="text-yellow-300 text-xl font-black">➔</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
     </div>
 </section>
 
-<!-- WHY PSCRANKER GAMIFIED SYSTEM WORKS -->
+<!-- WHY PSCRANKER UNIT-BASED SYSTEM WORKS -->
 <section class="py-16 bg-slate-950 text-white relative overflow-hidden">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
         <div class="text-center max-w-2xl mx-auto mb-12">
-            <span class="text-xs font-black uppercase text-yellow-400 tracking-wider">The Science of Speed</span>
+            <span class="text-xs font-black uppercase text-yellow-400 tracking-wider">Built For Kerala PSC Success</span>
             <h2 class="text-3xl sm:text-5xl font-black tracking-tight text-white mt-1">
-                Why 3-Minute Drills Beat 10-Hour Cramming
+                Engineered for Top 100 Rank Holders
             </h2>
             <p class="text-slate-400 text-sm sm:text-base mt-2">
-                In Kerala PSC, losing 1 mark to a trap drops you 500 ranks. Here is how we build your exam reflexes:
+                In Kerala PSC examinations, losing 1 mark to a trap drops you 500 ranks. Here is how our 4-phase units secure your appointment:
             </p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6">
-                <div class="text-3xl mb-3">🛡️</div>
-                <h3 class="text-lg font-black text-white">Reflex Negative Avoidance</h3>
+                <div class="text-3xl mb-3">📝</div>
+                <h3 class="text-lg font-black text-white">Realistic OMR Sheet Conditioning</h3>
                 <p class="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">
-                    Most students fail because of over-attempting traps. Our 20-second buzzer builds the gut instinct to skip doubtful traps and protect your +1.00 marks.
+                    Most candidates lose ranks to bubbling panic and misread numbers. Our digital OMR simulator builds flawless bubble-filling habits with standard +1.00 and -0.33 rules.
                 </p>
             </div>
 
             <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6">
-                <div class="text-3xl mb-3">🧠</div>
-                <h3 class="text-lg font-black text-white">Meme Mnemonics Memory</h3>
+                <div class="text-3xl mb-3">🎧</div>
+                <h3 class="text-lg font-black text-white">Rich Multimedia Retention</h3>
                 <p class="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">
-                    Ever forgotten the year of Temple Entry Proclamation? Associate years and historical figures with unforgettable Malayalam movie comedy scenes.
+                    Retain complex dates, formulas, and grammar rules effortlessly. Every lesson integrates Malayalam audio voice notes, infographic diagrams, and video breakdowns.
                 </p>
             </div>
 
             <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6">
                 <div class="text-3xl mb-3">📱</div>
-                <h3 class="text-lg font-black text-white">PWA Mobile Friendly</h3>
+                <h3 class="text-lg font-black text-white">Installable Mobile PWA App</h3>
                 <p class="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">
-                    Install PSCRanker directly on your phone home screen like an app. Practice during your bus commute, tea breaks, or 5 minutes before bed.
+                    Install PSCRanker directly on your smartphone home screen like a native app. Study units on your daily bus commute, lunch break, or 10 minutes before bed.
                 </p>
             </div>
         </div>
@@ -392,11 +372,11 @@
         <!-- Bottom CTA Banner in Dark Section -->
         <div class="mt-12 text-center">
             <a 
-                href="{{ route('drill.show') }}" 
+                href="{{ route('sessions.index') }}" 
                 class="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-[#FFD200] hover:bg-[#F5C500] text-slate-950 font-black text-lg shadow-lg shadow-yellow-500/20 active:scale-95 transition"
             >
-                <span>Launch Full-Screen Speed Drill</span>
-                <span class="text-xl">⚡</span>
+                <span>Browse All Course Units</span>
+                <span class="text-xl font-bold">➔</span>
             </a>
         </div>
 
