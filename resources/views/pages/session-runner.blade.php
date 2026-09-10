@@ -739,8 +739,11 @@
                                     </div>
 
                                     <!-- Canvas Viewport -->
-                                    <div class="relative w-full aspect-[16/10] max-h-[440px] rounded-xl overflow-hidden bg-slate-950 border border-slate-800 cursor-grab active:cursor-grabbing">
-                                        <canvas :id="'session-globe-canvas-' + (block.id || idx)" class="w-full h-full block"></canvas>
+                                    <div 
+                                        class="relative w-full rounded-2xl overflow-hidden bg-slate-950 border-2 border-slate-800 cursor-grab active:cursor-grabbing shadow-inner"
+                                        style="width: 100%; height: 380px; min-height: 320px; position: relative;"
+                                    >
+                                        <canvas :id="'session-globe-canvas-' + (block.id || idx)" style="width: 100%; height: 100%; display: block;"></canvas>
                                         
                                         <div class="absolute bottom-3 left-3 text-[10px] text-slate-400 bg-slate-900/80 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-slate-800 pointer-events-none">
                                             Drag to rotate • Scroll to zoom • Tap pins

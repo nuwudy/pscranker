@@ -94,11 +94,17 @@
 
         resize() {
             const rect = this.canvas.getBoundingClientRect();
+            const parent = this.canvas.parentElement;
             const dpr = window.devicePixelRatio || 1;
-            this.width = rect.width || 600;
-            this.height = rect.height || 400;
-            this.canvas.width = this.width * dpr;
-            this.canvas.height = this.height * dpr;
+            
+            let w = Math.round(rect.width || (parent ? parent.clientWidth : 0) || 600);
+            let h = Math.round(rect.height || (parent ? parent.clientHeight : 0) || 420);
+            if (h < 280) h = 420;
+
+            this.width = w;
+            this.height = h;
+            this.canvas.width = Math.round(w * dpr);
+            this.canvas.height = Math.round(h * dpr);
             this.ctx.resetTransform();
             this.ctx.scale(dpr, dpr);
         }

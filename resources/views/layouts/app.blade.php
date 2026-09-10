@@ -87,7 +87,7 @@
                 <nav class="hidden md:flex items-center space-x-1 lg:space-x-3 text-sm font-bold text-slate-700">
                     <a href="{{ route('sessions.index') }}" class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('sessions.*') || request()->routeIs('session.*') || request()->routeIs('courses') ? 'text-[#0052FF] bg-blue-50 font-extrabold shadow-xs' : 'hover:text-[#0052FF] hover:bg-slate-50' }}">
                         <span>PSC Special Lessons</span>
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-100 text-[#0052FF]">6 Subjects</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-100 text-[#0052FF]">7 Subjects</span>
                     </a>
                     <a href="{{ route('map.study') }}" class="px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 {{ request()->routeIs('map.study') ? 'text-[#0052FF] bg-blue-50 font-extrabold' : 'hover:text-[#0052FF] hover:bg-slate-50' }}">
                         <span>Map &amp; Globe Lab</span>
@@ -156,7 +156,7 @@
                     >
                         <a href="{{ route('sessions.index') }}" class="px-4 py-3 rounded-xl bg-blue-50 text-[#0052FF] flex items-center justify-between font-black">
                             <span>🎓 PSC Special Lessons</span>
-                            <span class="text-xs bg-[#0052FF] text-white px-2.5 py-0.5 rounded-full font-mono">6 Subjects</span>
+                            <span class="text-xs bg-[#0052FF] text-white px-2.5 py-0.5 rounded-full font-mono">7 Subjects</span>
                         </a>
                         <a href="{{ route('map.study') }}" class="px-4 py-2.5 rounded-xl hover:bg-blue-50 text-slate-800 flex items-center justify-between font-bold">
                             <span class="flex items-center gap-2"><span>🌐</span> 3D Globe &amp; Map Lab</span>

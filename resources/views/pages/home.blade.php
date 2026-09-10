@@ -138,14 +138,14 @@
                 <span>🎯 Official Kerala PSC Syllabus 2026</span>
             </span>
             <h2 class="text-3xl sm:text-5xl font-black text-slate-950 tracking-tight">
-                6 PSC Special Subjects
+                7 PSC Special Subjects
             </h2>
             <p class="text-base sm:text-lg font-semibold text-slate-600 mt-3">
                 പ്രത്യേക പാഠങ്ങൾ — സിലബസ് അടിസ്ഥാനമാക്കി ഓരോ വിഷയവും യൂണിറ്റുകളായി തിരിച്ച് പഠിക്കാം. Diagnostic Test ➔ Media Lesson ➔ MCQs ➔ Authentic OMR Test!
             </p>
         </div>
 
-        <!-- 6 Subject Cards Grid -->
+        <!-- 7 Subject Cards Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             @php
                 $subjectThemes = [
@@ -203,6 +203,15 @@
                         'button_bg' => 'bg-rose-600 hover:bg-rose-700',
                         'features' => ['Monthly Kerala Current Affairs', 'Awards, Sports & Honors', 'Indian Constitution & PYQ GK'],
                     ],
+                    'map-study' => [
+                        'emoji' => '🌐',
+                        'gradient' => 'from-indigo-600 to-blue-700',
+                        'bg_light' => 'bg-indigo-50/80',
+                        'border' => 'border-indigo-200',
+                        'accent' => 'text-indigo-800',
+                        'button_bg' => 'bg-indigo-600 hover:bg-indigo-700',
+                        'features' => ['3D Globe Spatial Cognition', 'WWII & Historical Invasions', 'Red Sea & Kerala Relief Gaps'],
+                    ],
                 ];
             @endphp
 
@@ -259,14 +268,22 @@
                     </div>
 
                     <!-- Direct 1-Click Action to Units -->
-                    <div class="mt-6 pt-4">
+                    <div class="mt-6 pt-4 flex flex-col gap-2">
                         <a 
-                            href="{{ route('sessions.index', ['subject' => $category->slug]) }}" 
+                            href="{{ $category->slug === 'map-study' ? route('map.study') : route('sessions.index', ['subject' => $category->slug]) }}" 
                             class="w-full py-3.5 px-5 text-center font-black text-sm text-white {{ $theme['button_bg'] }} active:scale-95 rounded-2xl shadow-md flex items-center justify-center gap-2 transition"
                         >
-                            <span>Explore {{ $category->name }} Units</span>
+                            <span>{{ $category->slug === 'map-study' ? 'Launch 3D Map Lab' : 'Explore ' . $category->name . ' Units' }}</span>
                             <span class="text-base font-bold">➔</span>
                         </a>
+                        @if($category->slug === 'map-study')
+                            <a 
+                                href="{{ route('sessions.index', ['subject' => 'map-study']) }}" 
+                                class="w-full py-1.5 text-center font-bold text-xs text-indigo-700 hover:text-indigo-900 transition"
+                            >
+                                Practice Course Units ({{ $category->sessions_count }}) →
+                            </a>
+                        @endif
                     </div>
                 </div>
             @endforeach

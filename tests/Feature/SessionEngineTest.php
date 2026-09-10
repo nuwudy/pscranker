@@ -270,6 +270,7 @@ test('all 6 core psc subjects exist and are displayed with interactive units in 
         ['slug' => 'history', 'name' => 'History & Renaissance', 'order' => 4],
         ['slug' => 'geography', 'name' => 'Geography', 'order' => 5],
         ['slug' => 'current-affairs', 'name' => 'Current Affairs & GK', 'order' => 6],
+        ['slug' => 'map-study', 'name' => 'Map & Globe Study', 'order' => 7],
     ];
 
     foreach ($subjects as $s) {
@@ -279,16 +280,17 @@ test('all 6 core psc subjects exist and are displayed with interactive units in 
     $response = $this->get(route('sessions.index'));
     $response->assertStatus(200);
 
-    // Assert all 6 subjects are present
+    // Assert all 7 subjects are present
     $response->assertSee('English');
     $response->assertSee('Maths &amp; Mental Ability', false);
     $response->assertSee('General Science');
     $response->assertSee('History &amp; Renaissance', false);
     $response->assertSee('Geography');
     $response->assertSee('Current Affairs &amp; GK', false);
+    $response->assertSee('Map &amp; Globe Study', false);
 
-    // Assert 6 subjects filter is present
-    $response->assertSee('6 CORE PSC SUBJECTS');
+    // Assert 7 subjects filter is present
+    $response->assertSee('7 CORE PSC SUBJECTS');
     $response->assertSee('activeSubject');
 });
 

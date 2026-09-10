@@ -30,13 +30,13 @@
         <!-- Header Section -->
         <div class="text-center max-w-3xl mx-auto mb-8 sm:mb-10">
             <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-[#0052FF] text-xs font-black uppercase tracking-wider mb-3 shadow-xs">
-                <span>⚡ 6 CORE PSC SUBJECTS &amp; GENERAL STREAM • 4-PHASE UNIT ENGINE</span>
+                <span>⚡ 7 CORE PSC SUBJECTS &amp; GENERAL STREAM • 4-PHASE UNIT ENGINE</span>
             </div>
             <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-950 tracking-tight leading-tight">
                 Kerala PSC Session Capsules &amp; Special Lessons
             </h1>
             <p class="text-base sm:text-xl font-bold text-[#0052FF] mt-2 font-['Noto_Sans_Malayalam']">
-                ജനറൽ മിക്സഡ് സ്ട്രീം &bull; 6 പ്രത്യേക വിഷയങ്ങൾ
+                ജനറൽ മിക്സഡ് സ്ട്രീം &bull; 7 പ്രത്യേക വിഷയങ്ങൾ
             </p>
             <p class="text-xs sm:text-sm text-slate-600 mt-3 leading-relaxed max-w-2xl mx-auto">
                 Decluttered, high-impact learning. Follow the <strong>General Mixed Stream</strong> for a balanced daily master train, or select any <strong>Special Subject</strong> to master topics individually!
@@ -87,6 +87,7 @@
                             'history' => '🏛️',
                             'geography' => '🌍',
                             'current-affairs' => '📰',
+                            'map-study' => '🌐',
                         ];
                         $icon = $subjectIcons[$cat->slug] ?? '⚡';
                     @endphp
