@@ -119,15 +119,16 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">Category</label>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">PSC Subject Stream *</label>
                         <select 
                             name="category_id" 
                             class="w-full px-3 py-2 text-xs font-bold rounded-lg border border-slate-300 focus:border-[#0052FF] focus:outline-none"
+                            required
                         >
-                            <option value="">-- Select Category --</option>
+                            <option value="">-- Select PSC Subject --</option>
                             @foreach($categories as $cat)
-                                <option value="{{ $cat->id }}" {{ old('category_id', $session->category_id) == $cat->id ? 'selected' : '' }}>
-                                    {{ $cat->name }}
+                                <option value="{{ $cat->id }}" {{ (old('category_id', $session->category_id) == $cat->id || request('category_id') == $cat->id) ? 'selected' : '' }}>
+                                    {{ $cat->name }} @if($cat->name_malayalam)({{ $cat->name_malayalam }})@endif
                                 </option>
                             @endforeach
                         </select>
@@ -135,12 +136,14 @@
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">Order #</label>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">Unit # (Sequential) *</label>
                             <input 
                                 type="number" 
                                 name="order" 
                                 value="{{ old('order', $session->order ?? 1) }}" 
                                 class="w-full px-3 py-2 text-xs font-bold rounded-lg border border-slate-300 focus:border-[#0052FF] focus:outline-none"
+                                required
+                                min="1"
                             >
                         </div>
                         <div>

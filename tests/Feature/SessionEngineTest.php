@@ -261,3 +261,35 @@ test('mcq added in admin session builder automatically appears on omr sheet and 
     ]);
 });
 
+test('all 6 core psc subjects exist and are displayed with interactive units in the catalog', function () {
+    $subjects = [
+        ['slug' => 'english', 'name' => 'English', 'order' => 1],
+        ['slug' => 'maths', 'name' => 'Maths & Mental Ability', 'order' => 2],
+        ['slug' => 'science', 'name' => 'General Science', 'order' => 3],
+        ['slug' => 'history', 'name' => 'History & Renaissance', 'order' => 4],
+        ['slug' => 'geography', 'name' => 'Geography', 'order' => 5],
+        ['slug' => 'current-affairs', 'name' => 'Current Affairs & GK', 'order' => 6],
+    ];
+
+    foreach ($subjects as $s) {
+        Category::firstOrCreate(['slug' => $s['slug']], $s);
+    }
+
+    $response = $this->get(route('sessions.index'));
+    $response->assertStatus(200);
+
+    // Assert all 6 subjects are present
+    $response->assertSee('English');
+    $response->assertSee('Maths &amp; Mental Ability', false);
+    $response->assertSee('General Science');
+    $response->assertSee('History &amp; Renaissance', false);
+    $response->assertSee('Geography');
+    $response->assertSee('Current Affairs &amp; GK', false);
+
+    // Assert 6 subjects filter is present
+    $response->assertSee('6 CORE PSC SUBJECTS');
+    $response->assertSee('activeSubject');
+});
+
+
+

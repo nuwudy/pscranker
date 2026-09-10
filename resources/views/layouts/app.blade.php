@@ -83,32 +83,17 @@
                     <img src="{{ asset('images/logo.png') }}" alt="PSCRanker.com" class="h-9 sm:h-11 w-auto object-contain">
                 </a>
 
-                <!-- Desktop Navigation Links (Behance Mockup: Home, Courses, Speed Drills, Leaderboard, MemeBank, My Profile) -->
-                <nav class="hidden md:flex items-center space-x-1 lg:space-x-2 text-sm font-bold text-slate-700">
-                    <a href="{{ route('home') }}" class="px-3.5 py-2 rounded-lg transition {{ request()->routeIs('home') ? 'text-[#0052FF] bg-blue-50 font-extrabold' : 'hover:text-[#0052FF] hover:bg-slate-50' }}">
-                        Home
+                <!-- Desktop Navigation Links: Decluttered around PSC Special Lessons -->
+                <nav class="hidden md:flex items-center space-x-1 lg:space-x-3 text-sm font-bold text-slate-700">
+                    <a href="{{ route('sessions.index') }}" class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('sessions.*') || request()->routeIs('session.*') || request()->routeIs('courses') ? 'text-[#0052FF] bg-blue-50 font-extrabold shadow-xs' : 'hover:text-[#0052FF] hover:bg-slate-50' }}">
+                        <span>PSC Special Lessons</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-100 text-[#0052FF]">6 Subjects</span>
                     </a>
-                    <a href="{{ route('courses') }}" class="px-3.5 py-2 rounded-lg transition hover:text-[#0052FF] hover:bg-slate-50 text-slate-600">
-                        Courses
+                    <a href="{{ route('pricing') }}" class="px-3.5 py-2 rounded-xl transition {{ request()->routeIs('pricing') ? 'text-[#0052FF] bg-blue-50 font-extrabold' : 'hover:text-[#0052FF] hover:bg-slate-50' }}">
+                        Pro Pass 👑
                     </a>
-                    <a href="{{ route('drill.show') }}" class="px-3.5 py-2 rounded-lg transition relative {{ request()->routeIs('drill.*') ? 'text-[#0052FF] bg-blue-50 font-extrabold' : 'hover:text-[#0052FF] hover:bg-slate-50' }}">
-                        Speed Drills
-                        <span class="absolute -top-1 right-1 flex h-2 w-2">
-                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                            <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-                        </span>
-                    </a>
-                    <a href="{{ route('leaderboard') }}" class="px-3.5 py-2 rounded-lg transition {{ request()->routeIs('leaderboard') ? 'text-[#0052FF] bg-blue-50 font-extrabold' : 'hover:text-[#0052FF] hover:bg-slate-50' }}">
-                        Leaderboard
-                    </a>
-                    <a href="{{ route('memebank') }}" class="px-3.5 py-2 rounded-lg transition {{ request()->routeIs('memebank') ? 'text-[#0052FF] bg-blue-50 font-extrabold' : 'hover:text-[#0052FF] hover:bg-slate-50' }}">
-                        MemeBank
-                    </a>
-                    <a href="{{ route('omr.simulator') }}" class="px-3.5 py-2 rounded-lg transition {{ request()->routeIs('omr.*') ? 'text-[#0052FF] bg-blue-50 font-extrabold' : 'hover:text-[#0052FF] hover:bg-slate-50' }}">
-                        OMR Practice
-                    </a>
-                    <a href="{{ route('pricing') }}" class="px-3.5 py-2 rounded-lg transition {{ request()->routeIs('pricing') ? 'text-[#0052FF] bg-blue-50 font-extrabold' : 'hover:text-[#0052FF] hover:bg-slate-50' }}">
-                        Pricing ⚡
+                    <a href="{{ route('leaderboard') }}" class="px-3.5 py-2 rounded-xl transition {{ request()->routeIs('leaderboard') ? 'text-[#0052FF] bg-blue-50 font-extrabold' : 'hover:text-[#0052FF] hover:bg-slate-50 text-slate-600' }}">
+                        Leaderboard 🏆
                     </a>
                 </nav>
 
@@ -118,8 +103,8 @@
                         <a href="{{ route('login') }}" class="px-4 py-2 text-sm font-bold text-slate-700 hover:text-[#0052FF] rounded-lg transition">
                             Login
                         </a>
-                        <a href="{{ route('drill.show') }}" class="px-5 py-2.5 text-sm font-extrabold text-slate-950 bg-[#FFD200] hover:bg-[#F5C500] active:scale-95 rounded-full shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 border border-yellow-400">
-                            <span>Sign Up Free</span>
+                        <a href="{{ route('sessions.index') }}" class="px-5 py-2.5 text-sm font-extrabold text-slate-950 bg-[#FFD200] hover:bg-[#F5C500] active:scale-95 rounded-full shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 border border-yellow-400">
+                            <span>Start Lessons Free</span>
                             <span class="text-xs">⚡</span>
                         </a>
                     @endguest
@@ -130,10 +115,10 @@
                                 📊 Dashboard
                             </a>
                             <a href="{{ route('admin.sessions.index') }}" class="px-3 py-1.5 text-xs font-black text-[#0052FF] bg-blue-50 hover:bg-blue-100 rounded-lg transition border border-blue-200">
-                                ⚙️ Sessions
+                                ⚙️ Lessons Manager
                             </a>
                             <a href="{{ route('admin.media.index') }}" class="px-3 py-1.5 text-xs font-black text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-lg transition border border-purple-200">
-                                📁 Media Library
+                                📁 Media
                             </a>
                             <span class="text-xs font-bold text-slate-600 hidden lg:inline">{{ Auth::user()->name }}</span>
                             <form action="{{ route('logout') }}" method="POST" class="inline">
@@ -148,8 +133,8 @@
 
                 <!-- Mobile Hamburger Menu Toggle -->
                 <div class="flex items-center gap-2 md:hidden" x-data="{ open: false }">
-                    <a href="{{ route('drill.show') }}" class="px-3 py-1.5 text-xs font-black text-slate-950 bg-[#FFD200] rounded-full border border-yellow-400">
-                        Drill Now ⚡
+                    <a href="{{ route('sessions.index') }}" class="px-3 py-1.5 text-xs font-black text-slate-950 bg-[#FFD200] rounded-full border border-yellow-400">
+                        Lessons ⚡
                     </a>
                     <button @click="open = !open" class="p-2 rounded-xl text-slate-700 hover:bg-slate-100 transition">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -157,7 +142,7 @@
                         </svg>
                     </button>
 
-                    <!-- Mobile Drawer Menu -->
+                    <!-- Mobile Drawer Menu: Decluttered around Special Lessons -->
                     <div 
                         x-show="open" 
                         @click.outside="open = false" 
@@ -165,22 +150,21 @@
                         class="absolute top-20 left-0 right-0 bg-white border-b border-slate-200 shadow-2xl p-4 flex flex-col gap-2 z-50 text-base font-bold"
                         style="display: none;"
                     >
-                        <a href="{{ route('home') }}" class="px-4 py-2.5 rounded-xl hover:bg-blue-50 text-slate-800">🏠 Home</a>
-                        <a href="{{ route('sessions.index') }}" class="px-4 py-2.5 rounded-xl hover:bg-blue-50 text-slate-800">🎓 Micro-Learning Sessions</a>
-                        <a href="{{ route('drill.show') }}" class="px-4 py-2.5 rounded-xl bg-blue-50 text-[#0052FF] flex items-center justify-between font-black">
-                            <span>⚡ 3-Min Speed Drills</span>
-                            <span class="text-xs bg-amber-400 text-slate-950 px-2 py-0.5 rounded-full">Active</span>
+                        <a href="{{ route('sessions.index') }}" class="px-4 py-3 rounded-xl bg-blue-50 text-[#0052FF] flex items-center justify-between font-black">
+                            <span>🎓 PSC Special Lessons</span>
+                            <span class="text-xs bg-[#0052FF] text-white px-2.5 py-0.5 rounded-full font-mono">6 Subjects</span>
+                        </a>
+                        <a href="{{ route('pricing') }}" class="px-4 py-2.5 rounded-xl hover:bg-blue-50 text-slate-800 flex items-center justify-between">
+                            <span>👑 Pro Pass &amp; Pricing</span>
+                            <span class="text-xs text-amber-600 font-black">Save up to 30%</span>
                         </a>
                         <a href="{{ route('leaderboard') }}" class="px-4 py-2.5 rounded-xl hover:bg-blue-50 text-slate-800">🏆 Daily Leaderboard</a>
-                        <a href="{{ route('memebank') }}" class="px-4 py-2.5 rounded-xl hover:bg-blue-50 text-slate-800">😂 MemeBank Mnemonics</a>
-                        <a href="{{ route('omr.simulator') }}" class="px-4 py-2.5 rounded-xl hover:bg-blue-50 text-slate-800">📝 OMR Bubble Simulator</a>
-                        <a href="{{ route('pricing') }}" class="px-4 py-2.5 rounded-xl hover:bg-blue-50 text-[#0052FF] font-black">⚡ Pricing &amp; Prepaid Plans</a>
                         
                         @guest
                             <div class="pt-2 border-t border-slate-100 flex flex-col gap-2">
                                 <a href="{{ route('login') }}" class="px-4 py-2.5 rounded-xl hover:bg-blue-50 text-slate-800">🔐 Login to Account</a>
-                                <a href="{{ route('drill.show') }}" class="w-full text-center py-3 bg-[#FFD200] font-black text-slate-950 rounded-xl">
-                                    Start Free Drill
+                                <a href="{{ route('sessions.index') }}" class="w-full text-center py-3 bg-[#FFD200] font-black text-slate-950 rounded-xl shadow-xs">
+                                    Start Lessons Free ⚡
                                 </a>
                             </div>
                         @endguest
@@ -188,7 +172,7 @@
                         @auth
                             <div class="pt-2 border-t border-slate-100 flex flex-col gap-2">
                                 <a href="{{ route('admin.dashboard') }}" class="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-900 font-black">📊 Admin Dashboard</a>
-                                <a href="{{ route('admin.sessions.index') }}" class="px-4 py-2.5 rounded-xl bg-blue-50 text-[#0052FF] font-black">⚙️ Manage Sessions</a>
+                                <a href="{{ route('admin.sessions.index') }}" class="px-4 py-2.5 rounded-xl bg-blue-50 text-[#0052FF] font-black">⚙️ Lessons Manager</a>
                                 <a href="{{ route('admin.media.index') }}" class="px-4 py-2.5 rounded-xl bg-purple-50 text-purple-700 font-black">📁 Media Library</a>
                                 <form action="{{ route('logout') }}" method="POST">
                                     @csrf
@@ -200,6 +184,7 @@
                         @endauth
                     </div>
                 </div>
+
 
             </div>
         </div>
@@ -248,15 +233,16 @@
                     </div>
                 </div>
 
-                <!-- Column 2: Gamified Modules -->
+                <!-- Column 2: PSC Special Subjects -->
                 <div>
-                    <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-4 border-b border-slate-800 pb-2">Training Engine</h4>
-                    <ul class="space-y-2.5 text-xs">
-                        <li><a href="{{ route('courses') }}" class="hover:text-yellow-400 transition">4-Phase Course Units</a></li>
-                        <li><a href="{{ route('drill.show') }}" class="hover:text-yellow-400 transition">3-Min Speed Blitz</a></li>
-                        <li><a href="{{ route('omr.simulator') }}" class="hover:text-yellow-400 transition">OMR Bubble Simulator</a></li>
-                        <li><a href="{{ route('memebank') }}" class="hover:text-yellow-400 transition">Meme Mnemonics Vault</a></li>
-                        <li><a href="{{ route('leaderboard') }}" class="hover:text-yellow-400 transition">Daily Speed Duel</a></li>
+                    <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-4 border-b border-slate-800 pb-2">PSC Special Subjects</h4>
+                    <ul class="space-y-2 text-xs">
+                        <li><a href="{{ route('sessions.index') }}?subject=english" class="hover:text-yellow-400 transition flex items-center gap-1.5"><span>📖</span> <span>English (ഇംഗ്ലീഷ്)</span></a></li>
+                        <li><a href="{{ route('sessions.index') }}?subject=maths" class="hover:text-yellow-400 transition flex items-center gap-1.5"><span>🔢</span> <span>Maths &amp; Reasoning (ഗണിതം)</span></a></li>
+                        <li><a href="{{ route('sessions.index') }}?subject=science" class="hover:text-yellow-400 transition flex items-center gap-1.5"><span>🔬</span> <span>General Science (സയൻസ്)</span></a></li>
+                        <li><a href="{{ route('sessions.index') }}?subject=history" class="hover:text-yellow-400 transition flex items-center gap-1.5"><span>🏛️</span> <span>History &amp; Renaissance (ചരിത്രം)</span></a></li>
+                        <li><a href="{{ route('sessions.index') }}?subject=geography" class="hover:text-yellow-400 transition flex items-center gap-1.5"><span>🌍</span> <span>Geography (ഭൂമിശാസ്ത്രം)</span></a></li>
+                        <li><a href="{{ route('sessions.index') }}?subject=current-affairs" class="hover:text-yellow-400 transition flex items-center gap-1.5"><span>📰</span> <span>Current Affairs (സമകാലികം)</span></a></li>
                     </ul>
                 </div>
 
