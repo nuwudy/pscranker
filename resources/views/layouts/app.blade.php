@@ -89,6 +89,10 @@
                         <span>PSC Special Lessons</span>
                         <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-100 text-[#0052FF]">6 Subjects</span>
                     </a>
+                    <a href="{{ route('map.study') }}" class="px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 {{ request()->routeIs('map.study') ? 'text-[#0052FF] bg-blue-50 font-extrabold' : 'hover:text-[#0052FF] hover:bg-slate-50' }}">
+                        <span>Map &amp; Globe Lab</span>
+                        <span class="text-xs">🌐</span>
+                    </a>
                     <a href="{{ route('pricing') }}" class="px-3.5 py-2 rounded-xl transition {{ request()->routeIs('pricing') ? 'text-[#0052FF] bg-blue-50 font-extrabold' : 'hover:text-[#0052FF] hover:bg-slate-50' }}">
                         Pro Pass 👑
                     </a>
@@ -153,6 +157,10 @@
                         <a href="{{ route('sessions.index') }}" class="px-4 py-3 rounded-xl bg-blue-50 text-[#0052FF] flex items-center justify-between font-black">
                             <span>🎓 PSC Special Lessons</span>
                             <span class="text-xs bg-[#0052FF] text-white px-2.5 py-0.5 rounded-full font-mono">6 Subjects</span>
+                        </a>
+                        <a href="{{ route('map.study') }}" class="px-4 py-2.5 rounded-xl hover:bg-blue-50 text-slate-800 flex items-center justify-between font-bold">
+                            <span class="flex items-center gap-2"><span>🌐</span> 3D Globe &amp; Map Lab</span>
+                            <span class="text-[10px] bg-blue-100 text-[#0052FF] px-2 py-0.5 rounded-full font-bold uppercase">Spatial</span>
                         </a>
                         <a href="{{ route('pricing') }}" class="px-4 py-2.5 rounded-xl hover:bg-blue-50 text-slate-800 flex items-center justify-between">
                             <span>👑 Pro Pass &amp; Pricing</span>
@@ -511,6 +519,7 @@
         };
     }
     </script>
+    <script src="{{ asset('js/psc-globe.js') }}"></script>
 
     @stack('scripts')
 </body>

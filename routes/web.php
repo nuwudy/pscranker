@@ -29,6 +29,11 @@ Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leade
 // Meme Mnemonics Bank
 Route::get('/memebank', [MemeBankController::class, 'index'])->name('memebank');
 
+use App\Http\Controllers\MapStudyController;
+
+// 3D Globe & Map Study Lab (Client's Spatial Ranking Methodology)
+Route::get('/map-study', [MapStudyController::class, 'index'])->name('map.study');
+
 use App\Http\Controllers\AuthController;
 
 // Authentication Routes

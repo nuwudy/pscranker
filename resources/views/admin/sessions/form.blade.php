@@ -254,6 +254,9 @@
                         <button type="button" @click="addContentBlock('text')" class="px-2.5 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-lg hover:bg-emerald-100 transition">
                             + Text / SCERT Block
                         </button>
+                        <button type="button" @click="addContentBlock('map_globe')" class="px-2.5 py-1.5 bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-bold rounded-lg hover:bg-indigo-100 transition">
+                            + 🌐 3D Globe / Map Block
+                        </button>
                     </div>
                 </div>
 
@@ -415,6 +418,124 @@
                                     <div>
                                         <label class="font-bold text-slate-600 block mb-1">Content Body (HTML / Formatted Bullet Points)</label>
                                         <textarea x-model="block.content_data.body" rows="4" placeholder="<ul><li>പോയിന്റ് 1</li>...</ul>" class="w-full px-3 py-2 rounded-lg border border-slate-300 font-['Noto_Sans_Malayalam']"></textarea>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- Fields for 3D GLOBE / MAP block -->
+                            <template x-if="block.type === 'map_globe'">
+                                <div class="space-y-3 text-xs bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
+                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-indigo-100 pb-2">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-base">🌐</span>
+                                            <span class="font-black text-indigo-950 uppercase tracking-wide">3D Globe &amp; Map Configuration</span>
+                                        </div>
+                                        
+                                        <!-- Quick Presets Dropdown -->
+                                        <div class="flex items-center gap-2">
+                                            <label class="font-bold text-slate-600 text-[11px]">Load PSC Preset:</label>
+                                            <select 
+                                                @change="applyGlobePreset(block, $event.target.value)"
+                                                class="px-2.5 py-1 text-xs font-bold rounded-lg border border-indigo-200 bg-white text-indigo-900 shadow-xs focus:ring-2 focus:ring-indigo-500"
+                                            >
+                                                <option value="">-- Choose Preset --</option>
+                                                <option value="pacific_reality">🌏 Pacific Reality (USA &amp; Asia Neighbors)</option>
+                                                <option value="german_invasion">🇩🇪 German Blitzkrieg (WWII 1939-1941)</option>
+                                                <option value="red_sea">🌊 Red Sea &amp; Choke Points (Suez &amp; Bab-el-Mandeb)</option>
+                                                <option value="mandela">🇿🇦 Nelson Mandela's Journey (Mvezo to Robben Island)</option>
+                                                <option value="kerala_rivers">🌴 Kerala Rivers &amp; Western Ghats Gaps</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                        <div>
+                                            <label class="font-bold text-slate-600 block mb-1">Display Mode</label>
+                                            <select x-model="block.content_data.mode" class="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white font-bold text-slate-800">
+                                                <option value="3d_globe">🌐 Interactive 3D Globe</option>
+                                                <option value="2d_map">🗺️ 2D Cartographic Map</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="font-bold text-slate-600 block mb-1">Title (English)</label>
+                                            <input type="text" x-model="block.content_data.title" placeholder="German Blitzkrieg Routes 1939-1941" class="w-full px-3 py-1.5 rounded-lg border border-slate-300">
+                                        </div>
+                                        <div>
+                                            <label class="font-bold text-slate-600 block mb-1">Title (Malayalam)</label>
+                                            <input type="text" x-model="block.content_data.title_malayalam" placeholder="ജർമ്മൻ അധിനിവേശ പാതകൾ" class="w-full px-3 py-1.5 rounded-lg border border-slate-300 font-['Noto_Sans_Malayalam']">
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                        <div>
+                                            <label class="font-bold text-slate-600 block mb-1">Center Latitude</label>
+                                            <input type="number" step="0.01" x-model.number="block.content_data.center_lat" placeholder="52.52" class="w-full px-3 py-1.5 rounded-lg border border-slate-300">
+                                        </div>
+                                        <div>
+                                            <label class="font-bold text-slate-600 block mb-1">Center Longitude</label>
+                                            <input type="number" step="0.01" x-model.number="block.content_data.center_lng" placeholder="13.40" class="w-full px-3 py-1.5 rounded-lg border border-slate-300">
+                                        </div>
+                                        <div>
+                                            <label class="font-bold text-slate-600 block mb-1">Initial Zoom</label>
+                                            <input type="number" step="0.1" min="0.5" max="5.0" x-model.number="block.content_data.zoom" placeholder="1.8" class="w-full px-3 py-1.5 rounded-lg border border-slate-300">
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="font-bold text-slate-600 block mb-1">Spatial Mentor Tip / Description (English)</label>
+                                        <textarea x-model="block.content_data.description" rows="2" placeholder="Spatial memory context for PSC students..." class="w-full px-3 py-1.5 rounded-lg border border-slate-300"></textarea>
+                                    </div>
+
+                                    <div>
+                                        <label class="font-bold text-slate-600 block mb-1">Mentor Note (Malayalam)</label>
+                                        <textarea x-model="block.content_data.notes_malayalam" rows="2" placeholder="മലയാളം വിശദീകരണം..." class="w-full px-3 py-1.5 rounded-lg border border-slate-300 font-['Noto_Sans_Malayalam']"></textarea>
+                                    </div>
+
+                                    <!-- Markers List -->
+                                    <div class="mt-3 pt-3 border-t border-indigo-100">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <span class="font-black text-indigo-900 text-xs">📍 Pinpoints &amp; Geographic Markers</span>
+                                            <button 
+                                                type="button" 
+                                                @click="addMarkerToBlock(block)" 
+                                                class="px-2 py-1 bg-white border border-indigo-300 text-indigo-700 hover:bg-indigo-50 rounded text-[11px] font-bold shadow-xs transition"
+                                            >
+                                                + Add Marker Pin
+                                            </button>
+                                        </div>
+
+                                        <div class="space-y-2">
+                                            <template x-for="(marker, mIdx) in (block.content_data.markers || [])" :key="mIdx">
+                                                <div class="p-2.5 bg-white rounded-lg border border-slate-200 grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
+                                                    <div class="sm:col-span-3">
+                                                        <label class="text-[10px] text-slate-500 font-bold block">Label</label>
+                                                        <input type="text" x-model="marker.label" placeholder="Poland (Warsaw)" class="w-full px-2 py-1 text-xs rounded border border-slate-300">
+                                                    </div>
+                                                    <div class="sm:col-span-2">
+                                                        <label class="text-[10px] text-slate-500 font-bold block">Lat</label>
+                                                        <input type="number" step="0.01" x-model.number="marker.lat" placeholder="52.23" class="w-full px-2 py-1 text-xs rounded border border-slate-300">
+                                                    </div>
+                                                    <div class="sm:col-span-2">
+                                                        <label class="text-[10px] text-slate-500 font-bold block">Lng</label>
+                                                        <input type="number" step="0.01" x-model.number="marker.lng" placeholder="21.01" class="w-full px-2 py-1 text-xs rounded border border-slate-300">
+                                                    </div>
+                                                    <div class="sm:col-span-4">
+                                                        <label class="text-[10px] text-slate-500 font-bold block">Exam Note</label>
+                                                        <input type="text" x-model="marker.note" placeholder="Invaded Sept 1, 1939 - WWII start" class="w-full px-2 py-1 text-xs rounded border border-slate-300">
+                                                    </div>
+                                                    <div class="sm:col-span-1 text-right">
+                                                        <button 
+                                                            type="button" 
+                                                            @click="removeMarkerFromBlock(block, mIdx)"
+                                                            class="p-1 text-red-500 hover:text-red-700 font-bold text-xs"
+                                                            title="Remove Pin"
+                                                        >
+                                                            ✕
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
                                     </div>
                                 </div>
                             </template>
@@ -870,7 +991,19 @@ function adminSessionBuilder(initial) {
                 image: { url: '', title: 'Mnemonic Infographic', caption: '' },
                 audio: { url: '', title: '30s Spoken Concept Summary', duration: '0:45', transcript: '' },
                 video: { url: '', title: 'Explainer Reel Video', caption: '' },
-                text: { title: 'Key Focus Points', body: '', scert_reference: '', tags: ['#KeralaRenaissance'] }
+                text: { title: 'Key Focus Points', body: '', scert_reference: '', tags: ['#KeralaRenaissance'] },
+                map_globe: {
+                    mode: '3d_globe',
+                    preset: 'custom',
+                    title: 'Geographic & Spatial Study',
+                    title_malayalam: 'ഭൂമിശാസ്ത്ര വിശകലനം',
+                    center_lat: 20.0,
+                    center_lng: 78.0,
+                    zoom: 1.5,
+                    description: '',
+                    notes_malayalam: '',
+                    markers: []
+                }
             };
 
             this.contentBlocks.push({
@@ -878,6 +1011,120 @@ function adminSessionBuilder(initial) {
                 content_data: defaults[type] || {},
                 order: this.contentBlocks.length + 1
             });
+        },
+
+        globePresets: {
+            pacific_reality: {
+                mode: '3d_globe',
+                preset: 'pacific_reality',
+                title: 'The Pacific Reality: USA & Asia Neighbors',
+                title_malayalam: 'ശാന്തസമുദ്ര അയൽപക്കങ്ങൾ: യു.എസും ഏഷ്യയും',
+                center_lat: 30.0,
+                center_lng: -170.0,
+                zoom: 1.1,
+                description: 'Dispel the flat map myth! Look how USA and Asia (China/Japan/Russia) are facing each other across the Pacific Ocean. Bering Strait is only 82 km wide.',
+                notes_malayalam: 'പരന്ന മാപ്പുകളിൽ അമേരിക്കയും ചൈനയും ലോകത്തിന്റെ ഇരുവശത്താണെന്ന് തോന്നുമെങ്കിലും ഗ്ലോബിൽ അവർ ശാന്തസമുദ്രത്തിന് ഇരുവശമുള്ള അടുത്ത അയൽക്കാരാണ്. ബെയ്റിംഗ് കടലിടുക്കിന് 82 കി.മീ മാത്രമാണ് വീതി.',
+                markers: [
+                    { label: "Bering Strait (82 km)", lat: 65.7, lng: -168.9, note: "Separates Asia (Russia) & North America (Alaska, USA)" },
+                    { label: "San Francisco, USA", lat: 37.77, lng: -122.42, note: "Key Pacific gateway port of USA" },
+                    { label: "Tokyo, Japan", lat: 35.68, lng: 139.69, note: "Pacific Rim trade hub" },
+                    { label: "Shanghai, China", lat: 31.23, lng: 121.47, note: "Busiest container port facing the Pacific" },
+                    { label: "Pearl Harbor (Hawaii)", lat: 21.36, lng: -157.97, note: "Dec 7, 1941 attack brought USA into WWII" }
+                ]
+            },
+            german_invasion: {
+                mode: '3d_globe',
+                preset: 'german_invasion',
+                title: 'WWII German Blitzkrieg & Neighboring Invasions (1939-1941)',
+                title_malayalam: 'രണ്ടാം ലോകമഹായുദ്ധം: ജർമ്മൻ അധിനിവേശ പാതകൾ',
+                center_lat: 52.0,
+                center_lng: 15.0,
+                zoom: 2.2,
+                description: 'Follow the exact geographic vectors of German Blitzkrieg from Berlin: invading Poland (1939), bypassing the Maginot Line into France (1940), and Operation Barbarossa towards USSR (1941).',
+                notes_malayalam: '1939 സെപ്റ്റംബർ 1-ന് പോളണ്ടിലേക്കുള്ള അധിനിവേശത്തോടെയാണ് രണ്ടാം ലോകമഹായുദ്ധം ആരംഭിച്ചത്. തുടർന്ന് ബെൽജിയം, ഫ്രാൻസ്, തുടർന്ന് സോവിയറ്റ് യൂണിയനിലേക്കുള്ള ബാർബറോസ ഓപ്പറേഷൻ.',
+                markers: [
+                    { label: "Berlin (Nazi Germany)", lat: 52.52, lng: 13.41, note: "Capital & Command Center of Nazi Third Reich" },
+                    { label: "Poland (Warsaw)", lat: 52.23, lng: 21.01, note: "Invaded Sept 1, 1939 (Official start of WWII)" },
+                    { label: "Ardennes & France (Paris)", lat: 48.86, lng: 2.35, note: "Maginot Line bypassed; Paris captured June 1940" },
+                    { label: "Moscow (USSR - Barbarossa)", lat: 55.75, lng: 37.62, note: "Operation Barbarossa launched June 22, 1941" }
+                ]
+            },
+            red_sea: {
+                mode: '3d_globe',
+                preset: 'red_sea',
+                title: 'Red Sea & Maritime Choke Points (Suez Canal to Bab-el-Mandeb)',
+                title_malayalam: 'ചെങ്കടലും നിർണായക സമുദ്ര പാതകളും (സൂയസ് കനാൽ & ബാബ് അൽ മന്ദബ്)',
+                center_lat: 20.0,
+                center_lng: 40.0,
+                zoom: 2.0,
+                description: 'The most tested strategic maritime chokepoints in PSC exams: Suez Canal (connects Mediterranean with Red Sea) and Bab-el-Mandeb (Gate of Tears, connects Red Sea with Arabian Sea).',
+                notes_malayalam: 'സൂയസ് കനാൽ (മെഡിറ്ററേനിയൻ - ചെങ്കടൽ ബന്ധിപ്പിക്കുന്നു, 1869-ൽ തുറന്നു), ബാബ് അൽ മന്ദബ് (കണ്ണീരിന്റെ വാതിൽ - ചെങ്കടലും ഏദൻ ഉൾക്കടലും ബന്ധിപ്പിക്കുന്നു).',
+                markers: [
+                    { label: "Suez Canal (Egypt)", lat: 30.7, lng: 32.34, note: "Opened 1869 by Ferdinand de Lesseps; Mediterranean - Red Sea link" },
+                    { label: "Bab-el-Mandeb Strait", lat: 12.58, lng: 43.33, note: "'Gate of Tears' connecting Red Sea to Gulf of Aden" },
+                    { label: "Strait of Hormuz", lat: 26.56, lng: 56.25, note: "Persian Gulf to Gulf of Oman oil choke point" },
+                    { label: "Arabian Sea (India Coast)", lat: 15.0, lng: 70.0, note: "Historic spice trade route linking Kerala" }
+                ]
+            },
+            mandela: {
+                mode: '3d_globe',
+                preset: 'mandela',
+                title: "Nelson Mandela's Spatial Journey: Mvezo to Robben Island",
+                title_malayalam: 'നെൽസൺ മണ്ടേലയുടെ ജീവിത പാത: എംവേസോ മുതൽ റോബൻ ദ്വീപ് വരെ',
+                center_lat: -30.0,
+                center_lng: 25.0,
+                zoom: 2.0,
+                description: "Trace Nelson Mandela's journey across South Africa: born in Mvezo, organized resistance in Soweto/Johannesburg, imprisoned on Robben Island off Cape Town, and inaugurated at Pretoria.",
+                notes_malayalam: 'ജനനം എംവേസോ (1918), റിവോണിയ വിചാരണ ജൊഹാനസ്ബർഗ്, 27 വർഷത്തെ തടവിൽ 18 വർഷം റോബൻ ദ്വീപിൽ, 1994-ൽ പ്രിട്ടോറിയയിൽ പ്രസിഡന്റായി സത്യപ്രതിജ്ഞ.',
+                markers: [
+                    { label: "Mvezo (Transkei)", lat: -31.95, lng: 28.51, note: "Mandela born on July 18, 1918 (Madiba clan)" },
+                    { label: "Johannesburg & Soweto", lat: -26.20, lng: 28.04, note: "ANC activist center, arrest & Rivonia Trial" },
+                    { label: "Robben Island (Cape Town)", lat: -33.81, lng: 18.37, note: "Imprisoned 18 years in 8x7 foot cell (1964-1982)" },
+                    { label: "Pretoria (Union Buildings)", lat: -25.74, lng: 28.21, note: "Inaugurated as first Black President of South Africa in May 1994" }
+                ]
+            },
+            kerala_rivers: {
+                mode: '2d_map',
+                preset: 'kerala_rivers',
+                title: 'Kerala Rivers, Western Ghats & Mountain Passes',
+                title_malayalam: 'കേരളത്തിലെ നദികളും സഹ്യപർവ്വത ചുരങ്ങളും',
+                center_lat: 10.5,
+                center_lng: 76.5,
+                zoom: 3.5,
+                description: 'Kerala physical geography essentials: 44 rivers (41 west-flowing, 3 east-flowing: Kabani, Bhavani, Pambar), Palakkad Gap connecting Kerala with Tamil Nadu, and Western Ghats peaks.',
+                notes_malayalam: '44 നദികൾ (41 പടിഞ്ഞാറോട്ട്, 3 കിഴക്കോട്ട്: കബനി, ഭവാനി, പാമ്പാർ). സഹ്യപർവ്വതത്തിലെ പ്രധാന വിടവ് പാലക്കാട് ചുരം (30-40 കി.മീ വീതി). ഏറ്റവും നീളമേറിയ നദി പെരിയാർ (244 കി.മീ).',
+                markers: [
+                    { label: "Periyar (244 km) & Idukki", lat: 9.85, lng: 76.97, note: "Longest river in Kerala; Sivagiri hills origin; Idukki Arch Dam" },
+                    { label: "Bharathapuzha (209 km)", lat: 10.78, lng: 75.92, note: "Nila; 2nd longest river; originates from Anamalai hills" },
+                    { label: "Palakkad Gap (Pass)", lat: 10.78, lng: 76.65, note: "Major geological break in Western Ghats connecting Palakkad to Coimbatore" },
+                    { label: "Kabani (East-flowing)", lat: 11.83, lng: 76.12, note: "Originates in Wayanad; flows east to join Kaveri" },
+                    { label: "Aryankavu Pass (Kollam)", lat: 8.98, lng: 77.15, note: "Connects Kollam to Shenkottai (Tamil Nadu)" }
+                ]
+            }
+        },
+
+        applyGlobePreset(block, presetKey) {
+            if (!presetKey || !this.globePresets[presetKey]) return;
+            const p = JSON.parse(JSON.stringify(this.globePresets[presetKey]));
+            block.content_data = Object.assign({}, block.content_data, p);
+        },
+
+        addMarkerToBlock(block) {
+            if (!block.content_data.markers) {
+                block.content_data.markers = [];
+            }
+            block.content_data.markers.push({
+                label: 'New Location',
+                lat: block.content_data.center_lat || 20.0,
+                lng: block.content_data.center_lng || 78.0,
+                note: 'Key historical or PSC exam point'
+            });
+        },
+
+        removeMarkerFromBlock(block, idx) {
+            if (block.content_data.markers) {
+                block.content_data.markers.splice(idx, 1);
+            }
         },
 
         removeContentBlock(idx) {

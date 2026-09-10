@@ -60,7 +60,7 @@ class AdminSessionController extends Controller
             'in_general_stream' => 'boolean',
             'general_stream_order' => 'nullable|integer',
             'contents' => 'nullable|array',
-            'contents.*.type' => 'required|string|in:image,video,audio,text,html',
+            'contents.*.type' => 'required|string|in:image,video,audio,text,html,map_globe',
             'contents.*.content_data' => 'required|array',
             'contents.*.order' => 'required|integer',
             'questions' => 'nullable|array',

@@ -631,6 +631,173 @@
                                 </div>
                             </template>
 
+                            <!-- 5. 3D GLOBE / MAP BLOCK (Spatial Visualization Engine) -->
+                            <template x-if="block.type === 'map_globe'">
+                                <div 
+                                    x-data="{
+                                        globeInstance: null,
+                                        activePin: null,
+                                        currentMode: block.content_data.mode || '3d_globe',
+                                        isSpinning: false,
+                                        initSessionGlobe() {
+                                            this.$nextTick(() => {
+                                                const canvas = document.getElementById('session-globe-canvas-' + (block.id || idx));
+                                                if (!canvas || !window.PscGlobe) return;
+
+                                                this.globeInstance = new window.PscGlobe(canvas, {
+                                                    mode: this.currentMode,
+                                                    centerLat: block.content_data.center_lat !== undefined ? block.content_data.center_lat : 20.0,
+                                                    centerLng: block.content_data.center_lng !== undefined ? block.content_data.center_lng : 78.0,
+                                                    zoom: block.content_data.zoom || 1.4,
+                                                    autoSpin: false,
+                                                    markers: block.content_data.markers || [],
+                                                    routes: block.content_data.routes || [],
+                                                    onMarkerClick: (m) => {
+                                                        this.activePin = m;
+                                                    }
+                                                });
+                                            });
+                                        },
+                                        toggleMode() {
+                                            this.currentMode = (this.currentMode === '3d_globe') ? '2d_map' : '3d_globe';
+                                            if (this.globeInstance) {
+                                                this.globeInstance.setMode(this.currentMode);
+                                            }
+                                        },
+                                        toggleSpin() {
+                                            if (this.globeInstance) {
+                                                this.isSpinning = this.globeInstance.toggleAutoSpin();
+                                            }
+                                        },
+                                        focusPin(pin) {
+                                            this.activePin = pin;
+                                            if (this.globeInstance) {
+                                                this.globeInstance.activeMarker = pin;
+                                                this.globeInstance.flyTo(pin.lat, pin.lng, Math.max(1.8, (block.content_data.zoom || 1.4) * 1.15));
+                                            }
+                                        },
+                                        reset() {
+                                            this.activePin = null;
+                                            if (this.globeInstance) {
+                                                this.globeInstance.flyTo(
+                                                    block.content_data.center_lat !== undefined ? block.content_data.center_lat : 20.0,
+                                                    block.content_data.center_lng !== undefined ? block.content_data.center_lng : 78.0,
+                                                    block.content_data.zoom || 1.4
+                                                );
+                                            }
+                                        }
+                                    }"
+                                    x-init="initSessionGlobe()"
+                                    class="p-4 sm:p-6 bg-[#0B132B] text-white rounded-2xl overflow-hidden"
+                                >
+                                    <!-- Header -->
+                                    <div class="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-800">
+                                        <div class="flex items-center gap-2">
+                                            <span class="w-8 h-8 rounded-lg bg-blue-600/30 border border-blue-500/40 flex items-center justify-center text-base">🌐</span>
+                                            <div>
+                                                <div class="flex items-center gap-2">
+                                                    <h3 class="text-sm sm:text-base font-black text-white" x-text="block.content_data.title || '3D Globe Spatial Exploration'"></h3>
+                                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                                                        Spatial Map
+                                                    </span>
+                                                </div>
+                                                <template x-if="block.content_data.title_malayalam">
+                                                    <p class="text-xs font-bold text-amber-300 font-['Noto_Sans_Malayalam'] mt-0.5" x-text="block.content_data.title_malayalam"></p>
+                                                </template>
+                                            </div>
+                                        </div>
+
+                                        <!-- Canvas Control Buttons -->
+                                        <div class="flex items-center gap-1.5 bg-slate-900/90 p-1 rounded-xl border border-slate-800">
+                                            <button 
+                                                type="button" 
+                                                @click="toggleMode()" 
+                                                class="px-2.5 py-1 text-xs font-bold rounded-lg transition"
+                                                :class="currentMode === '3d_globe' ? 'bg-[#0052FF] text-white' : 'text-slate-400 hover:text-white'"
+                                            >
+                                                <span x-show="currentMode === '3d_globe'">🌐 3D Globe</span>
+                                                <span x-show="currentMode !== '3d_globe'">🗺️ 2D Map</span>
+                                            </button>
+                                            <button 
+                                                type="button" 
+                                                @click="toggleSpin()" 
+                                                class="px-2.5 py-1 text-xs font-bold rounded-lg transition"
+                                                :class="isSpinning ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'"
+                                                title="Toggle Rotation"
+                                            >
+                                                <span x-text="isSpinning ? '⏸' : '▶ Spin'"></span>
+                                            </button>
+                                            <button 
+                                                type="button" 
+                                                @click="reset()" 
+                                                class="px-2 py-1 text-xs font-bold text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition"
+                                                title="Reset View"
+                                            >
+                                                🎯
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Canvas Viewport -->
+                                    <div class="relative w-full aspect-[16/10] max-h-[440px] rounded-xl overflow-hidden bg-slate-950 border border-slate-800 cursor-grab active:cursor-grabbing">
+                                        <canvas :id="'session-globe-canvas-' + (block.id || idx)" class="w-full h-full block"></canvas>
+                                        
+                                        <div class="absolute bottom-3 left-3 text-[10px] text-slate-400 bg-slate-900/80 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-slate-800 pointer-events-none">
+                                            Drag to rotate • Scroll to zoom • Tap pins
+                                        </div>
+                                    </div>
+
+                                    <!-- Pinpoints Pills -->
+                                    <template x-if="block.content_data.markers && block.content_data.markers.length">
+                                        <div class="mt-4 pt-3 border-t border-slate-800/80">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <span class="text-[11px] font-black uppercase tracking-wider text-slate-400">Exam Pinpoints:</span>
+                                                <span class="text-[10px] text-slate-500">Tap pin to rotate</span>
+                                            </div>
+                                            <div class="flex flex-wrap items-center gap-1.5">
+                                                <template x-for="(pin, pIdx) in block.content_data.markers" :key="pIdx">
+                                                    <button 
+                                                        type="button" 
+                                                        @click="focusPin(pin)"
+                                                        class="px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 border"
+                                                        :class="activePin && activePin.label === pin.label ? 'bg-amber-400 text-slate-950 border-amber-300 font-black' : 'bg-slate-900 hover:bg-slate-800 text-slate-200 border-slate-800'"
+                                                    >
+                                                        <span class="w-1.5 h-1.5 rounded-full" :style="'background-color: ' + (pin.color || '#38BDF8')"></span>
+                                                        <span x-text="pin.label"></span>
+                                                    </button>
+                                                </template>
+                                            </div>
+
+                                            <!-- Active Pin Inspector Card -->
+                                            <template x-if="activePin">
+                                                <div class="mt-3 p-3 bg-slate-900/90 rounded-xl border border-amber-400/30 text-xs">
+                                                    <div class="flex items-center justify-between">
+                                                        <span class="font-black text-amber-300" x-text="activePin.label"></span>
+                                                        <button type="button" @click="activePin = null" class="text-slate-400 hover:text-white">✕</button>
+                                                    </div>
+                                                    <p class="text-slate-200 mt-1" x-text="activePin.note"></p>
+                                                    <template x-if="activePin.note_malayalam">
+                                                        <p class="text-amber-200 mt-1 font-semibold font-['Noto_Sans_Malayalam']" x-text="activePin.note_malayalam"></p>
+                                                    </template>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </template>
+
+                                    <!-- Explanatory Notes & Malayalam Spatial Tip -->
+                                    <template x-if="block.content_data.description || block.content_data.notes_malayalam">
+                                        <div class="mt-4 p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2 text-xs">
+                                            <template x-if="block.content_data.notes_malayalam">
+                                                <p class="text-slate-200 font-medium font-['Noto_Sans_Malayalam'] leading-relaxed" x-text="block.content_data.notes_malayalam"></p>
+                                            </template>
+                                            <template x-if="block.content_data.description">
+                                                <p class="text-slate-400 leading-relaxed italic" x-text="block.content_data.description"></p>
+                                            </template>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+
                         </div>
                     </template>
                 </div>
