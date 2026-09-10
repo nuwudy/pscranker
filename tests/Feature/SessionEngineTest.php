@@ -4,6 +4,7 @@ use App\Models\Category;
 use App\Models\Question;
 use App\Models\Session;
 use App\Models\SessionContent;
+use App\Models\User;
 use App\Models\UserSessionProgress;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -290,6 +291,128 @@ test('all 6 core psc subjects exist and are displayed with interactive units in 
     $response->assertSee('6 CORE PSC SUBJECTS');
     $response->assertSee('activeSubject');
 });
+
+test('general stream displays mixed concocted units from different subjects with sequential train order', function () {
+    $english = Category::firstOrCreate(['slug' => 'english'], ['name' => 'English', 'order' => 1]);
+    $geography = Category::firstOrCreate(['slug' => 'geography'], ['name' => 'Geography', 'order' => 5]);
+
+    $unit1 = Session::create([
+        'title' => 'Concocted Step 1: English Nouns',
+        'slug' => 'concocted-step-1-english',
+        'category_id' => $english->id,
+        'order' => 1,
+        'in_general_stream' => true,
+        'general_stream_order' => 1,
+        'xp_reward' => 200,
+        'is_active' => true,
+    ]);
+
+    $unit2 = Session::create([
+        'title' => 'Concocted Step 2: Kerala Rivers',
+        'slug' => 'concocted-step-2-geography',
+        'category_id' => $geography->id,
+        'order' => 1,
+        'in_general_stream' => true,
+        'general_stream_order' => 2,
+        'xp_reward' => 200,
+        'is_active' => true,
+    ]);
+
+    $response = $this->get(route('sessions.index', ['stream' => 'general']));
+    $response->assertStatus(200);
+    $response->assertSee('General Train');
+    $response->assertSee('Concocted Step 1: English Nouns');
+    $response->assertSee('Concocted Step 2: Kerala Rivers');
+    $response->assertSee('Train Step #1');
+    $response->assertSee('Train Step #2');
+});
+
+test('session runner navigation respects stream parameter between general train and subject stream', function () {
+    $english = Category::firstOrCreate(['slug' => 'english'], ['name' => 'English', 'order' => 1]);
+    $geography = Category::firstOrCreate(['slug' => 'geography'], ['name' => 'Geography', 'order' => 5]);
+
+    // English Unit 1 (Train Step 501)
+    $eng1 = Session::create([
+        'title' => 'English Unit 1',
+        'slug' => 'eng-unit-1-dual',
+        'category_id' => $english->id,
+        'order' => 501,
+        'in_general_stream' => true,
+        'general_stream_order' => 501,
+        'xp_reward' => 200,
+        'is_active' => true,
+    ]);
+
+    // English Unit 2 (Not next in train, but next in English)
+    $eng2 = Session::create([
+        'title' => 'English Unit 2',
+        'slug' => 'eng-unit-2-dual',
+        'category_id' => $english->id,
+        'order' => 502,
+        'in_general_stream' => true,
+        'general_stream_order' => 999,
+        'xp_reward' => 200,
+        'is_active' => true,
+    ]);
+
+    // Geography Unit 1 (Next in general train at Step 502)
+    $geo1 = Session::create([
+        'title' => 'Geography Unit 1',
+        'slug' => 'geo-unit-1-dual',
+        'category_id' => $geography->id,
+        'order' => 501,
+        'in_general_stream' => true,
+        'general_stream_order' => 502,
+        'xp_reward' => 200,
+        'is_active' => true,
+    ]);
+
+    // In General Stream: English Unit 1 next is Geography Unit 1!
+    expect($eng1->getNextSession('general')->id)->toBe($geo1->id);
+
+    // In Subject Stream: English Unit 1 next is English Unit 2!
+    expect($eng1->getNextSession('subject')->id)->toBe($eng2->id);
+
+    // Testing Runner HTTP response with stream=general
+    $responseGen = $this->get(route('session.show', ['slug' => $eng1->slug, 'stream' => 'general']));
+    $responseGen->assertStatus(200);
+    $responseGen->assertSee('GENERAL TRAIN');
+    $responseGen->assertSee(route('session.show', ['slug' => $geo1->slug, 'stream' => 'general']));
+
+    // Testing Runner HTTP response with stream=subject
+    $responseSub = $this->get(route('session.show', ['slug' => $eng1->slug, 'stream' => 'subject']));
+    $responseSub->assertStatus(200);
+    $responseSub->assertSee('ENGLISH');
+    $responseSub->assertSee(route('session.show', ['slug' => $eng2->slug, 'stream' => 'subject']));
+});
+
+test('admin can set in_general_stream and general_stream_order when saving a session', function () {
+    $admin = User::factory()->create(['email' => 'admin@pscranker.com']);
+    $category = Category::firstOrCreate(['slug' => 'maths'], ['name' => 'Maths', 'order' => 2]);
+
+    $this->actingAs($admin);
+
+    $response = $this->post(route('admin.sessions.store'), [
+        'title' => 'Maths Unit 3: Speed Tricks',
+        'title_malayalam' => 'വേഗ കണക്കുകൾ',
+        'slug' => 'maths-unit-3-speed-tricks',
+        'category_id' => $category->id,
+        'order' => 3,
+        'xp_reward' => 250,
+        'is_active' => 1,
+        'is_premium' => 0,
+        'in_general_stream' => 1,
+        'general_stream_order' => 7,
+    ]);
+
+    $response->assertRedirect();
+    $this->assertDatabaseHas('learning_sessions', [
+        'slug' => 'maths-unit-3-speed-tricks',
+        'in_general_stream' => true,
+        'general_stream_order' => 7,
+    ]);
+});
+
 
 
 

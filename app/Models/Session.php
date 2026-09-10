@@ -24,6 +24,8 @@ class Session extends Model
         'is_active',
         'is_premium',
         'price',
+        'in_general_stream',
+        'general_stream_order',
     ];
 
     protected $casts = [
@@ -32,6 +34,8 @@ class Session extends Model
         'price' => 'decimal:2',
         'order' => 'integer',
         'xp_reward' => 'integer',
+        'in_general_stream' => 'boolean',
+        'general_stream_order' => 'integer',
     ];
 
     public function isFree(): bool
@@ -47,8 +51,19 @@ class Session extends Model
         return '₹' . number_format($this->price, 0);
     }
 
-    public function getPreviousSession(): ?self
+    public function getPreviousSession(?string $stream = null): ?self
     {
+        if ($stream === 'general' && $this->in_general_stream) {
+            $prev = self::where('is_active', true)
+                ->where('in_general_stream', true)
+                ->where('general_stream_order', '<', $this->general_stream_order ?? 999999)
+                ->orderBy('general_stream_order', 'desc')
+                ->first();
+            if ($prev) {
+                return $prev;
+            }
+        }
+
         return self::where('is_active', true)
             ->where(function ($q) {
                 if ($this->category_id) {
@@ -64,8 +79,19 @@ class Session extends Model
                 ->first();
     }
 
-    public function getNextSession(): ?self
+    public function getNextSession(?string $stream = null): ?self
     {
+        if ($stream === 'general' && $this->in_general_stream) {
+            $next = self::where('is_active', true)
+                ->where('in_general_stream', true)
+                ->where('general_stream_order', '>', $this->general_stream_order ?? 0)
+                ->orderBy('general_stream_order', 'asc')
+                ->first();
+            if ($next) {
+                return $next;
+            }
+        }
+
         return self::where('is_active', true)
             ->where(function ($q) {
                 if ($this->category_id) {

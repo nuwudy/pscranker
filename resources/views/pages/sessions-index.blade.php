@@ -5,13 +5,19 @@
 @section('content')
 <div 
     x-data="{ 
-        activeSubject: new URLSearchParams(window.location.search).get('subject') || 'all',
+        activeSubject: new URLSearchParams(window.location.search).get('subject') 
+            || (new URLSearchParams(window.location.search).get('stream') === 'subject' ? 'english' : 'general'),
         setSubject(slug) {
             this.activeSubject = slug;
             const url = new URL(window.location);
-            if (slug === 'all') {
+            if (slug === 'general') {
+                url.searchParams.set('stream', 'general');
                 url.searchParams.delete('subject');
+            } else if (slug === 'all') {
+                url.searchParams.delete('stream');
+                url.searchParams.set('subject', 'all');
             } else {
+                url.searchParams.set('stream', 'subject');
                 url.searchParams.set('subject', slug);
             }
             window.history.replaceState({}, '', url);
@@ -24,25 +30,39 @@
         <!-- Header Section -->
         <div class="text-center max-w-3xl mx-auto mb-8 sm:mb-10">
             <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-[#0052FF] text-xs font-black uppercase tracking-wider mb-3 shadow-xs">
-                <span>⚡ 6 CORE PSC SUBJECTS • 4-PHASE UNIT ENGINE</span>
+                <span>⚡ 6 CORE PSC SUBJECTS &amp; GENERAL STREAM • 4-PHASE UNIT ENGINE</span>
             </div>
             <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-950 tracking-tight leading-tight">
                 Kerala PSC Session Capsules &amp; Special Lessons
             </h1>
             <p class="text-base sm:text-xl font-bold text-[#0052FF] mt-2 font-['Noto_Sans_Malayalam']">
-                ഇംഗ്ലീഷ് • കണക്ക് • സയൻസ് • ചരിത്രം • ഭൂമിശാസ്ത്രം • സമകാലികം
+                ജനറൽ മിക്സഡ് സ്ട്രീം &bull; 6 പ്രത്യേക വിഷയങ്ങൾ
             </p>
             <p class="text-xs sm:text-sm text-slate-600 mt-3 leading-relaxed max-w-2xl mx-auto">
-                Decluttered, high-impact learning. Each unit is structured with the complete 4-phase loop: 
-                <strong>Test Question</strong> (Diagnostic) ➔ <strong>Lesson Capsule</strong> (Text, Images, Audio, Video) ➔ <strong>20s Speed Blitz</strong> ➔ <strong>Kerala PSC OMR Test</strong>.
+                Decluttered, high-impact learning. Follow the <strong>General Mixed Stream</strong> for a balanced daily master train, or select any <strong>Special Subject</strong> to master topics individually!
             </p>
         </div>
 
-        <!-- Interactive 6-Subject Filter Bar -->
+        <!-- Interactive Stream & Subject Filter Bar -->
         <div class="mb-10 sm:mb-12">
             <div class="flex items-center justify-start sm:justify-center gap-2 overflow-x-auto pb-3 no-scrollbar">
                 
-                <!-- All Subjects Pill -->
+                <!-- 1. General Stream Pill (Default Master Train) -->
+                <button 
+                    type="button"
+                    @click="setSubject('general')"
+                    class="px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all shrink-0 flex items-center gap-2 border-2"
+                    :class="activeSubject === 'general' 
+                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-blue-500 shadow-lg shadow-blue-500/30 scale-105 ring-2 ring-yellow-400' 
+                        : 'bg-white text-blue-900 border-blue-200 hover:border-blue-400 hover:bg-blue-50/40'"
+                >
+                    <span>🚂 General Train</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-mono" :class="activeSubject === 'general' ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-800'">
+                        {{ $generalSessions->count() }} Units
+                    </span>
+                </button>
+
+                <!-- 2. All Subjects Pill -->
                 <button 
                     type="button"
                     @click="setSubject('all')"
@@ -51,12 +71,13 @@
                         ? 'bg-slate-950 text-white border-slate-950 shadow-md scale-105 ring-2 ring-blue-400' 
                         : 'bg-white text-slate-700 border-slate-200 hover:border-blue-300 hover:bg-blue-50/40'"
                 >
-                    <span>⚡ All Subjects</span>
+                    <span>⚡ All Units</span>
                     <span class="px-2 py-0.5 rounded-full text-[10px] font-mono" :class="activeSubject === 'all' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'">
-                        {{ $categories->sum(fn($c) => $c->sessions->count()) }} Units
+                        {{ $categories->sum(fn($c) => $c->sessions->count()) }}
                     </span>
                 </button>
 
+                <!-- 3 to 8. 6 Core Special Subjects -->
                 @foreach($categories as $cat)
                     @php
                         $subjectIcons = [
@@ -91,81 +112,155 @@
             </div>
         </div>
 
-        <!-- Featured Flagship Unit Banner (Shown when on "all") -->
-        @if($featuredSession)
-            <div 
-                x-show="activeSubject === 'all'" 
-                x-transition
-                class="mb-14 rounded-3xl bg-gradient-to-r from-blue-950 via-slate-900 to-indigo-950 text-white p-6 sm:p-10 shadow-2xl relative overflow-hidden border border-blue-700/50"
-            >
+        <!-- ======================================================== -->
+        <!-- SECTION 1: THE GENERAL STREAM (MIXED ALL-ROUND MASTER TRAIN) -->
+        <!-- ======================================================== -->
+        <div 
+            x-show="activeSubject === 'general'" 
+            x-transition
+            class="transition-all"
+        >
+            <!-- General Train Hero Banner -->
+            <div class="mb-10 p-6 sm:p-10 rounded-3xl bg-gradient-to-r from-blue-950 via-slate-900 to-indigo-950 text-white shadow-2xl relative overflow-hidden border border-blue-700/50">
                 <div class="absolute -right-16 -top-16 w-72 h-72 bg-yellow-400/10 rounded-full blur-3xl pointer-events-none"></div>
-                
+
                 <div class="relative z-10 max-w-3xl">
                     <div class="flex items-center gap-2 mb-3">
                         <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-yellow-400 text-slate-950 shadow-xs">
-                            Featured Master Unit
+                            🚂 General Stream • Mixed Master Train
                         </span>
                         <span class="text-xs text-blue-200 font-bold">
-                            {{ $featuredSession->category ? $featuredSession->category->name : 'Kerala PSC' }}
+                            {{ $generalSessions->count() }} Sequential Units
                         </span>
-                        @if($featuredSession->is_premium)
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950">
-                                👑 PRO PASS
-                            </span>
-                        @else
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-400/20 text-emerald-300 border border-emerald-400/30">
-                                FREE FOR ALL
-                            </span>
-                        @endif
                     </div>
 
                     <h2 class="text-2xl sm:text-4xl font-black tracking-tight text-white leading-tight">
-                        {{ $featuredSession->title }}
+                        The Mixed PSC Master Train (ഡെയ്‌ലി സിലബസ് ട്രെയിൻ)
                     </h2>
-                    @if($featuredSession->title_malayalam)
-                        <p class="text-base sm:text-xl font-bold text-yellow-300 mt-1 font-['Noto_Sans_Malayalam']">
-                            {{ $featuredSession->title_malayalam }}
-                        </p>
-                    @endif
-
-                    <!-- 4-Phase Micro-Feature Pills -->
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 my-6 text-center">
-                        <div class="p-3 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10">
-                            <span class="text-lg">🎯</span>
-                            <div class="text-xs font-bold text-slate-200 mt-1">1. Diagnostic Hook</div>
-                        </div>
-                        <div class="p-3 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10">
-                            <span class="text-lg">📚</span>
-                            <div class="text-xs font-bold text-slate-200 mt-1">2. Multimedia Capsule</div>
-                        </div>
-                        <div class="p-3 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10">
-                            <span class="text-lg">⚡</span>
-                            <div class="text-xs font-bold text-slate-200 mt-1">3. 20s Speed Blitz</div>
-                        </div>
-                        <div class="p-3 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10">
-                            <span class="text-lg">📝</span>
-                            <div class="text-xs font-bold text-slate-200 mt-1">4. Timed OMR Sheet</div>
-                        </div>
-                    </div>
-
-                    <div class="flex flex-wrap items-center gap-4">
-                        <a 
-                            href="{{ route('session.show', $featuredSession->slug) }}" 
-                            class="px-8 py-4 bg-[#FFD200] hover:bg-yellow-400 text-slate-950 font-black text-base rounded-2xl shadow-xl shadow-yellow-500/30 active:scale-95 transition flex items-center gap-2 border border-yellow-300"
-                        >
-                            <span>LAUNCH UNIT NOW</span>
-                            <span>⚡</span>
-                        </a>
-                        <span class="text-xs text-slate-300 font-bold">
-                            Reward: <strong class="text-yellow-300">+{{ $featuredSession->xp_reward }} XP</strong>
-                        </span>
-                    </div>
+                    <p class="text-sm sm:text-base font-bold text-yellow-300 mt-1.5 font-['Noto_Sans_Malayalam']">
+                        എല്ലാ പ്രധാന വിഷയങ്ങളും ചേർത്തുള്ള ക്രമാനുഗതമായ പഠനരീതി!
+                    </p>
+                    <p class="text-xs sm:text-sm text-slate-300 mt-3 leading-relaxed">
+                        Concocted by Kerala PSC top rank holders mixing English, Maths, Science, History, Geography, and Current Affairs into a steady daily train. Complete one unit every day with the proven 4-phase loop!
+                    </p>
                 </div>
             </div>
-        @endif
 
-        <!-- Sessions by Subject Sections -->
-        <div class="space-y-16">
+            <!-- General Train Grid -->
+            @if($generalSessions->isEmpty())
+                <div class="p-8 rounded-3xl bg-white border-2 border-dashed border-slate-300 text-center max-w-lg mx-auto my-6">
+                    <div class="text-3xl mb-2">🚂</div>
+                    <h4 class="text-base font-black text-slate-900">General Stream Units Being Concocted</h4>
+                    <p class="text-xs text-slate-500 mt-1">Admin is sequencing the daily mixed train. You can explore individual subject units from the filter bar above!</p>
+                </div>
+            @else
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+                    @foreach($generalSessions as $session)
+                        @php
+                            $subjectIcons = [
+                                'english' => '📖',
+                                'maths' => '🔢',
+                                'science' => '🔬',
+                                'history' => '🏛️',
+                                'geography' => '🌍',
+                                'current-affairs' => '📰',
+                            ];
+                            $catIcon = $subjectIcons[$session->category->slug ?? ''] ?? '⚡';
+                            $hasImages = $session->contents->contains('type', 'image');
+                            $hasAudio = $session->contents->contains('type', 'audio');
+                            $hasVideo = $session->contents->contains('type', 'video');
+                            $hasText = $session->contents->contains('type', 'text');
+                        @endphp
+
+                        <div class="bg-white rounded-3xl border-2 border-slate-200 hover:border-[#0052FF] transition-all p-6 flex flex-col justify-between shadow-xs hover:shadow-xl group relative overflow-hidden">
+                            <!-- Train top accent -->
+                            <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#0052FF] via-indigo-500 to-yellow-400"></div>
+
+                            <div>
+                                <!-- Train Step & Subject Badges -->
+                                <div class="flex items-center justify-between text-xs font-bold mb-3.5">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="px-2.5 py-1 rounded-xl bg-blue-100 text-blue-900 font-black border border-blue-200">
+                                            🚂 Train Step #{{ $session->general_stream_order ?? $loop->iteration }}
+                                        </span>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-800 border border-slate-200">
+                                            {{ $catIcon }} {{ $session->category ? $session->category->name : 'Subject' }}
+                                        </span>
+                                    </div>
+                                    @if($session->is_premium)
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 shadow-xs">
+                                            👑 PRO PASS
+                                        </span>
+                                    @else
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                            FREE
+                                        </span>
+                                    @endif
+                                </div>
+
+                                <!-- Unit Title -->
+                                <h4 class="text-lg font-black text-slate-950 group-hover:text-[#0052FF] transition leading-snug">
+                                    <a href="{{ route('session.show', ['slug' => $session->slug, 'stream' => 'general']) }}">
+                                        {{ $session->title }}
+                                    </a>
+                                </h4>
+                                @if($session->title_malayalam)
+                                    <p class="text-xs sm:text-sm font-semibold text-slate-600 mt-1 font-['Noto_Sans_Malayalam'] leading-relaxed">
+                                        {{ $session->title_malayalam }}
+                                    </p>
+                                @endif
+
+                                <!-- Multimedia Feature Badges -->
+                                <div class="flex flex-wrap items-center gap-1.5 mt-4 pt-3 border-t border-slate-100 text-[10px] font-bold">
+                                    @if($hasText)
+                                        <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700">📝 Notes</span>
+                                    @endif
+                                    @if($hasImages)
+                                        <span class="px-2 py-0.5 rounded-md bg-purple-50 text-purple-700">🖼️ Images</span>
+                                    @endif
+                                    @if($hasAudio)
+                                        <span class="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700">🎙️ Audio</span>
+                                    @endif
+                                    @if($hasVideo)
+                                        <span class="px-2 py-0.5 rounded-md bg-red-50 text-red-700">🎥 Video</span>
+                                    @endif
+                                    <span class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-800">📝 OMR Challenge</span>
+                                </div>
+
+                                <div class="mt-3 flex items-center justify-between text-[11px] text-slate-400 font-medium">
+                                    <span>4-Phase Loop</span>
+                                    <span class="text-amber-600 font-black font-mono">+{{ $session->xp_reward }} XP</span>
+                                </div>
+                            </div>
+
+                            <!-- Launch Button -->
+                            <div class="mt-5 pt-2">
+                                <a 
+                                    href="{{ route('session.show', ['slug' => $session->slug, 'stream' => 'general']) }}" 
+                                    class="w-full py-3 px-4 font-black text-xs rounded-2xl transition-all text-center flex items-center justify-center gap-2 active:scale-95 {{ $session->is_premium ? 'bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300 shadow-xs' : 'bg-[#0052FF] hover:bg-blue-700 text-white shadow-md shadow-blue-500/20' }}"
+                                >
+                                    @if($session->is_premium)
+                                        <span>👑 Open PRO Step #{{ $session->general_stream_order ?? $loop->iteration }}</span>
+                                    @else
+                                        <span>Launch Train Step #{{ $session->general_stream_order ?? $loop->iteration }}</span>
+                                    @endif
+                                    <span class="text-sm">➔</span>
+                                </a>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+
+        <!-- ======================================================== -->
+        <!-- SECTION 2: SPECIALIZED SUBJECT STREAMS & ALL SUBJECTS -->
+        <!-- ======================================================== -->
+        <div 
+            x-show="activeSubject !== 'general'" 
+            x-transition
+            class="space-y-16 transition-all"
+        >
             @foreach($categories as $category)
                 @php
                     $subjectIcons = [
@@ -246,7 +341,6 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             @foreach($category->sessions as $session)
                                 @php
-                                    // Count content block types in this unit
                                     $hasImages = $session->contents->contains('type', 'image');
                                     $hasAudio = $session->contents->contains('type', 'audio');
                                     $hasVideo = $session->contents->contains('type', 'video');
@@ -278,7 +372,7 @@
 
                                         <!-- Unit Title -->
                                         <h4 class="text-lg font-black text-slate-950 group-hover:text-[#0052FF] transition leading-snug">
-                                            <a href="{{ route('session.show', $session->slug) }}">
+                                            <a href="{{ route('session.show', ['slug' => $session->slug, 'stream' => 'subject']) }}">
                                                 {{ $session->title }}
                                             </a>
                                         </h4>
@@ -314,7 +408,7 @@
                                     <!-- Launch Unit CTA -->
                                     <div class="mt-5 pt-2">
                                         <a 
-                                            href="{{ route('session.show', $session->slug) }}" 
+                                            href="{{ route('session.show', ['slug' => $session->slug, 'stream' => 'subject']) }}" 
                                             class="w-full py-3 px-4 font-black text-xs rounded-2xl transition-all text-center flex items-center justify-center gap-2 active:scale-95 {{ $session->is_premium ? 'bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300 shadow-xs' : 'bg-[#0052FF] hover:bg-blue-700 text-white shadow-md shadow-blue-500/20' }}"
                                         >
                                             @if($session->is_premium)

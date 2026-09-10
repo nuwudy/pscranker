@@ -190,6 +190,42 @@
                                 <p class="text-[10px] text-amber-800 font-medium">Unchecked = Free Unit for all learners • Checked = Included in Prepaid Pass</p>
                             </div>
                         </div>
+
+                        <!-- General Stream Concoction Settings -->
+                        <div class="w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-xl bg-blue-50/80 border border-blue-200">
+                            <div class="flex items-start gap-3">
+                                <input 
+                                    type="checkbox" 
+                                    id="in_general_stream" 
+                                    name="in_general_stream" 
+                                    value="1" 
+                                    {{ old('in_general_stream', $session->in_general_stream ?? true) ? 'checked' : '' }}
+                                    class="w-4 h-4 mt-0.5 rounded text-[#0052FF] focus:ring-blue-500 cursor-pointer"
+                                >
+                                <div>
+                                    <label for="in_general_stream" class="text-xs font-black text-blue-950 flex items-center gap-1.5 cursor-pointer">
+                                        <span>🚂 Include in General Stream (Mixed Master Train)</span>
+                                        <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-blue-200 text-blue-900">All-Round Train</span>
+                                    </label>
+                                    <p class="text-[11px] text-blue-800 font-medium mt-0.5">
+                                        When checked, this unit appears in the mixed all-round train when students launch <strong>[START COURSE UNITS]</strong>.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-2 shrink-0">
+                                <label for="general_stream_order" class="text-xs font-bold text-blue-900 whitespace-nowrap">Train Order #:</label>
+                                <input 
+                                    type="number" 
+                                    id="general_stream_order" 
+                                    name="general_stream_order" 
+                                    value="{{ old('general_stream_order', $session->general_stream_order ?? 1) }}" 
+                                    min="1"
+                                    placeholder="1"
+                                    class="w-20 px-3 py-1.5 text-xs font-black rounded-lg border border-blue-300 bg-white focus:border-[#0052FF] focus:outline-none text-center"
+                                >
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

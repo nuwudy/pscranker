@@ -15,24 +15,35 @@ class SessionController extends Controller
     /**
      * Display a listing of learning sessions.
      */
-    public function index()
+    public function index(Request $request)
     {
         $categories = Category::with(['sessions' => function ($query) {
             $query->where('is_active', true)->orderBy('order', 'asc');
         }])->orderBy('order', 'asc')->get();
 
-        $featuredSession = Session::with(['category', 'contents', 'questions'])
+        $generalSessions = Session::with(['category', 'contents', 'questions'])
             ->where('is_active', true)
-            ->orderBy('order', 'asc')
-            ->first();
+            ->where('in_general_stream', true)
+            ->orderBy('general_stream_order', 'asc')
+            ->get();
 
-        return view('pages.sessions-index', compact('categories', 'featuredSession'));
+        $featuredSession = $generalSessions->first()
+            ?? Session::with(['category', 'contents', 'questions'])
+                ->where('is_active', true)
+                ->orderBy('order', 'asc')
+                ->first();
+
+        $activeTab = $request->query('subject') 
+            ? $request->query('subject') 
+            : ($request->query('stream') === 'subject' ? 'english' : 'general');
+
+        return view('pages.sessions-index', compact('categories', 'generalSessions', 'featuredSession', 'activeTab'));
     }
 
     /**
      * Show the 4-phase micro-learning session runner.
      */
-    public function show(string $slug)
+    public function show(string $slug, Request $request)
     {
         $session = Session::with([
             'category',
@@ -45,17 +56,30 @@ class SessionController extends Controller
         ->where('is_active', true)
         ->firstOrFail();
 
-        $previousSession = $session->getPreviousSession();
-        $nextSession = $session->getNextSession();
+        $stream = $request->query('stream', 'subject');
+        $previousSession = $session->getPreviousSession($stream);
+        $nextSession = $session->getNextSession($stream);
 
-        // Calculate unit numbering in current category
-        $categorySessionsQuery = Session::where('is_active', true);
-        if ($session->category_id) {
-            $categorySessionsQuery->where('category_id', $session->category_id);
+        // Unit calculation depends on stream
+        if ($stream === 'general' && $session->in_general_stream) {
+            $totalUnits = Session::where('is_active', true)->where('in_general_stream', true)->count();
+            $unitNumber = Session::where('is_active', true)
+                ->where('in_general_stream', true)
+                ->where('general_stream_order', '<=', $session->general_stream_order ?? 1)
+                ->count() ?: ($session->general_stream_order ?? 1);
+            $streamTitle = 'General Stream (Mixed Train)';
+            $streamTitleMalayalam = 'ജനറൽ സ്ട്രീം (മിക്സഡ് മാസ്റ്റർ ട്രെയിൻ)';
+        } else {
+            $categorySessionsQuery = Session::where('is_active', true);
+            if ($session->category_id) {
+                $categorySessionsQuery->where('category_id', $session->category_id);
+            }
+
+            $totalUnits = (clone $categorySessionsQuery)->count();
+            $unitNumber = (clone $categorySessionsQuery)->where('order', '<=', $session->order)->count() ?: $session->order;
+            $streamTitle = ($session->category ? $session->category->name : 'Subject') . ' Stream';
+            $streamTitleMalayalam = ($session->category ? $session->category->name_malayalam : 'പ്രത്യേക വിഷയം');
         }
-
-        $totalUnits = (clone $categorySessionsQuery)->count();
-        $unitNumber = (clone $categorySessionsQuery)->where('order', '<=', $session->order)->count() ?: $session->order;
 
         // Premium gating check (Admins and active subscribers bypass)
         $isAdmin = auth()->check() && (auth()->user()->email === 'admin@pscranker.com' || auth()->user()->is_admin ?? false);
@@ -68,7 +92,10 @@ class SessionController extends Controller
             'nextSession',
             'unitNumber',
             'totalUnits',
-            'isLocked'
+            'isLocked',
+            'stream',
+            'streamTitle',
+            'streamTitleMalayalam'
         ));
     }
 

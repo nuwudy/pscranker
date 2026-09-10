@@ -149,7 +149,7 @@
                     <!-- Previous & Next Unit Navigation buttons -->
                     @if($previousSession)
                         <a 
-                            href="{{ route('session.show', $previousSession->slug) }}" 
+                            href="{{ route('session.show', ['slug' => $previousSession->slug, 'stream' => $stream]) }}" 
                             class="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-bold border border-slate-200 transition flex items-center gap-1"
                             title="Go to previous unit: {{ $previousSession->title }}"
                         >
@@ -159,7 +159,7 @@
 
                     @if($nextSession)
                         <a 
-                            href="{{ route('session.show', $nextSession->slug) }}" 
+                            href="{{ route('session.show', ['slug' => $nextSession->slug, 'stream' => $stream]) }}" 
                             class="px-2.5 py-1 bg-[#0052FF] hover:bg-blue-700 text-white rounded-lg text-xs font-black transition flex items-center gap-1 shadow-xs"
                             title="Go to next unit: {{ $nextSession->title }}"
                         >
@@ -180,8 +180,16 @@
 
             <!-- Session Title & Malayalam Micro-copy -->
             <div class="mb-4">
-                <div class="flex items-center gap-2 text-xs font-bold text-slate-500 mb-1">
-                    <span>UNIT {{ $unitNumber }}</span>
+                <div class="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-500 mb-1">
+                    @if($stream === 'general')
+                        <span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-900 font-black border border-blue-200">
+                            🚂 GENERAL TRAIN • Unit {{ $unitNumber }} of {{ $totalUnits }}
+                        </span>
+                    @else
+                        <span class="px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-900 font-black border border-purple-200">
+                            {{ strtoupper($session->category ? $session->category->name : 'SUBJECT') }} • Unit {{ $unitNumber }} of {{ $totalUnits }}
+                        </span>
+                    @endif
                     <span>•</span>
                     <span>{{ $session->category ? $session->category->name : 'General Syllabus' }}</span>
                 </div>
@@ -1250,7 +1258,7 @@
                     <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                         @if($previousSession)
                             <a 
-                                href="{{ route('session.show', $previousSession->slug) }}" 
+                                href="{{ route('session.show', ['slug' => $previousSession->slug, 'stream' => $stream]) }}" 
                                 class="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs sm:text-sm rounded-xl transition flex items-center justify-center gap-1.5 border border-slate-300"
                             >
                                 <span>← Prev Unit ({{ Str::limit($previousSession->title, 18) }})</span>
@@ -1266,7 +1274,7 @@
                         </button>
 
                         <a 
-                            href="{{ route('sessions.index') }}" 
+                            href="{{ route('sessions.index', ['stream' => $stream]) }}" 
                             class="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs sm:text-sm rounded-xl transition text-center"
                         >
                             All Units
@@ -1276,7 +1284,7 @@
                     <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
                         @if($nextSession)
                             <a 
-                                href="{{ route('session.show', $nextSession->slug) }}" 
+                                href="{{ route('session.show', ['slug' => $nextSession->slug, 'stream' => $stream]) }}" 
                                 class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-[#0052FF] via-blue-600 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-black text-sm sm:text-base rounded-2xl shadow-xl shadow-blue-500/30 transition text-center flex items-center justify-center gap-2 border-2 border-yellow-400 group active:scale-95 animate-pulse"
                             >
                                 <span>CONTINUE TO NEXT UNIT ➔</span>

@@ -52,9 +52,16 @@
                                 <div class="text-[10px] text-slate-400 font-mono">{{ $session->slug }}</div>
                             </td>
                             <td class="p-4">
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800">
-                                    {{ $session->category ? $session->category->name : 'Unassigned' }}
-                                </span>
+                                <div class="flex flex-col gap-1 items-start">
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800">
+                                        {{ $session->category ? $session->category->name : 'Unassigned' }}
+                                    </span>
+                                    @if($session->in_general_stream)
+                                        <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-blue-100 text-blue-800 border border-blue-200">
+                                            🚂 Train #{{ $session->general_stream_order ?? '1' }}
+                                        </span>
+                                    @endif
+                                </div>
                             </td>
                             <td class="p-4 font-mono font-bold">
                                 {{ $session->contents_count }} blocks

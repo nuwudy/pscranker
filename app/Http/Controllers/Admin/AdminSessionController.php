@@ -57,6 +57,8 @@ class AdminSessionController extends Controller
             'is_active' => 'boolean',
             'is_premium' => 'boolean',
             'price' => 'nullable|numeric|min:0',
+            'in_general_stream' => 'boolean',
+            'general_stream_order' => 'nullable|integer',
             'contents' => 'nullable|array',
             'contents.*.type' => 'required|string|in:image,video,audio,text,html',
             'contents.*.content_data' => 'required|array',
@@ -80,6 +82,8 @@ class AdminSessionController extends Controller
             'is_active' => $request->boolean('is_active', true),
             'is_premium' => $request->boolean('is_premium'),
             'price' => $request->boolean('is_premium') ? ($request->input('price') ?: 199.00) : null,
+            'in_general_stream' => $request->boolean('in_general_stream', true),
+            'general_stream_order' => $request->filled('general_stream_order') ? (int)$request->input('general_stream_order') : null,
         ]);
 
         $this->syncContentsAndQuestions($session, $request);
@@ -134,6 +138,8 @@ class AdminSessionController extends Controller
             'is_active' => 'boolean',
             'is_premium' => 'boolean',
             'price' => 'nullable|numeric|min:0',
+            'in_general_stream' => 'boolean',
+            'general_stream_order' => 'nullable|integer',
         ]);
 
         $session->update([
@@ -146,6 +152,8 @@ class AdminSessionController extends Controller
             'is_active' => $request->boolean('is_active', true),
             'is_premium' => $request->boolean('is_premium'),
             'price' => $request->boolean('is_premium') ? ($request->input('price') ?: 199.00) : null,
+            'in_general_stream' => $request->boolean('in_general_stream', true),
+            'general_stream_order' => $request->filled('general_stream_order') ? (int)$request->input('general_stream_order') : null,
         ]);
 
         $this->syncContentsAndQuestions($session, $request);
