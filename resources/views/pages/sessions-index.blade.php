@@ -199,13 +199,6 @@
                                     @endif
                                 </div>
 
-                                @if($session->feature_image)
-                                    <!-- Unit Featured Cover Thumbnail -->
-                                    <div class="mb-3 h-36 rounded-2xl overflow-hidden border border-slate-100 bg-slate-50 relative">
-                                        <img src="{{ $session->feature_image }}" alt="{{ $session->title }}" class="w-full h-full object-cover transition duration-300 group-hover:scale-105" loading="lazy">
-                                    </div>
-                                @endif
-
                                 <!-- Unit Title -->
                                 <h4 class="text-lg font-black text-slate-950 group-hover:text-[#0052FF] transition leading-snug">
                                     <a href="{{ route('session.show', ['slug' => $session->slug, 'stream' => 'general']) }}">
@@ -383,13 +376,6 @@
                                                 ⚡ +{{ $session->xp_reward }} XP
                                             </span>
                                         </div>
-
-                                        @if($session->feature_image)
-                                            <!-- Unit Featured Cover Thumbnail -->
-                                            <div class="mb-3 h-36 rounded-2xl overflow-hidden border border-slate-100 bg-slate-50 relative">
-                                                <img src="{{ $session->feature_image }}" alt="{{ $session->title }}" class="w-full h-full object-cover transition duration-300 group-hover:scale-105" loading="lazy">
-                                            </div>
-                                        @endif
 
                                         <!-- Unit Title -->
                                         <h4 class="text-lg font-black text-slate-950 group-hover:text-[#0052FF] transition leading-snug">

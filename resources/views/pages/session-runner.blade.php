@@ -302,12 +302,12 @@
             <!-- ========================================================= -->
             <div class="custom-session-wrapper mb-10">
                 @if($session->feature_image)
-                    <!-- Featured Image Banner above Custom Code Capsule -->
-                    <div class="mb-6 rounded-3xl overflow-hidden border border-blue-100 shadow-md bg-white max-h-[460px] flex items-center justify-center relative">
+                    <!-- Feature Image for Custom Code Capsule (Docked strictly into the lesson screen via script) -->
+                    <div id="psc-custom-feature-image-banner" class="hidden mb-6 rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-white max-h-[460px] flex items-center justify-center relative">
                         <img 
                             src="{{ $session->feature_image }}" 
                             alt="{{ $session->title }}"
-                            class="w-full h-auto max-h-[460px] object-cover sm:object-contain rounded-3xl"
+                            class="w-full h-auto max-h-[460px] object-cover sm:object-contain rounded-2xl"
                             loading="eager"
                         >
                     </div>
@@ -2062,6 +2062,41 @@ window.PSCRanker = {
         }
     }
 };
+
+// Dock Feature Image strictly inside the Lesson screen for Custom Code capsules
+document.addEventListener('DOMContentLoaded', function() {
+    const banner = document.getElementById('psc-custom-feature-image-banner');
+    if (!banner) return;
+
+    // Check where the lesson screen or slot is located inside custom code:
+    const slot = document.getElementById('psc-feature-image-slot');
+    const lessonScreen = document.getElementById('psc-screen-lesson') 
+                      || document.querySelector('.psc-screen-lesson') 
+                      || document.querySelector('[data-screen="lesson"]')
+                      || document.querySelector('.psc-lesson-part');
+
+    if (slot) {
+        slot.appendChild(banner);
+        banner.classList.remove('hidden');
+    } else if (lessonScreen) {
+        // Dock into the lesson screen right above the lesson title/card
+        const card = lessonScreen.querySelector('.psc-card') || lessonScreen;
+        const lessonTitle = card.querySelector('.psc-lesson-title') || card.querySelector('h1, h2, h3, h4');
+        if (lessonTitle) {
+            card.insertBefore(banner, lessonTitle);
+        } else {
+            card.prepend(banner);
+        }
+        banner.classList.remove('hidden');
+    } else {
+        // Fallback for single-screen lesson code
+        const card = document.querySelector('.custom-session-wrapper .bg-white');
+        if (card) {
+            card.prepend(banner);
+            banner.classList.remove('hidden');
+        }
+    }
+});
 </script>
 @endpush
 @endsection

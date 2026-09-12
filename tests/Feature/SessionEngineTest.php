@@ -495,8 +495,13 @@ test('feature image appears above the lesson in both custom code and manual mode
     $codeResponse = $this->get(route('session.show', $codeSession->slug));
     $codeResponse->assertStatus(200);
     $codeResponse->assertSee('https://example.com/newton-apple.png');
-    $codeResponse->assertSee('Featured Image Banner above Custom Code Capsule', false);
+    $codeResponse->assertSee('psc-custom-feature-image-banner', false);
     $codeResponse->assertSee('newton-experiment');
+
+    // 3. Verify it is kept hidden from catalog index cards
+    $catalogResponse = $this->get(route('sessions.index'));
+    $catalogResponse->assertStatus(200);
+    $catalogResponse->assertDontSee('Unit Featured Cover Thumbnail');
 });
 
 
