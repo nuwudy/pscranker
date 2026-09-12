@@ -59,6 +59,8 @@ class AdminSessionController extends Controller
             'price' => 'nullable|numeric|min:0',
             'in_general_stream' => 'boolean',
             'general_stream_order' => 'nullable|integer',
+            'creation_mode' => 'nullable|string|in:manual,code',
+            'custom_html' => 'nullable|string',
             'contents' => 'nullable|array',
             'contents.*.type' => 'required|string|in:image,video,audio,text,html,map_globe',
             'contents.*.content_data' => 'required|array',
@@ -72,6 +74,8 @@ class AdminSessionController extends Controller
             $slug .= '-' . ($count + 1);
         }
 
+        $creationMode = $request->input('creation_mode', 'manual');
+
         $session = Session::create([
             'title' => $validated['title'],
             'title_malayalam' => $validated['title_malayalam'] ?? null,
@@ -84,9 +88,13 @@ class AdminSessionController extends Controller
             'price' => $request->boolean('is_premium') ? ($request->input('price') ?: 199.00) : null,
             'in_general_stream' => $request->boolean('in_general_stream', true),
             'general_stream_order' => $request->filled('general_stream_order') ? (int)$request->input('general_stream_order') : null,
+            'creation_mode' => $creationMode,
+            'custom_html' => $creationMode === 'code' ? $request->input('custom_html') : null,
         ]);
 
-        $this->syncContentsAndQuestions($session, $request);
+        if ($creationMode === 'manual') {
+            $this->syncContentsAndQuestions($session, $request);
+        }
 
         return redirect()->route('admin.sessions.edit', $session)
             ->with('success', 'Learning Session created successfully!');
@@ -140,7 +148,11 @@ class AdminSessionController extends Controller
             'price' => 'nullable|numeric|min:0',
             'in_general_stream' => 'boolean',
             'general_stream_order' => 'nullable|integer',
+            'creation_mode' => 'nullable|string|in:manual,code',
+            'custom_html' => 'nullable|string',
         ]);
+
+        $creationMode = $request->input('creation_mode', 'manual');
 
         $session->update([
             'title' => $validated['title'],
@@ -154,9 +166,13 @@ class AdminSessionController extends Controller
             'price' => $request->boolean('is_premium') ? ($request->input('price') ?: 199.00) : null,
             'in_general_stream' => $request->boolean('in_general_stream', true),
             'general_stream_order' => $request->filled('general_stream_order') ? (int)$request->input('general_stream_order') : null,
+            'creation_mode' => $creationMode,
+            'custom_html' => $creationMode === 'code' ? $request->input('custom_html') : $session->custom_html,
         ]);
 
-        $this->syncContentsAndQuestions($session, $request);
+        if ($creationMode === 'manual') {
+            $this->syncContentsAndQuestions($session, $request);
+        }
 
         return redirect()->route('admin.sessions.edit', $session)
             ->with('success', 'Session updated successfully!');

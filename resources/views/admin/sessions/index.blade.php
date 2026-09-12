@@ -64,10 +64,20 @@
                                 </div>
                             </td>
                             <td class="p-4 font-mono font-bold">
-                                {{ $session->contents_count }} blocks
+                                @if($session->isCustomCode())
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                        <span>⚡ Custom HTML</span>
+                                    </span>
+                                @else
+                                    {{ $session->contents_count }} blocks
+                                @endif
                             </td>
                             <td class="p-4 font-mono font-bold">
-                                {{ $session->questions_count }} questions
+                                @if($session->isCustomCode())
+                                    <span class="text-[10px] text-slate-400 font-bold">Embedded in code</span>
+                                @else
+                                    {{ $session->questions_count }} questions
+                                @endif
                             </td>
                             <td class="p-4 font-mono text-amber-600 font-bold">
                                 +{{ $session->xp_reward }} XP

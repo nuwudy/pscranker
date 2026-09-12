@@ -26,6 +26,8 @@ class Session extends Model
         'price',
         'in_general_stream',
         'general_stream_order',
+        'creation_mode',
+        'custom_html',
     ];
 
     protected $casts = [
@@ -36,7 +38,18 @@ class Session extends Model
         'xp_reward' => 'integer',
         'in_general_stream' => 'boolean',
         'general_stream_order' => 'integer',
+        'creation_mode' => 'string',
     ];
+
+    public function isCustomCode(): bool
+    {
+        return ($this->creation_mode ?? 'manual') === 'code';
+    }
+
+    public function isManual(): bool
+    {
+        return !$this->isCustomCode();
+    }
 
     public function isFree(): bool
     {

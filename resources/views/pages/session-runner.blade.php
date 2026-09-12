@@ -203,89 +203,141 @@
                 @endif
             </div>
 
-            <!-- 4-Phase Progress Indicator Stepper -->
-            <div class="grid grid-cols-4 gap-1.5 sm:gap-3 text-center">
-                <!-- Phase 1: Diagnostic -->
-                <div 
-                    @click="canJumpTo('diagnostic') ? setPhase('diagnostic') : null"
-                    :class="{
-                        'border-[#0052FF] bg-blue-50/70 text-[#0052FF] ring-2 ring-blue-500/20 font-black': currentPhase === 'diagnostic',
-                        'border-emerald-300 bg-emerald-50 text-emerald-800 font-bold': phaseUnlocked.lesson,
-                        'border-slate-200 bg-slate-50/70 text-slate-400': !phaseUnlocked.lesson && currentPhase !== 'diagnostic',
-                        'cursor-pointer hover:shadow-xs': canJumpTo('diagnostic')
-                    }"
-                    class="p-2 sm:p-2.5 rounded-xl border transition-all text-left flex flex-col justify-between"
-                >
-                    <div class="flex items-center justify-between text-[10px] sm:text-xs">
-                        <span class="font-bold uppercase tracking-wider">Phase 1</span>
-                        <span x-show="phaseUnlocked.lesson">✅</span>
-                        <span x-show="!phaseUnlocked.lesson && currentPhase === 'diagnostic'" class="animate-pulse">🎯</span>
-                    </div>
-                    <div class="text-[11px] sm:text-xs font-black truncate mt-1">Diagnostic Hook</div>
+            @if($session->isCustomCode())
+                <!-- Custom Capsule Info Banner -->
+                <div class="mt-3 pt-3 border-t border-blue-100 flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-black">
+                        <span>⚡ Self-Contained Interactive Capsule</span>
+                    </span>
+                    <span class="text-slate-500 font-bold text-[11px]">Contains Hook Question • Micro-Lesson • MCQs • OMR Test</span>
                 </div>
+            @else
+                <!-- 4-Phase Progress Indicator Stepper -->
+                <div class="grid grid-cols-4 gap-1.5 sm:gap-3 text-center">
+                    <!-- Phase 1: Diagnostic -->
+                    <div 
+                        @click="canJumpTo('diagnostic') ? setPhase('diagnostic') : null"
+                        :class="{
+                            'border-[#0052FF] bg-blue-50/70 text-[#0052FF] ring-2 ring-blue-500/20 font-black': currentPhase === 'diagnostic',
+                            'border-emerald-300 bg-emerald-50 text-emerald-800 font-bold': phaseUnlocked.lesson,
+                            'border-slate-200 bg-slate-50/70 text-slate-400': !phaseUnlocked.lesson && currentPhase !== 'diagnostic',
+                            'cursor-pointer hover:shadow-xs': canJumpTo('diagnostic')
+                        }"
+                        class="p-2 sm:p-2.5 rounded-xl border transition-all text-left flex flex-col justify-between"
+                    >
+                        <div class="flex items-center justify-between text-[10px] sm:text-xs">
+                            <span class="font-bold uppercase tracking-wider">Phase 1</span>
+                            <span x-show="phaseUnlocked.lesson">✅</span>
+                            <span x-show="!phaseUnlocked.lesson && currentPhase === 'diagnostic'" class="animate-pulse">🎯</span>
+                        </div>
+                        <div class="text-[11px] sm:text-xs font-black truncate mt-1">Diagnostic Hook</div>
+                    </div>
 
-                <!-- Phase 2: Lesson Capsule -->
-                <div 
-                    @click="canJumpTo('lesson') ? setPhase('lesson') : null"
-                    :class="{
-                        'border-[#0052FF] bg-blue-50/70 text-[#0052FF] ring-2 ring-blue-500/20 font-black': currentPhase === 'lesson',
-                        'border-emerald-300 bg-emerald-50 text-emerald-800 font-bold': phaseUnlocked.reinforcement,
-                        'border-slate-200 bg-slate-50/70 text-slate-400': !phaseUnlocked.lesson,
-                        'cursor-pointer hover:shadow-xs': canJumpTo('lesson')
-                    }"
-                    class="p-2 sm:p-2.5 rounded-xl border transition-all text-left flex flex-col justify-between"
-                >
-                    <div class="flex items-center justify-between text-[10px] sm:text-xs">
-                        <span class="font-bold uppercase tracking-wider">Phase 2</span>
-                        <span x-show="phaseUnlocked.reinforcement">✅</span>
-                        <span x-show="!phaseUnlocked.lesson">🔒</span>
-                        <span x-show="phaseUnlocked.lesson && !phaseUnlocked.reinforcement && currentPhase === 'lesson'" class="animate-pulse">📖</span>
+                    <!-- Phase 2: Lesson Capsule -->
+                    <div 
+                        @click="canJumpTo('lesson') ? setPhase('lesson') : null"
+                        :class="{
+                            'border-[#0052FF] bg-blue-50/70 text-[#0052FF] ring-2 ring-blue-500/20 font-black': currentPhase === 'lesson',
+                            'border-emerald-300 bg-emerald-50 text-emerald-800 font-bold': phaseUnlocked.reinforcement,
+                            'border-slate-200 bg-slate-50/70 text-slate-400': !phaseUnlocked.lesson,
+                            'cursor-pointer hover:shadow-xs': canJumpTo('lesson')
+                        }"
+                        class="p-2 sm:p-2.5 rounded-xl border transition-all text-left flex flex-col justify-between"
+                    >
+                        <div class="flex items-center justify-between text-[10px] sm:text-xs">
+                            <span class="font-bold uppercase tracking-wider">Phase 2</span>
+                            <span x-show="phaseUnlocked.reinforcement">✅</span>
+                            <span x-show="!phaseUnlocked.lesson">🔒</span>
+                            <span x-show="phaseUnlocked.lesson && !phaseUnlocked.reinforcement && currentPhase === 'lesson'" class="animate-pulse">📖</span>
+                        </div>
+                        <div class="text-[11px] sm:text-xs font-black truncate mt-1">Micro-Lesson</div>
                     </div>
-                    <div class="text-[11px] sm:text-xs font-black truncate mt-1">Micro-Lesson</div>
-                </div>
 
-                <!-- Phase 3: Speed Blitz -->
-                <div 
-                    @click="canJumpTo('reinforcement') ? setPhase('reinforcement') : null"
-                    :class="{
-                        'border-[#0052FF] bg-blue-50/70 text-[#0052FF] ring-2 ring-blue-500/20 font-black': currentPhase === 'reinforcement',
-                        'border-emerald-300 bg-emerald-50 text-emerald-800 font-bold': phaseUnlocked.omr,
-                        'border-slate-200 bg-slate-50/70 text-slate-400': !phaseUnlocked.reinforcement,
-                        'cursor-pointer hover:shadow-xs': canJumpTo('reinforcement')
-                    }"
-                    class="p-2 sm:p-2.5 rounded-xl border transition-all text-left flex flex-col justify-between"
-                >
-                    <div class="flex items-center justify-between text-[10px] sm:text-xs">
-                        <span class="font-bold uppercase tracking-wider">Phase 3</span>
-                        <span x-show="phaseUnlocked.omr">✅</span>
-                        <span x-show="!phaseUnlocked.reinforcement">🔒</span>
-                        <span x-show="phaseUnlocked.reinforcement && !phaseUnlocked.omr && currentPhase === 'reinforcement'" class="animate-pulse">⚡</span>
+                    <!-- Phase 3: Speed Blitz -->
+                    <div 
+                        @click="canJumpTo('reinforcement') ? setPhase('reinforcement') : null"
+                        :class="{
+                            'border-[#0052FF] bg-blue-50/70 text-[#0052FF] ring-2 ring-blue-500/20 font-black': currentPhase === 'reinforcement',
+                            'border-emerald-300 bg-emerald-50 text-emerald-800 font-bold': phaseUnlocked.omr,
+                            'border-slate-200 bg-slate-50/70 text-slate-400': !phaseUnlocked.reinforcement,
+                            'cursor-pointer hover:shadow-xs': canJumpTo('reinforcement')
+                        }"
+                        class="p-2 sm:p-2.5 rounded-xl border transition-all text-left flex flex-col justify-between"
+                    >
+                        <div class="flex items-center justify-between text-[10px] sm:text-xs">
+                            <span class="font-bold uppercase tracking-wider">Phase 3</span>
+                            <span x-show="phaseUnlocked.omr">✅</span>
+                            <span x-show="!phaseUnlocked.reinforcement">🔒</span>
+                            <span x-show="phaseUnlocked.reinforcement && !phaseUnlocked.omr && currentPhase === 'reinforcement'" class="animate-pulse">⚡</span>
+                        </div>
+                        <div class="text-[11px] sm:text-xs font-black truncate mt-1">Speed Blitz</div>
                     </div>
-                    <div class="text-[11px] sm:text-xs font-black truncate mt-1">Speed Blitz</div>
-                </div>
 
-                <!-- Phase 4: Final OMR -->
-                <div 
-                    @click="canJumpTo('omr') ? setPhase('omr') : null"
-                    :class="{
-                        'border-[#0052FF] bg-blue-50/70 text-[#0052FF] ring-2 ring-blue-500/20 font-black': currentPhase === 'omr' || currentPhase === 'summary',
-                        'border-emerald-300 bg-emerald-50 text-emerald-800 font-bold': sessionCompleted,
-                        'border-slate-200 bg-slate-50/70 text-slate-400': !phaseUnlocked.omr,
-                        'cursor-pointer hover:shadow-xs': canJumpTo('omr')
-                    }"
-                    class="p-2 sm:p-2.5 rounded-xl border transition-all text-left flex flex-col justify-between"
-                >
-                    <div class="flex items-center justify-between text-[10px] sm:text-xs">
-                        <span class="font-bold uppercase tracking-wider">Phase 4</span>
-                        <span x-show="sessionCompleted">🏆</span>
-                        <span x-show="!phaseUnlocked.omr">🔒</span>
-                        <span x-show="phaseUnlocked.omr && !sessionCompleted" class="animate-pulse">📝</span>
+                    <!-- Phase 4: Final OMR -->
+                    <div 
+                        @click="canJumpTo('omr') ? setPhase('omr') : null"
+                        :class="{
+                            'border-[#0052FF] bg-blue-50/70 text-[#0052FF] ring-2 ring-blue-500/20 font-black': currentPhase === 'omr' || currentPhase === 'summary',
+                            'border-emerald-300 bg-emerald-50 text-emerald-800 font-bold': sessionCompleted,
+                            'border-slate-200 bg-slate-50/70 text-slate-400': !phaseUnlocked.omr,
+                            'cursor-pointer hover:shadow-xs': canJumpTo('omr')
+                        }"
+                        class="p-2 sm:p-2.5 rounded-xl border transition-all text-left flex flex-col justify-between"
+                    >
+                        <div class="flex items-center justify-between text-[10px] sm:text-xs">
+                            <span class="font-bold uppercase tracking-wider">Phase 4</span>
+                            <span x-show="sessionCompleted">🏆</span>
+                            <span x-show="!phaseUnlocked.omr">🔒</span>
+                            <span x-show="phaseUnlocked.omr && !sessionCompleted" class="animate-pulse">📝</span>
+                        </div>
+                        <div class="text-[11px] sm:text-xs font-black truncate mt-1">OMR Challenge</div>
                     </div>
-                    <div class="text-[11px] sm:text-xs font-black truncate mt-1">OMR Challenge</div>
                 </div>
-            </div>
+            @endif
         </div>
 
+        @if($session->isCustomCode())
+            <!-- ========================================================= -->
+            <!-- CUSTOM CODE SESSION CANVAS (Interactive Custom HTML)     -->
+            <!-- ========================================================= -->
+            <div class="custom-session-wrapper mb-10">
+                <div class="bg-white rounded-3xl border border-blue-100/90 shadow-md p-4 sm:p-8 relative">
+                    {!! $session->custom_html !!}
+                </div>
+
+                <!-- Custom Code Session Interactive Completion Bar -->
+                <div class="mt-8 bg-gradient-to-r from-blue-950 via-slate-900 to-indigo-950 rounded-2xl p-5 sm:p-6 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 border border-blue-800/40">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-xl bg-amber-400 text-slate-950 font-black flex items-center justify-center text-2xl shadow-md shrink-0">
+                            ⚡
+                        </div>
+                        <div>
+                            <h4 class="font-black text-sm sm:text-base">Finished this Interactive Capsule?</h4>
+                            <p class="text-xs text-slate-300 mt-0.5">Click below to claim your unit XP reward and advance to the next unit.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2.5 w-full sm:w-auto">
+                        <button 
+                            type="button" 
+                            id="pscranker-complete-unit-btn"
+                            onclick="window.PSCRanker?.completeSession()"
+                            class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                        >
+                            <span>Claim +{{ $session->xp_reward }} XP &amp; Complete 🚀</span>
+                        </button>
+                        @if($nextSession)
+                            <a 
+                                href="{{ route('session.show', ['slug' => $nextSession->slug, 'stream' => $stream]) }}" 
+                                class="px-4 py-3 bg-white/10 hover:bg-white/20 text-white font-black text-xs rounded-xl transition border border-white/20 hidden sm:inline-flex items-center gap-1 shrink-0"
+                            >
+                                <span>Next Unit →</span>
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        @else
         <!-- ============================================================= -->
         <!-- PHASE 1: DIAGNOSTIC HOOK (Pre-Test)                           -->
         <!-- ============================================================= -->
@@ -1475,6 +1527,7 @@
 
             </div>
         </div>
+        @endif
 
     </div>
 @endif
@@ -1482,6 +1535,48 @@
 
 @push('scripts')
 <script>
+window.PSCRanker = {
+    sessionId: {{ $session->id }},
+    xpReward: {{ $session->xp_reward }},
+    nextSessionUrl: @js($nextSession ? route('session.show', ['slug' => $nextSession->slug, 'stream' => $stream]) : route('sessions.index')),
+    completeSession: async function(options) {
+        options = options || {};
+        const btn = document.getElementById('pscranker-complete-unit-btn');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerText = 'Saving Progress & Awarding XP... ⏳';
+        }
+        try {
+            const response = await fetch(@js(route('api.session.progress', $session->id)), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    current_phase: 'summary',
+                    is_completed: true,
+                    xp_earned: options.xp || {{ $session->xp_reward }},
+                    time_taken_seconds: options.time || 60
+                })
+            });
+            const data = await response.json();
+            if (data.success) {
+                alert('🎉 Congratulations! You completed this unit and earned +' + (options.xp || {{ $session->xp_reward }}) + ' XP!');
+                if (this.nextSessionUrl) {
+                    window.location.href = this.nextSessionUrl;
+                }
+            } else {
+                alert('Session saved!');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Unit completed! +' + (options.xp || {{ $session->xp_reward }}) + ' XP earned.');
+        }
+    }
+};
+
 function sessionEngine(config) {
     return {
         sessionId: config.sessionId,
@@ -1898,6 +1993,51 @@ function sessionEngine(config) {
         }
     }
 }
+
+// Global Bridge for Custom Code Sessions
+window.PSCRanker = {
+    sessionId: {{ $session->id }},
+    xpReward: {{ $session->xp_reward }},
+    progressUrl: @js(route('api.session.progress', $session->id)),
+    csrfToken: '{{ csrf_token() }}',
+    nextSessionUrl: @js($nextSession ? route('session.show', ['slug' => $nextSession->slug, 'stream' => $stream]) : route('sessions.index')),
+    completeSession: async function(customXp) {
+        const btn = document.getElementById('pscranker-complete-unit-btn');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span>Saving Progress... ⚡</span>';
+        }
+        const xp = customXp || this.xpReward || 250;
+        try {
+            await fetch(this.progressUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': this.csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    current_phase: 'summary',
+                    is_completed: true,
+                    xp_earned: xp,
+                    time_taken_seconds: 90
+                })
+            });
+        } catch (e) {
+            console.error('Progress save error:', e);
+        }
+        if (window.confetti) {
+            window.confetti({ particleCount: 140, spread: 90, origin: { y: 0.55 } });
+        }
+        if (window.PscSound && window.PscSound.playFanfare) {
+            window.PscSound.playFanfare();
+        }
+        alert('🎉 Congratulations! You have completed this Kerala PSC Capsule and earned +' + xp + ' XP!');
+        if (this.nextSessionUrl) {
+            window.location.href = this.nextSessionUrl;
+        }
+    }
+};
 </script>
 @endpush
 @endsection

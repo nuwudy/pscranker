@@ -213,19 +213,25 @@
 
                                 <!-- Multimedia Feature Badges -->
                                 <div class="flex flex-wrap items-center gap-1.5 mt-4 pt-3 border-t border-slate-100 text-[10px] font-bold">
-                                    @if($hasText)
-                                        <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700">📝 Notes</span>
+                                    @if($session->isCustomCode())
+                                        <span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 font-black border border-emerald-200">⚡ Interactive Capsule</span>
+                                        <span class="px-2 py-0.5 rounded-md bg-purple-50 text-purple-700">🎯 Hook + Lesson</span>
+                                        <span class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-800">📝 MCQs &amp; OMR</span>
+                                    @else
+                                        @if($hasText)
+                                            <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700">📝 Notes</span>
+                                        @endif
+                                        @if($hasImages)
+                                            <span class="px-2 py-0.5 rounded-md bg-purple-50 text-purple-700">🖼️ Images</span>
+                                        @endif
+                                        @if($hasAudio)
+                                            <span class="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700">🎙️ Audio</span>
+                                        @endif
+                                        @if($hasVideo)
+                                            <span class="px-2 py-0.5 rounded-md bg-red-50 text-red-700">🎥 Video</span>
+                                        @endif
+                                        <span class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-800">📝 OMR Challenge</span>
                                     @endif
-                                    @if($hasImages)
-                                        <span class="px-2 py-0.5 rounded-md bg-purple-50 text-purple-700">🖼️ Images</span>
-                                    @endif
-                                    @if($hasAudio)
-                                        <span class="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700">🎙️ Audio</span>
-                                    @endif
-                                    @if($hasVideo)
-                                        <span class="px-2 py-0.5 rounded-md bg-red-50 text-red-700">🎥 Video</span>
-                                    @endif
-                                    <span class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-800">📝 OMR Challenge</span>
                                 </div>
 
                                 <div class="mt-3 flex items-center justify-between text-[11px] text-slate-400 font-medium">
@@ -385,19 +391,25 @@
 
                                         <!-- Multimedia Feature Badges -->
                                         <div class="flex flex-wrap items-center gap-1.5 mt-4 pt-3 border-t border-slate-100 text-[10px] font-bold">
-                                            @if($hasText)
-                                                <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700">📝 Notes</span>
+                                            @if($session->isCustomCode())
+                                                <span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 font-black border border-emerald-200">⚡ Interactive Capsule</span>
+                                                <span class="px-2 py-0.5 rounded-md bg-purple-50 text-purple-700">🎯 Hook + Lesson</span>
+                                                <span class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-800">📝 MCQs &amp; OMR</span>
+                                            @else
+                                                @if($hasText)
+                                                    <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700">📝 Notes</span>
+                                                @endif
+                                                @if($hasImages)
+                                                    <span class="px-2 py-0.5 rounded-md bg-purple-50 text-purple-700">🖼️ Images</span>
+                                                @endif
+                                                @if($hasAudio)
+                                                    <span class="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700">🎙️ Audio</span>
+                                                @endif
+                                                @if($hasVideo)
+                                                    <span class="px-2 py-0.5 rounded-md bg-red-50 text-red-700">🎥 Video</span>
+                                                @endif
+                                                <span class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-800">📝 OMR Challenge</span>
                                             @endif
-                                            @if($hasImages)
-                                                <span class="px-2 py-0.5 rounded-md bg-purple-50 text-purple-700">🖼️ Images</span>
-                                            @endif
-                                            @if($hasAudio)
-                                                <span class="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700">🎙️ Audio</span>
-                                            @endif
-                                            @if($hasVideo)
-                                                <span class="px-2 py-0.5 rounded-md bg-red-50 text-red-700">🎥 Video</span>
-                                            @endif
-                                            <span class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-800">📝 OMR Challenge</span>
                                         </div>
 
                                         <div class="mt-3 flex items-center justify-between text-[11px] text-slate-400 font-medium">

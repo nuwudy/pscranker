@@ -8,7 +8,9 @@
         contents: @js($contents),
         diagnostic: @js($diagnosticQuestions->first()),
         reinforcement: @js($reinforcementQuestions->values()),
-        omr: @js($omrQuestions->values())
+        omr: @js($omrQuestions->values()),
+        creationMode: @js(old('creation_mode', $session->creation_mode ?? 'manual')),
+        customHtml: @js(old('custom_html', $session->custom_html ?? ''))
     })"
     class="py-8 bg-slate-50 min-h-[90vh]"
 >
@@ -229,6 +231,53 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Authoring Mode Switcher Card -->
+            <div class="bg-gradient-to-r from-blue-950 via-slate-900 to-indigo-950 rounded-2xl p-5 sm:p-6 shadow-md mb-8 text-white relative overflow-hidden border border-blue-800/60">
+                <div class="absolute -right-10 -top-10 w-48 h-48 bg-[#0052FF]/20 rounded-full blur-2xl pointer-events-none"></div>
+
+                <input type="hidden" name="creation_mode" :value="creationMode">
+
+                <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30 text-[10px] font-black uppercase tracking-wider">
+                                Session Engine
+                            </span>
+                            <span class="text-xs text-slate-300 font-bold">Choose your authoring mode</span>
+                        </div>
+                        <h3 class="text-base sm:text-lg font-black text-white">How do you want to build this session?</h3>
+                    </div>
+
+                    <!-- Segmented Control Buttons -->
+                    <div class="inline-flex p-1.5 rounded-xl bg-slate-950/80 border border-slate-700/80 gap-1.5 self-start sm:self-auto">
+                        <button 
+                            type="button" 
+                            @click="setCreationMode('manual')" 
+                            :class="creationMode === 'manual' ? 'bg-[#0052FF] text-white shadow-lg' : 'text-slate-400 hover:text-white'"
+                            class="px-3.5 py-2 rounded-lg font-black text-xs transition-all flex items-center gap-2 cursor-pointer"
+                        >
+                            <span>🛠️ Manual Builder</span>
+                            <span class="text-[10px] opacity-75 font-normal hidden sm:inline">(Hook + Lesson + MCQs)</span>
+                        </button>
+
+                        <button 
+                            type="button" 
+                            @click="setCreationMode('code')" 
+                            :class="creationMode === 'code' ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'"
+                            class="px-3.5 py-2 rounded-lg font-black text-xs transition-all flex items-center gap-2 cursor-pointer"
+                        >
+                            <span>⚡ Custom Code (HTML)</span>
+                            <span class="text-[10px] opacity-75 font-normal hidden sm:inline">(Instant Magic Paste)</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ======================================================== -->
+            <!-- MODE A: MANUAL 4-PHASE BUILDER (Blocks & Questions)      -->
+            <!-- ======================================================== -->
+            <div x-show="creationMode === 'manual'" x-transition>
 
             <!-- 2. Multimedia Content Builder Blocks -->
             <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs mb-8">
@@ -673,6 +722,150 @@
                     </template>
                 </div>
             </div>
+            </div> <!-- /MODE A: MANUAL BUILDER -->
+
+            <!-- ======================================================== -->
+            <!-- MODE B: CUSTOM CODE STUDIO                               -->
+            <!-- ======================================================== -->
+            <div x-show="creationMode === 'code'" x-transition class="mb-8">
+                <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
+                    
+                    <!-- Studio Header Bar -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-4 border-b border-slate-100">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h2 class="text-base font-black text-slate-900">
+                                    2. Custom HTML Session Studio
+                                </h2>
+                                <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-black uppercase tracking-wider">
+                                    Self-Contained Capsule
+                                </span>
+                            </div>
+                            <p class="text-xs text-slate-500 font-medium mt-1">
+                                Paste your complete custom HTML here. It can contain your diagnostic hook question, multimedia notes, rapid-fire MCQs, and OMR simulator in one single code block.
+                            </p>
+                        </div>
+
+                        <!-- Action Controls -->
+                        <div class="flex flex-wrap items-center gap-2">
+                            <!-- Tab Switcher: Editor vs Live Preview -->
+                            <div class="inline-flex p-1 rounded-lg bg-slate-100 border border-slate-200 text-xs font-bold">
+                                <button 
+                                    type="button" 
+                                    @click="setTab('editor')" 
+                                    :class="codeTab === 'editor' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                                    class="px-3 py-1.5 rounded-md transition flex items-center gap-1.5 cursor-pointer"
+                                >
+                                    <span>💻 Code Editor</span>
+                                </button>
+                                <button 
+                                    type="button" 
+                                    @click="setTab('preview')" 
+                                    :class="codeTab === 'preview' ? 'bg-white text-[#0052FF] shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                                    class="px-3 py-1.5 rounded-md transition flex items-center gap-1.5 cursor-pointer"
+                                >
+                                    <span>👁️ Live Preview</span>
+                                </button>
+                            </div>
+
+                            <!-- Boilerplate Generator -->
+                            <button 
+                                type="button" 
+                                @click="insertCapsuleBoilerplate()" 
+                                class="px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 text-xs font-black rounded-lg transition flex items-center gap-1.5 cursor-pointer"
+                                title="Insert a pre-built 4-phase PSC template"
+                            >
+                                <span>🪄 Insert Capsule Boilerplate</span>
+                            </button>
+
+                            <!-- Clear Button -->
+                            <button 
+                                type="button" 
+                                @click="clearCustomCode()" 
+                                x-show="customHtml && customHtml.length > 0"
+                                class="px-2.5 py-1.5 text-slate-400 hover:text-red-600 text-xs font-bold transition cursor-pointer"
+                                title="Clear Editor"
+                            >
+                                <span>🗑️</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- TAB 1: CODE EDITOR -->
+                    <div x-show="codeTab === 'editor'" class="space-y-3">
+                        <div class="relative rounded-xl overflow-hidden border border-slate-800 bg-slate-950 shadow-inner">
+                            <!-- Code Editor Header Bar -->
+                            <div class="flex items-center justify-between px-4 py-2 bg-slate-900 border-b border-slate-800 text-[11px] text-slate-400 font-mono">
+                                <div class="flex items-center gap-2">
+                                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-red-500/80"></span>
+                                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-yellow-500/80"></span>
+                                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500/80"></span>
+                                    <span class="ml-2 text-slate-300 font-bold">session_capsule.html</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span x-text="(customHtml ? customHtml.length : 0) + ' characters'"></span>
+                                    <span>•</span>
+                                    <span x-text="(customHtml ? customHtml.split('\n').length : 0) + ' lines'"></span>
+                                </div>
+                            </div>
+
+                            <!-- Textarea -->
+                            <textarea 
+                                name="custom_html" 
+                                x-model="customHtml" 
+                                rows="22" 
+                                placeholder="<!-- Paste your custom HTML, CSS, and JS here. You can include hook question, lesson cards, MCQs, and OMR simulator! -->&#10;<div class='psc-capsule'>&#10;   ...&#10;</div>"
+                                class="w-full p-4 bg-slate-950 text-emerald-300 font-mono text-xs leading-relaxed focus:outline-none resize-y selection:bg-blue-600 selection:text-white border-0"
+                                spellcheck="false"
+                            ></textarea>
+                        </div>
+
+                        <!-- Integration Guide Alert -->
+                        <div class="p-4 rounded-xl bg-blue-50/70 border border-blue-200 text-xs text-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div class="space-y-1">
+                                <div class="font-black text-blue-950 flex items-center gap-1.5">
+                                    <span>⚡ PSCRanker JavaScript Bridge Available</span>
+                                </div>
+                                <p class="text-[11px] text-slate-600">
+                                    You can include standard HTML, Tailwind CSS classes, &lt;style&gt;, and &lt;script&gt; tags. To trigger unit completion & claim XP from your custom buttons, call <code class="bg-blue-100/80 px-1.5 py-0.5 rounded font-mono font-bold text-[#0052FF]">window.PSCRanker?.completeSession()</code>.
+                                </p>
+                            </div>
+                            <button 
+                                type="button" 
+                                @click="setTab('preview')" 
+                                class="shrink-0 px-3.5 py-1.5 bg-[#0052FF] text-white rounded-lg text-xs font-black shadow-xs hover:bg-blue-700 transition cursor-pointer"
+                            >
+                                Test In Live Preview →
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- TAB 2: LIVE INTERACTIVE PREVIEW -->
+                    <div x-show="codeTab === 'preview'" class="space-y-3">
+                        <div class="p-3 bg-slate-100 rounded-xl flex items-center justify-between text-xs text-slate-600 font-bold border border-slate-200">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                <span>Interactive Sandbox Preview</span>
+                            </div>
+                            <button 
+                                type="button" 
+                                @click="setTab('editor')" 
+                                class="text-xs font-black text-[#0052FF] hover:underline cursor-pointer"
+                            >
+                                ← Back to Code Editor
+                            </button>
+                        </div>
+
+                        <div class="rounded-2xl border-2 border-slate-200 bg-slate-50/50 p-4 sm:p-6 min-h-[400px]">
+                            <iframe 
+                                x-ref="previewIframe"
+                                class="w-full min-h-[600px] rounded-xl border border-slate-200 bg-white shadow-sm"
+                            ></iframe>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
 
             <!-- Submit Button Bar -->
             <div class="flex items-center justify-between py-6">
@@ -879,6 +1072,1487 @@
 <script>
 function adminSessionBuilder(initial) {
     return {
+        creationMode: initial.creationMode || 'manual',
+        customHtml: initial.customHtml || '',
+        codeTab: 'editor',
+
+        setCreationMode(mode) {
+            this.creationMode = mode;
+        },
+
+        setTab(tab) {
+            this.codeTab = tab;
+            if (tab === 'preview') {
+                this.renderPreview();
+            }
+        },
+
+        renderPreview() {
+            this.$nextTick(() => {
+                const iframe = this.$refs.previewIframe;
+                if (iframe) {
+                    iframe.srcdoc = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><script src="https://cdn.tailwindcss.com"><\/script><style>body { font-family: sans-serif; background-color: transparent; padding: 1rem; }</style></head><body>' + (this.customHtml || '<p style="color:#888;text-align:center;padding:2rem;">No custom code entered yet.</p>') + '</body></html>';
+                }
+            });
+        },
+
+        insertCapsuleBoilerplate() {
+            if (this.customHtml && this.customHtml.trim().length > 0) {
+                if (!confirm('This will replace your current custom code with the 4-Phase Capsule Boilerplate (Hook Question + Lesson + MCQs + OMR Simulator). Continue?')) {
+                    return;
+                }
+            }
+            this.customHtml = this.getCapsuleBoilerplateCode();
+        },
+
+        clearCustomCode() {
+            if (confirm('Clear custom HTML code?')) {
+                this.customHtml = '';
+            }
+        },
+
+        getCapsuleBoilerplateCode() {
+            return `<!-- KERALA PSC 4-SCREEN SEQUENTIAL CAPSULE -->
+<div id="psc-capsule-container" class="psc-container">
+
+    <!-- TOP BAR: PROGRESS & XP -->
+    <div class="psc-topbar">
+        <div class="psc-title-tag">
+            <span class="psc-badge-icon">⚡</span>
+            <span>PSC Capsule • Sports Autobiographies</span>
+        </div>
+        <div class="psc-xp-counter">
+            <span>🏆</span>
+            <span id="psc-xp-val">0</span> XP
+        </div>
+    </div>
+
+    <!-- SEQUENTIAL STEPPER -->
+    <div class="psc-stepper">
+        <button type="button" id="psc-pill-hook" class="psc-step-pill active" onclick="window.pscGoTo('hook')">
+            <span class="psc-pill-num">1</span> Hook Question
+        </button>
+        <button type="button" id="psc-pill-lesson" class="psc-step-pill" onclick="window.pscGoTo('lesson')">
+            <span class="psc-pill-num">2</span> Lessons
+        </button>
+        <button type="button" id="psc-pill-mcqs" class="psc-step-pill" onclick="window.pscGoTo('mcqs')">
+            <span class="psc-pill-num">3</span> Practice MCQs
+        </button>
+        <button type="button" id="psc-pill-omr" class="psc-step-pill" onclick="window.pscGoTo('omr')">
+            <span class="psc-pill-num">4</span> OMR Sheet
+        </button>
+    </div>
+
+    <!-- PROGRESS LINE -->
+    <div class="psc-progress-track">
+        <div id="psc-progress-bar" class="psc-progress-fill" style="width: 25%;"></div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- SCREEN 1: HOOK QUESTION FIRST                                     -->
+    <!-- ================================================================= -->
+    <div id="psc-screen-hook" class="psc-screen" style="display: block;">
+        <div class="psc-card">
+            <div class="psc-q-meta">
+                <span class="psc-tag psc-tag-pyq">Kerala PSC Previous Year Question</span>
+                <span class="psc-tag psc-tag-trap">Trap Detector</span>
+            </div>
+
+            <h3 class="psc-question-en">
+                Whose autobiography is "Stumped, Life behind and beyond Twenty Two Yards"?
+            </h3>
+            <h4 class="psc-question-ml">
+                ''സ്റ്റംപ്ഡ്, ലൈഫ് ബിഹൈൻഡ് ആൻഡ് ബിയോണ്ട്, ട്വന്റി ടു യാർഡ്സ്'' - ഇത് ആരുടെ ആത്മകഥയാണ്?
+            </h4>
+
+            <div class="psc-options-grid" id="psc-hook-opts">
+                <button type="button" class="psc-opt-btn" onclick="window.pscSelectHook('A')">
+                    <span class="psc-opt-badge">A</span>
+                    <span class="psc-opt-label">
+                        <strong>Mahendra Singh Dhoni</strong>
+                        <small>മഹേന്ദ്രസിംഗ് ധോണി</small>
+                    </span>
+                </button>
+
+                <button type="button" class="psc-opt-btn" onclick="window.pscSelectHook('B')">
+                    <span class="psc-opt-badge">B</span>
+                    <span class="psc-opt-label">
+                        <strong>Syed Kirmani</strong>
+                        <small>സയിദ് കിർമാനി</small>
+                    </span>
+                </button>
+
+                <button type="button" class="psc-opt-btn" onclick="window.pscSelectHook('C')">
+                    <span class="psc-opt-badge">C</span>
+                    <span class="psc-opt-label">
+                        <strong>Nayan Mongia</strong>
+                        <small>നയൻ മോംഗിയ</small>
+                    </span>
+                </button>
+
+                <button type="button" class="psc-opt-btn" onclick="window.pscSelectHook('D')">
+                    <span class="psc-opt-badge">D</span>
+                    <span class="psc-opt-label">
+                        <strong>Kiran More</strong>
+                        <small>കിരൺ മോറെ</small>
+                    </span>
+                </button>
+            </div>
+
+            <!-- Hook Feedback -->
+            <div id="psc-hook-feedback" class="psc-feedback" style="display: none;">
+                <div id="psc-hook-feedback-content"></div>
+                
+                <div class="psc-actions-row">
+                    <button type="button" class="psc-btn-primary psc-pulse" onclick="window.pscGoTo('lesson')">
+                        അടുത്ത സ്‌ക്രീൻ: പാഠം പഠിക്കാം (Next Screen: Lessons) ➔
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- SCREEN 2: HIGH-YIELD LESSONS                                      -->
+    <!-- ================================================================= -->
+    <div id="psc-screen-lesson" class="psc-screen" style="display: none;">
+        <div class="psc-card">
+            <div class="psc-q-meta">
+                <span class="psc-tag psc-tag-lesson">📖 High-Yield Micro-Lesson</span>
+                <span class="psc-tag psc-tag-scert">Rank Maker Facts</span>
+            </div>
+
+            <h3 class="psc-lesson-title">
+                കായിക താരങ്ങളും പ്രശസ്തമായ ആത്മകഥകളും (Sports Autobiographies)
+            </h3>
+
+            <!-- Syed Kirmani Spotlight Card -->
+            <div class="psc-spotlight-box">
+                <div class="psc-spotlight-header">
+                    <span class="psc-spotlight-avatar">🏏</span>
+                    <div>
+                        <h4 class="psc-spotlight-name">സയിദ് കിർമാനി (Syed Kirmani)</h4>
+                        <p class="psc-spotlight-sub">1983 ലോകകപ്പ് ചാമ്പ്യൻ വിക്കറ്റ് കീപ്പർ</p>
+                    </div>
+                </div>
+                <ul class="psc-spotlight-points">
+                    <li>1983-ൽ കപിൽ ദേവിന്റെ നേതൃത്വത്തിൽ ഇന്ത്യ ലോകകപ്പ് നേടുമ്പോൾ ഇന്ത്യയുടെ വിക്കറ്റ് കീപ്പറായിരുന്നു.</li>
+                    <li>ടൂർണമെന്റിലെ മികച്ച വിക്കറ്റ് കീപ്പർക്കുള്ള പുരസ്കാരം (Best Wicket-keeper) നേടി.</li>
+                    <li>അദ്ദേഹത്തിന്റെ പ്രശസ്തമായ ആത്മകഥയാണ് <strong>"Stumped: Life Behind and Beyond the Twenty-Two Yards"</strong>.</li>
+                    <li>1982-ൽ പത്മശ്രീയും, 2015-ൽ സി.കെ. നായിഡു ലൈഫ് ടൈം അച്ചീവ്മെന്റ് അവാർഡും ലഭിച്ചു.</li>
+                </ul>
+                <div class="psc-mnemonic-pill">
+                    💡 <strong>PSC ഓർമ്മക്കൂട്ട് (Mnemonic):</strong> വിക്കറ്റിന് പിന്നിൽ <em>'സ്റ്റംപ്ഡ്'</em> ആകുന്നത് കീപ്പറായ <strong>കിർമാനി</strong>!
+                </div>
+            </div>
+
+            <!-- High-Yield PSC Repeated Table -->
+            <div class="psc-table-title">🔥 കേരള PSC ആവർത്തിച്ച് ചോദിക്കുന്ന മറ്റ് സ്പോർട്സ് ആത്മകഥകൾ:</div>
+            <div class="psc-table-container">
+                <table class="psc-data-table">
+                    <thead>
+                        <tr>
+                            <th>ആത്മകഥ (Autobiography)</th>
+                            <th>കായിക താരം (Sports Person)</th>
+                            <th>വിഭാഗം</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Playing It My Way</strong></td>
+                            <td>സച്ചിൻ തെണ്ടുൽക്കർ (Sachin Tendulkar)</td>
+                            <td>ക്രിക്കറ്റ്</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Straight from the Heart</strong></td>
+                            <td>കപിൽ ദേവ് (Kapil Dev)</td>
+                            <td>ക്രിക്കറ്റ്</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Sunny Days / Idols</strong></td>
+                            <td>സുനിൽ ഗവാസ്കർ (Sunil Gavaskar)</td>
+                            <td>ക്രിക്കറ്റ്</td>
+                        </tr>
+                        <tr>
+                            <td><strong>The Test of My Life</strong></td>
+                            <td>യുവരാജ് സിംഗ് (Yuvraj Singh)</td>
+                            <td>ക്രിക്കറ്റ്</td>
+                        </tr>
+                        <tr>
+                            <td><strong>281 and Beyond</strong></td>
+                            <td>വി. വി. എസ്. ലക്ഷ്മൺ (V.V.S. Laxman)</td>
+                            <td>ക്രിക്കറ്റ്</td>
+                        </tr>
+                        <tr>
+                            <td><strong>A Century is Not Enough</strong></td>
+                            <td>സൗരവ് ഗാംഗുലി (Sourav Ganguly)</td>
+                            <td>ക്രിക്കറ്റ്</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Golden Girl</strong></td>
+                            <td>പി. ടി. ഉഷ (P. T. Usha)</td>
+                            <td>അത്‌ലറ്റിക്സ്</td>
+                        </tr>
+                        <tr>
+                            <td><strong>The Race of My Life</strong></td>
+                            <td>മിൽഖാ സിംഗ് (Milkha Singh)</td>
+                            <td>അത്‌ലറ്റിക്സ്</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Unbreakable</strong></td>
+                            <td>എം. സി. മേരി കോം (Mary Kom)</td>
+                            <td>ബോക്സിംഗ്</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Ace Against Odds</strong></td>
+                            <td>സാനിയ മിർസ (Sania Mirza)</td>
+                            <td>ടെന്നീസ്</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="psc-nav-buttons">
+                <button type="button" class="psc-btn-secondary" onclick="window.pscGoTo('hook')">
+                    ⬅ തിരികെ ചോദ്യത്തിലേക്ക് (Back to Hook)
+                </button>
+                <button type="button" class="psc-btn-primary" onclick="window.pscGoTo('mcqs')">
+                    അടുത്ത സ്‌ക്രീൻ: MCQs പരീക്ഷിക്കാം (Next Screen: MCQs) ➔
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- SCREEN 3: RETENTION MCQS (ONE QUESTION AT A TIME)                 -->
+    <!-- ================================================================= -->
+    <div id="psc-screen-mcqs" class="psc-screen" style="display: none;">
+        <div class="psc-card">
+            
+            <!-- MCQ 1: Single Screen -->
+            <div id="psc-mcq-card-1" class="psc-mcq-single-card" style="display: block;">
+                <div class="psc-q-meta">
+                    <span class="psc-tag psc-tag-quiz">⚡ Rapid Practice MCQ</span>
+                    <span class="psc-tag">Question 1 of 2</span>
+                </div>
+
+                <div class="psc-drill-header">
+                    <span class="psc-drill-num">Q1</span>
+                    <div>
+                        <h3 class="psc-question-en" style="font-size: 16px; margin-bottom: 4px;">
+                            Whose autobiography is "Straight from the Heart"?
+                        </h3>
+                        <h4 class="psc-question-ml" style="font-size: 15px; margin-bottom: 16px;">
+                            'സ്ട്രെയിറ്റ് ഫ്രം ദി ഹാർട്ട്' (Straight from the Heart) ആരുടെ ആത്മകഥയാണ്?
+                        </h4>
+                    </div>
+                </div>
+
+                <div class="psc-options-grid" id="psc-drill-opts-1">
+                    <button type="button" class="psc-opt-btn" onclick="window.pscCheckMcq(1, 'A', 'B')">
+                        <span class="psc-opt-badge">A</span>
+                        <span class="psc-opt-label">
+                            <strong>Sunil Gavaskar</strong>
+                            <small>സുനിൽ ഗവാസ്കർ</small>
+                        </span>
+                    </button>
+                    <button type="button" class="psc-opt-btn" onclick="window.pscCheckMcq(1, 'B', 'B')">
+                        <span class="psc-opt-badge">B</span>
+                        <span class="psc-opt-label">
+                            <strong>Kapil Dev</strong>
+                            <small>കപിൽ ദേവ്</small>
+                        </span>
+                    </button>
+                    <button type="button" class="psc-opt-btn" onclick="window.pscCheckMcq(1, 'C', 'B')">
+                        <span class="psc-opt-badge">C</span>
+                        <span class="psc-opt-label">
+                            <strong>Ravi Shastri</strong>
+                            <small>രവി ശാസ്ത്രി</small>
+                        </span>
+                    </button>
+                    <button type="button" class="psc-opt-btn" onclick="window.pscCheckMcq(1, 'D', 'B')">
+                        <span class="psc-opt-badge">D</span>
+                        <span class="psc-opt-label">
+                            <strong>Mohinder Amarnath</strong>
+                            <small>മൊഹീന്ദർ അമർനാഥ്</small>
+                        </span>
+                    </button>
+                </div>
+
+                <div id="psc-drill-fb-1" class="psc-feedback" style="display:none;"></div>
+
+                <div class="psc-nav-buttons">
+                    <button type="button" class="psc-btn-secondary" onclick="window.pscGoTo('lesson')">
+                        ⬅ പാഠത്തിലേക്ക് (Back to Lessons)
+                    </button>
+                    <button type="button" id="psc-next-mcq-btn-1" class="psc-btn-primary" onclick="window.pscGoToMcq(2)" style="display: none;">
+                        അടുത്ത ചോദ്യം (Next Question 2/2) ➔
+                    </button>
+                </div>
+            </div>
+
+            <!-- MCQ 2: Single Screen -->
+            <div id="psc-mcq-card-2" class="psc-mcq-single-card" style="display: none;">
+                <div class="psc-q-meta">
+                    <span class="psc-tag psc-tag-quiz">⚡ Rapid Practice MCQ</span>
+                    <span class="psc-tag">Question 2 of 2</span>
+                </div>
+
+                <div class="psc-drill-header">
+                    <span class="psc-drill-num">Q2</span>
+                    <div>
+                        <h3 class="psc-question-en" style="font-size: 16px; margin-bottom: 4px;">
+                            Whose autobiography is titled "The Test of My Life"?
+                        </h3>
+                        <h4 class="psc-question-ml" style="font-size: 15px; margin-bottom: 16px;">
+                            ക്യാൻസറിനെ അതിജീവിച്ച് തിരിച്ചുവന്ന കഥ പറയുന്ന 'The Test of My Life' ആരുടെ പുസ്തകമാണ്?
+                        </h4>
+                    </div>
+                </div>
+
+                <div class="psc-options-grid" id="psc-drill-opts-2">
+                    <button type="button" class="psc-opt-btn" onclick="window.pscCheckMcq(2, 'A', 'A')">
+                        <span class="psc-opt-badge">A</span>
+                        <span class="psc-opt-label">
+                            <strong>Yuvraj Singh</strong>
+                            <small>യുവരാജ് സിംഗ്</small>
+                        </span>
+                    </button>
+                    <button type="button" class="psc-opt-btn" onclick="window.pscCheckMcq(2, 'B', 'A')">
+                        <span class="psc-opt-badge">B</span>
+                        <span class="psc-opt-label">
+                            <strong>Gautam Gambhir</strong>
+                            <small>ഗൗതം ഗംഭീർ</small>
+                        </span>
+                    </button>
+                    <button type="button" class="psc-opt-btn" onclick="window.pscCheckMcq(2, 'C', 'A')">
+                        <span class="psc-opt-badge">C</span>
+                        <span class="psc-opt-label">
+                            <strong>Suresh Raina</strong>
+                            <small>സുരേഷ് റെയ്ന</small>
+                        </span>
+                    </button>
+                    <button type="button" class="psc-opt-btn" onclick="window.pscCheckMcq(2, 'D', 'A')">
+                        <span class="psc-opt-badge">D</span>
+                        <span class="psc-opt-label">
+                            <strong>Harbhajan Singh</strong>
+                            <small>ഹർഭജൻ സിംഗ്</small>
+                        </span>
+                    </button>
+                </div>
+
+                <div id="psc-drill-fb-2" class="psc-feedback" style="display:none;"></div>
+
+                <div class="psc-nav-buttons">
+                    <button type="button" class="psc-btn-secondary" onclick="window.pscGoToMcq(1)">
+                        ⬅ മുൻപത്തെ ചോദ്യം (Question 1)
+                    </button>
+                    <button type="button" id="psc-to-omr-btn" class="psc-btn-primary" onclick="window.pscGoTo('omr')" style="display: none;">
+                        അടുത്ത സ്‌ക്രീൻ: OMR എക്സാം ഷീറ്റ് (Next Screen: OMR Sheet) ➔
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- SCREEN 4: AUTHENTIC KERALA PSC OMR SIMULATOR                      -->
+    <!-- ================================================================= -->
+    <div id="psc-screen-omr" class="psc-screen" style="display: none;">
+        <div class="psc-card psc-omr-card">
+            
+            <!-- OMR Header -->
+            <div class="psc-omr-top">
+                <div class="psc-omr-emblem">⚖️</div>
+                <div>
+                    <div class="psc-omr-govt">KERALA PUBLIC SERVICE COMMISSION</div>
+                    <div class="psc-omr-subtitle">OMR ANSWER SHEET • CONFIDENTIAL EXAM SIMULATOR</div>
+                </div>
+            </div>
+
+            <div class="psc-omr-neg-rule">
+                ⚠️ <strong>Strict PSC Evaluation:</strong> Correct Bubble = <strong>+1.00 Mark</strong> | Wrong Bubble = <strong>-0.33 Mark</strong> | Unattempted = <strong>0.00</strong>
+            </div>
+
+            <!-- QUESTION PAPER BOOKLET WITH NORMAL CHOICES -->
+            <div class="psc-booklet">
+                <div class="psc-booklet-badge">QUESTION BOOKLET • SERIES A</div>
+
+                <!-- OMR Question 1 -->
+                <div class="psc-omr-q-item" id="psc-omr-q-item-1">
+                    <div class="psc-omr-q-header">
+                        <span class="psc-omr-q-num">1</span>
+                        <div class="psc-omr-q-text">
+                            <div class="psc-omr-q-en">Whose autobiography is "Stumped, Life behind and beyond Twenty Two Yards"?</div>
+                            <div class="psc-omr-q-ml">''സ്റ്റംപ്ഡ്, ലൈഫ് ബിഹൈൻഡ് ആൻഡ് ബിയോണ്ട്, ട്വന്റി ടു യാർഡ്സ്'' - ഇത് ആരുടെ ആത്മകഥയാണ്?</div>
+                        </div>
+                    </div>
+
+                    <!-- Normal Choices for Question 1 -->
+                    <div class="psc-omr-choices-list">
+                        <div class="psc-omr-choice-row" data-q="1" data-opt="A" onclick="window.pscBubble(1, 'A')">
+                            <span class="psc-choice-key">(A)</span>
+                            <span class="psc-choice-text">Mahendra Singh Dhoni <small class="psc-choice-sub">(മഹേന്ദ്രസിംഗ് ധോണി)</small></span>
+                        </div>
+                        <div class="psc-omr-choice-row" data-q="1" data-opt="B" onclick="window.pscBubble(1, 'B')">
+                            <span class="psc-choice-key">(B)</span>
+                            <span class="psc-choice-text">Syed Kirmani <small class="psc-choice-sub">(സയിദ് കിർമാനി)</small></span>
+                        </div>
+                        <div class="psc-omr-choice-row" data-q="1" data-opt="C" onclick="window.pscBubble(1, 'C')">
+                            <span class="psc-choice-key">(C)</span>
+                            <span class="psc-choice-text">Nayan Mongia <small class="psc-choice-sub">(നയൻ മോംഗിയ)</small></span>
+                        </div>
+                        <div class="psc-omr-choice-row" data-q="1" data-opt="D" onclick="window.pscBubble(1, 'D')">
+                            <span class="psc-choice-key">(D)</span>
+                            <span class="psc-choice-text">Kiran More <small class="psc-choice-sub">(കിരൺ മോറെ)</small></span>
+                        </div>
+                    </div>
+
+                    <!-- Integrated OMR Bubble Row -->
+                    <div class="psc-omr-row-strip">
+                        <span class="psc-strip-label">OMR Bubble Row 1:</span>
+                        <div class="psc-omr-bubbles">
+                            <button type="button" class="psc-bubble" data-q="1" data-opt="A" onclick="window.pscBubble(1, 'A')">A</button>
+                            <button type="button" class="psc-bubble" data-q="1" data-opt="B" onclick="window.pscBubble(1, 'B')">B</button>
+                            <button type="button" class="psc-bubble" data-q="1" data-opt="C" onclick="window.pscBubble(1, 'C')">C</button>
+                            <button type="button" class="psc-bubble" data-q="1" data-opt="D" onclick="window.pscBubble(1, 'D')">D</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- OMR Question 2 -->
+                <div class="psc-omr-q-item" id="psc-omr-q-item-2">
+                    <div class="psc-omr-q-header">
+                        <span class="psc-omr-q-num">2</span>
+                        <div class="psc-omr-q-text">
+                            <div class="psc-omr-q-en">Who authored the autobiography "Straight from the Heart"?</div>
+                            <div class="psc-omr-q-ml">'സ്ട്രെയിറ്റ് ഫ്രം ദി ഹാർട്ട്' (Straight from the Heart) ആരുടെ ആത്മകഥയാണ്?</div>
+                        </div>
+                    </div>
+
+                    <!-- Normal Choices for Question 2 -->
+                    <div class="psc-omr-choices-list">
+                        <div class="psc-omr-choice-row" data-q="2" data-opt="A" onclick="window.pscBubble(2, 'A')">
+                            <span class="psc-choice-key">(A)</span>
+                            <span class="psc-choice-text">Sunil Gavaskar <small class="psc-choice-sub">(സുനിൽ ഗവാസ്കർ)</small></span>
+                        </div>
+                        <div class="psc-omr-choice-row" data-q="2" data-opt="B" onclick="window.pscBubble(2, 'B')">
+                            <span class="psc-choice-key">(B)</span>
+                            <span class="psc-choice-text">Kapil Dev <small class="psc-choice-sub">(കപിൽ ദേവ്)</small></span>
+                        </div>
+                        <div class="psc-omr-choice-row" data-q="2" data-opt="C" onclick="window.pscBubble(2, 'C')">
+                            <span class="psc-choice-key">(C)</span>
+                            <span class="psc-choice-text">Ravi Shastri <small class="psc-choice-sub">(രവി ശാസ്ത്രി)</small></span>
+                        </div>
+                        <div class="psc-omr-choice-row" data-q="2" data-opt="D" onclick="window.pscBubble(2, 'D')">
+                            <span class="psc-choice-key">(D)</span>
+                            <span class="psc-choice-text">Mohinder Amarnath <small class="psc-choice-sub">(മൊഹീന്ദർ അമർനാഥ്)</small></span>
+                        </div>
+                    </div>
+
+                    <!-- Integrated OMR Bubble Row -->
+                    <div class="psc-omr-row-strip">
+                        <span class="psc-strip-label">OMR Bubble Row 2:</span>
+                        <div class="psc-omr-bubbles">
+                            <button type="button" class="psc-bubble" data-q="2" data-opt="A" onclick="window.pscBubble(2, 'A')">A</button>
+                            <button type="button" class="psc-bubble" data-q="2" data-opt="B" onclick="window.pscBubble(2, 'B')">B</button>
+                            <button type="button" class="psc-bubble" data-q="2" data-opt="C" onclick="window.pscBubble(2, 'C')">C</button>
+                            <button type="button" class="psc-bubble" data-q="2" data-opt="D" onclick="window.pscBubble(2, 'D')">D</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Evaluate Action -->
+            <div class="psc-omr-eval-wrap">
+                <button type="button" class="psc-btn-omr-submit" onclick="window.pscEvaluateOmr()">
+                    <span>Evaluate OMR Sheet ⚡</span>
+                </button>
+            </div>
+
+            <!-- Evaluation Result Container -->
+            <div id="psc-omr-result" class="psc-omr-result-box" style="display: none;"></div>
+
+            <!-- Final Completion CTA -->
+            <div class="psc-complete-card">
+                <div class="psc-complete-icon">🚀</div>
+                <h4>Capsule Completed!</h4>
+                <p>You have mastered Kerala PSC Sports Autobiographies with negative marking mastery.</p>
+                
+                <button type="button" class="psc-btn-complete psc-pulse" onclick="window.pscFinishCapsule()">
+                    സെഷൻ പൂർത്തിയാക്കി 250 XP നേടുക (Claim 250 XP &amp; Complete) 🚀
+                </button>
+            </div>
+
+            <div class="psc-nav-buttons" style="margin-top: 15px;">
+                <button type="button" class="psc-btn-secondary" onclick="window.pscGoTo('mcqs')">
+                    ⬅ MCQs ലേക്ക് (Back to MCQs)
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- STYLES -->
+<style>
+.psc-container {
+    max-width: 760px;
+    margin: 0 auto;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Malayalam", sans-serif;
+    color: #0f172a;
+    line-height: 1.5;
+}
+.psc-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #0f172a;
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 16px 16px 0 0;
+}
+.psc-title-tag {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+}
+.psc-badge-icon {
+    background: #f59e0b;
+    color: #000;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+}
+.psc-xp-counter {
+    background: rgba(255,255,255,0.15);
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    color: #fcd34d;
+}
+.psc-stepper {
+    display: flex;
+    background: #1e293b;
+    padding: 6px;
+    gap: 6px;
+    overflow-x: auto;
+}
+.psc-step-pill {
+    flex: 1;
+    min-width: 120px;
+    border: none;
+    background: rgba(255,255,255,0.08);
+    color: #94a3b8;
+    padding: 8px 10px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+.psc-step-pill:hover {
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+}
+.psc-step-pill.active {
+    background: #0052FF;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 82, 255, 0.35);
+}
+.psc-step-pill.completed {
+    background: #059669;
+    color: #ffffff;
+}
+.psc-pill-num {
+    background: rgba(0,0,0,0.25);
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+}
+.psc-progress-track {
+    height: 4px;
+    background: #e2e8f0;
+    overflow: hidden;
+}
+.psc-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #0052FF, #10b981);
+    transition: width 0.3s ease;
+}
+.psc-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-top: none;
+    border-radius: 0 0 16px 16px;
+    padding: 24px;
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+}
+.psc-q-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 14px;
+}
+.psc-tag {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 3px 9px;
+    border-radius: 6px;
+    background: #f1f5f9;
+    color: #475569;
+}
+.psc-tag-pyq {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+}
+.psc-tag-trap {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+.psc-tag-lesson {
+    background: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+.psc-tag-scert {
+    background: #faf5ff;
+    color: #6b21a8;
+    border: 1px solid #e9d5ff;
+}
+.psc-tag-quiz {
+    background: #fff1f2;
+    color: #9f1239;
+    border: 1px solid #fecdd3;
+}
+.psc-question-en {
+    font-size: 18px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 6px 0;
+    line-height: 1.35;
+}
+.psc-question-ml {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0052FF;
+    margin: 0 0 20px 0;
+    line-height: 1.4;
+}
+.psc-options-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+@media (min-width: 640px) {
+    .psc-options-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+.psc-opt-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px 14px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+    color: #1e293b;
+}
+.psc-opt-btn:hover {
+    border-color: #0052FF;
+    background: #eff6ff;
+}
+.psc-opt-badge {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 13px;
+    color: #334155;
+    flex-shrink: 0;
+}
+.psc-opt-label strong {
+    display: block;
+    font-size: 13px;
+    font-weight: 800;
+}
+.psc-opt-label small {
+    display: block;
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 2px;
+}
+.psc-opt-btn.correct {
+    background: #ecfdf5 !important;
+    border-color: #10b981 !important;
+}
+.psc-opt-btn.correct .psc-opt-badge {
+    background: #10b981 !important;
+    color: #ffffff !important;
+}
+.psc-opt-btn.wrong {
+    background: #fef2f2 !important;
+    border-color: #ef4444 !important;
+}
+.psc-opt-btn.wrong .psc-opt-badge {
+    background: #ef4444 !important;
+    color: #ffffff !important;
+}
+.psc-feedback {
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 15px;
+    animation: pscFadeIn 0.3s ease;
+}
+.psc-fb-correct {
+    background: #ecfdf5;
+    border: 1px solid #6ee7b7;
+    color: #065f46;
+}
+.psc-fb-trap {
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
+    color: #991b1b;
+}
+.psc-actions-row {
+    margin-top: 16px;
+    display: flex;
+    justify-content: flex-end;
+}
+.psc-btn-primary {
+    background: linear-gradient(135deg, #0052FF, #1d4ed8);
+    color: #ffffff;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0, 82, 255, 0.3);
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.psc-btn-primary:hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+}
+.psc-btn-secondary {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+    padding: 12px 18px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.psc-btn-secondary:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+.psc-nav-buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #e2e8f0;
+}
+.psc-pulse {
+    animation: pscPulse 2s infinite;
+}
+@keyframes pscPulse {
+    0% { box-shadow: 0 0 0 0 rgba(0, 82, 255, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(0, 82, 255, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(0, 82, 255, 0); }
+}
+@keyframes pscFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Screen 2 Styles */
+.psc-lesson-title {
+    font-size: 17px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 14px 0;
+}
+.psc-spotlight-box {
+    background: #f0fdf4;
+    border: 2px solid #86efac;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+.psc-spotlight-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+.psc-spotlight-avatar {
+    font-size: 32px;
+    background: #dcfce7;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.psc-spotlight-name {
+    font-size: 16px;
+    font-weight: 800;
+    color: #14532d;
+    margin: 0;
+}
+.psc-spotlight-sub {
+    font-size: 12px;
+    color: #166534;
+    margin: 2px 0 0 0;
+    font-weight: 600;
+}
+.psc-spotlight-points {
+    margin: 0 0 12px 0;
+    padding-left: 18px;
+    font-size: 13px;
+    color: #166534;
+    line-height: 1.6;
+}
+.psc-spotlight-points li {
+    margin-bottom: 6px;
+}
+.psc-mnemonic-pill {
+    background: #ffffff;
+    border: 1px solid #bbf7d0;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #15803d;
+}
+.psc-table-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 10px;
+}
+.psc-table-container {
+    overflow-x: auto;
+    margin-bottom: 15px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+}
+.psc-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    text-align: left;
+}
+.psc-data-table th {
+    background: #f8fafc;
+    padding: 10px 12px;
+    font-weight: 800;
+    color: #475569;
+    border-bottom: 1px solid #e2e8f0;
+}
+.psc-data-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+}
+.psc-data-table tr:last-child td {
+    border-bottom: none;
+}
+.psc-data-table tr:hover td {
+    background: #f8fafc;
+}
+
+/* Single Screen MCQ Styles */
+.psc-mcq-single-card {
+    animation: pscFadeIn 0.3s ease;
+}
+.psc-drill-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+.psc-drill-num {
+    background: #0052FF;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 900;
+    padding: 3px 9px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+/* Screen 4 OMR Styles */
+.psc-omr-card {
+    background: #fffdf5;
+    border: 2px solid #1e293b;
+}
+.psc-omr-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #1e293b;
+    margin-bottom: 14px;
+}
+.psc-omr-emblem {
+    font-size: 26px;
+}
+.psc-omr-govt {
+    font-size: 14px;
+    font-weight: 900;
+    color: #0f172a;
+    letter-spacing: 0.5px;
+}
+.psc-omr-subtitle {
+    font-size: 10px;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 1px;
+}
+.psc-omr-neg-rule {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    margin-bottom: 16px;
+}
+
+/* Question Booklet Layout */
+.psc-booklet {
+    background: #ffffff;
+    border: 2px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+.psc-booklet-badge {
+    display: inline-block;
+    background: #0f172a;
+    color: #f8fafc;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-bottom: 14px;
+}
+.psc-omr-q-item {
+    padding: 14px 0;
+    border-bottom: 1px dashed #cbd5e1;
+}
+.psc-omr-q-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+.psc-omr-q-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.psc-omr-q-num {
+    background: #0f172a;
+    color: #ffffff;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 900;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+.psc-omr-q-en {
+    font-size: 14px;
+    font-weight: 800;
+    color: #0f172a;
+}
+.psc-omr-q-ml {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0052FF;
+    margin-top: 2px;
+}
+.psc-omr-choices-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+    margin: 10px 0 12px 32px;
+}
+@media (min-width: 640px) {
+    .psc-omr-choices-list {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+.psc-omr-choice-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+}
+.psc-omr-choice-row:hover {
+    background: #eff6ff;
+    border-color: #0052FF;
+}
+.psc-omr-choice-row.selected {
+    background: #0f172a;
+    color: #ffffff;
+    border-color: #0f172a;
+}
+.psc-omr-choice-row.selected .psc-choice-key {
+    color: #f59e0b;
+}
+.psc-omr-choice-row.selected .psc-choice-sub {
+    color: #cbd5e1;
+}
+.psc-choice-key {
+    font-weight: 900;
+    color: #0052FF;
+}
+.psc-choice-text {
+    font-weight: 700;
+}
+.psc-choice-sub {
+    color: #64748b;
+    font-size: 11px;
+}
+.psc-omr-row-strip {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 14px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    padding: 8px 14px;
+    border-radius: 8px;
+    margin-left: 32px;
+}
+.psc-strip-label {
+    font-size: 11px;
+    font-weight: 800;
+    color: #475569;
+    letter-spacing: 0.5px;
+}
+.psc-omr-bubbles {
+    display: flex;
+    gap: 8px;
+}
+.psc-bubble {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid #334155;
+    background: #ffffff;
+    color: #334155;
+    font-size: 11px;
+    font-weight: 900;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    user-select: none;
+}
+.psc-bubble:hover {
+    border-color: #000;
+    background: #f1f5f9;
+}
+.psc-bubble.darkened {
+    background: #0f172a !important;
+    color: #ffffff !important;
+    border-color: #0f172a !important;
+    box-shadow: inset 0 0 6px rgba(0,0,0,0.6);
+}
+.psc-omr-eval-wrap {
+    text-align: center;
+    margin-bottom: 18px;
+}
+.psc-btn-omr-submit {
+    background: #0f172a;
+    color: #ffffff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.3);
+    transition: all 0.2s;
+}
+.psc-btn-omr-submit:hover {
+    background: #334155;
+    transform: translateY(-1px);
+}
+.psc-omr-result-box {
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    animation: pscFadeIn 0.3s ease;
+}
+.psc-complete-card {
+    background: linear-gradient(135deg, #1e1b4b, #0f172a);
+    border-radius: 14px;
+    color: #ffffff;
+    padding: 20px;
+    text-align: center;
+    margin-top: 20px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+.psc-complete-icon {
+    font-size: 36px;
+    margin-bottom: 8px;
+}
+.psc-complete-card h4 {
+    font-size: 18px;
+    font-weight: 900;
+    margin: 0 0 6px 0;
+}
+.psc-complete-card p {
+    font-size: 12px;
+    color: #cbd5e1;
+    margin: 0 0 16px 0;
+}
+.psc-btn-complete {
+    background: linear-gradient(90deg, #f59e0b, #eab308);
+    color: #0f172a;
+    border: none;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+    transition: all 0.2s;
+}
+.psc-btn-complete:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+}
+</style>
+
+<!-- JAVASCRIPT LOGIC (Attached directly to window) -->
+<script>
+window.pscState = {
+    xp: 0,
+    hookSolved: false,
+    mcqs: { 1: false, 2: false },
+    omr: { 1: null, 2: null }
+};
+
+window.pscAddXp = function(points) {
+    window.pscState.xp += points;
+    const el = document.getElementById('psc-xp-val');
+    if (el) el.innerText = window.pscState.xp;
+};
+
+// 1. SEQUENTIAL NAVIGATION WIZARD
+window.pscGoTo = function(step) {
+    const screens = ['hook', 'lesson', 'mcqs', 'omr'];
+    const progressMap = { hook: '25%', lesson: '50%', mcqs: '75%', omr: '100%' };
+
+    screens.forEach(s => {
+        const screenEl = document.getElementById('psc-screen-' + s);
+        const pillEl = document.getElementById('psc-pill-' + s);
+        
+        if (screenEl) {
+            screenEl.style.display = (s === step ? 'block' : 'none');
+        }
+        if (pillEl) {
+            if (s === step) {
+                pillEl.classList.add('active');
+            } else {
+                pillEl.classList.remove('active');
+            }
+        }
+    });
+
+    // When going to MCQs, start at MCQ 1
+    if (step === 'mcqs') {
+        window.pscGoToMcq(1);
+    }
+
+    // Update Progress Bar
+    const pBar = document.getElementById('psc-progress-bar');
+    if (pBar && progressMap[step]) {
+        pBar.style.width = progressMap[step];
+    }
+
+    // Scroll smoothly to top of capsule
+    const container = document.getElementById('psc-capsule-container');
+    if (container) {
+        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+};
+
+// Navigate between single MCQ screens
+window.pscGoToMcq = function(mcqNum) {
+    const q1 = document.getElementById('psc-mcq-card-1');
+    const q2 = document.getElementById('psc-mcq-card-2');
+    if (mcqNum === 1) {
+        if (q1) q1.style.display = 'block';
+        if (q2) q2.style.display = 'none';
+    } else {
+        if (q1) q1.style.display = 'none';
+        if (q2) q2.style.display = 'block';
+    }
+    const container = document.getElementById('psc-capsule-container');
+    if (container) {
+        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+};
+
+// 2. HOOK QUESTION HANDLER
+window.pscSelectHook = function(opt) {
+    if (window.pscState.hookSolved) return;
+    window.pscState.hookSolved = true;
+
+    const btns = document.querySelectorAll('#psc-hook-opts .psc-opt-btn');
+    btns.forEach(b => b.style.pointerEvents = 'none');
+
+    const fbBox = document.getElementById('psc-hook-feedback');
+    const fbContent = document.getElementById('psc-hook-feedback-content');
+    fbBox.style.display = 'block';
+
+    const pillHook = document.getElementById('psc-pill-hook');
+    if (pillHook) pillHook.classList.add('completed');
+
+    if (opt === 'B') {
+        // Correct Answer
+        btns[1].classList.add('correct');
+        fbBox.className = 'psc-feedback psc-fb-correct';
+        fbContent.innerHTML = \`
+            <div style="font-size: 15px; font-weight: 800; margin-bottom: 6px;">
+                ✅ ശരിയുത്തരം! സയിദ് കിർമാനി (Syed Kirmani) (+50 XP)
+            </div>
+            <p style="margin: 0; font-size: 13px; line-height: 1.5;">
+                1983-ൽ ഇന്ത്യ പ്രഥമ ലോകകപ്പ് നേടുമ്പോൾ ടീമിലെ വിക്കറ്റ് കീപ്പറായിരുന്നു സയിദ് കിർമാനി. ആ ടൂർണമെന്റിലെ മികച്ച വിക്കറ്റ് കീപ്പറായി തിരഞ്ഞെടുക്കപ്പെട്ടതും അദ്ദേഹമായിരുന്നു. അദ്ദേഹത്തിന്റെ ആത്മകഥയാണ് <em>"Stumped: Life behind and beyond Twenty Two Yards"</em>.
+            </p>
+        \`;
+        window.pscAddXp(50);
+    } else {
+        // Trap Answer
+        const idxMap = { A: 0, B: 1, C: 2, D: 3 };
+        btns[idxMap[opt]].classList.add('wrong');
+        btns[1].classList.add('correct'); // Highlight correct answer
+
+        fbBox.className = 'psc-feedback psc-fb-trap';
+
+        let trapExplanation = '';
+        if (opt === 'A') {
+            trapExplanation = '<strong>⚠️ PSC Trap Warning!</strong> മഹേന്ദ്രസിംഗ് ധോണിയുടെ ആത്മകഥയല്ല ഇത്. ഭാരത് സുന്ദരേശൻ എഴുതിയ പുസ്തകമാണ് <em>"The Dhoni Touch"</em>. ശരിയുത്തരം: <strong>സയിദ് കിർമാനി</strong>.';
+        } else if (opt === 'C') {
+            trapExplanation = '<strong>⚠️ PSC Trap Warning!</strong> നയൻ മോംഗിയ മുൻ ഇന്ത്യൻ വിക്കറ്റ് കീപ്പറാണ്, എന്നാൽ ഈ പുസ്തകം അദ്ദേഹത്തിന്റേതല്ല. ശരിയുത്തരം: <strong>സയിദ് കിർമാനി</strong>.';
+        } else {
+            trapExplanation = '<strong>⚠️ PSC Trap Warning!</strong> കിരൺ മോറെ മുൻ ഇന്ത്യൻ വിക്കറ്റ് കീപ്പറാണ്, എന്നാൽ <em>"Stumped"</em> രചിച്ചത് 1983 ലോകകപ്പ് കീപ്പർ <strong>സയിദ് കിർമാനി</strong> ആണ്.';
+        }
+
+        fbContent.innerHTML = \`
+            <div style="font-size: 14px; font-weight: 800; margin-bottom: 6px;">
+                \${trapExplanation}
+            </div>
+            <p style="margin: 0; font-size: 12px; color: #7f1d1d;">
+                കേരള PSC പരീക്ഷകളിൽ വിക്കറ്റ് കീപ്പർമാരുടെ പേരുകൾ ഓപ്ഷനിൽ നൽകി ചോദ്യങ്ങൾ ആവർത്തിക്കാറുണ്ട്. കൂടുതൽ വിവരങ്ങൾ പാഠത്തിൽ പഠിക്കാം (+15 XP).
+            </p>
+        \`;
+        window.pscAddXp(15);
+    }
+};
+
+// 3. RETENTION MCQS HANDLER (SINGLE SCREEN)
+window.pscCheckMcq = function(qId, selected, correct) {
+    const parent = document.getElementById('psc-drill-opts-' + qId);
+    if (!parent) return;
+
+    const btns = parent.querySelectorAll('.psc-opt-btn');
+    btns.forEach(b => b.style.pointerEvents = 'none');
+
+    const fb = document.getElementById('psc-drill-fb-' + qId);
+    fb.style.display = 'block';
+
+    const letters = ['A', 'B', 'C', 'D'];
+    const chosenBtn = btns[letters.indexOf(selected)];
+    const correctBtn = btns[letters.indexOf(correct)];
+
+    if (selected === correct) {
+        chosenBtn.classList.add('correct');
+        fb.className = 'psc-feedback psc-fb-correct';
+        fb.innerHTML = '✅ വളരെ ശരി! (+25 XP)';
+        window.pscAddXp(25);
+    } else {
+        chosenBtn.classList.add('wrong');
+        correctBtn.classList.add('correct');
+        fb.className = 'psc-feedback psc-fb-trap';
+        fb.innerHTML = '❌ തെറ്റിയാലും ഓർക്കുക: ശരിയുത്തരം ഓപ്ഷൻ <strong>' + correct + '</strong> ആണ് (+5 XP)';
+        window.pscAddXp(5);
+    }
+
+    // Show Next Button
+    if (qId === 1) {
+        const nextBtn = document.getElementById('psc-next-mcq-btn-1');
+        if (nextBtn) {
+            nextBtn.style.display = 'inline-flex';
+            nextBtn.classList.add('psc-pulse');
+        }
+    } else if (qId === 2) {
+        const toOmrBtn = document.getElementById('psc-to-omr-btn');
+        if (toOmrBtn) {
+            toOmrBtn.style.display = 'inline-flex';
+            toOmrBtn.classList.add('psc-pulse');
+        }
+    }
+
+    window.pscState.mcqs[qId] = true;
+    if (window.pscState.mcqs[1] && window.pscState.mcqs[2]) {
+        const pill = document.getElementById('psc-pill-mcqs');
+        if (pill) pill.classList.add('completed');
+    }
+};
+
+// 4. OMR BUBBLING & CHOICE SYNC HANDLER
+window.pscBubble = function(qNum, opt) {
+    // 1. Update Bubbles
+    const bubbles = document.querySelectorAll('.psc-bubble[data-q="' + qNum + '"]');
+    bubbles.forEach(b => b.classList.remove('darkened'));
+
+    const activeBubble = document.querySelector('.psc-bubble[data-q="' + qNum + '"][data-opt="' + opt + '"]');
+    if (activeBubble) {
+        activeBubble.classList.add('darkened');
+    }
+
+    // 2. Update Choice Rows
+    const choiceRows = document.querySelectorAll('.psc-omr-choice-row[data-q="' + qNum + '"]');
+    choiceRows.forEach(r => r.classList.remove('selected'));
+
+    const activeChoiceRow = document.querySelector('.psc-omr-choice-row[data-q="' + qNum + '"][data-opt="' + opt + '"]');
+    if (activeChoiceRow) {
+        activeChoiceRow.classList.add('selected');
+    }
+
+    window.pscState.omr[qNum] = opt;
+};
+
+// 5. OMR EVALUATION
+window.pscEvaluateOmr = function() {
+    const answerKey = { 1: 'B', 2: 'B' };
+    let correct = 0;
+    let wrong = 0;
+    let unattempted = 0;
+
+    [1, 2].forEach(q => {
+        const chosen = window.pscState.omr[q];
+        if (!chosen) {
+            unattempted++;
+        } else if (chosen === answerKey[q]) {
+            correct++;
+        } else {
+            wrong++;
+        }
+    });
+
+    const netMarks = (correct * 1.0) - (wrong * 0.33);
+    const formattedNet = Math.max(0, netMarks).toFixed(2);
+
+    const resBox = document.getElementById('psc-omr-result');
+    resBox.style.display = 'block';
+
+    const pillOmr = document.getElementById('psc-pill-omr');
+    if (pillOmr) pillOmr.classList.add('completed');
+
+    if (correct === 2) {
+        resBox.style.background = '#ecfdf5';
+        resBox.style.border = '2px solid #10b981';
+        resBox.style.color = '#065f46';
+        resBox.innerHTML = \`
+            <div style="font-size: 16px; font-weight: 900; margin-bottom: 4px;">🏆 State Rank 1 Grade! (+2.00 / 2.00 Net Marks)</div>
+            <div style="font-size: 13px;">നിങ്ങൾ രണ്ട് ചോദ്യങ്ങളും കൃത്യമായി ബബിൾ ചെയ്തു. നെഗറ്റീവ് മാർക്കുകളില്ല (+100 Bonus XP)!</div>
+        \`;
+        window.pscAddXp(100);
+    } else if (netMarks > 0) {
+        resBox.style.background = '#fffbeb';
+        resBox.style.border = '2px solid #f59e0b';
+        resBox.style.color = '#92400e';
+        resBox.innerHTML = \`
+            <div style="font-size: 16px; font-weight: 900; margin-bottom: 4px;">🎯 OMR സ്കോർ: +\${formattedNet} Marks (Correct: \${correct}, Wrong: \${wrong}, Unattempted: \${unattempted})</div>
+            <div style="font-size: 13px;">നെഗറ്റീവ് മാർക്കുകൾ ഒഴിവാക്കാൻ സംശയമുള്ള ചോദ്യങ്ങൾ ശ്രദ്ധയോടെ കൈകാര്യം ചെയ്യുക.</div>
+        \`;
+        window.pscAddXp(40);
+    } else {
+        resBox.style.background = '#fef2f2';
+        resBox.style.border = '2px solid #ef4444';
+        resBox.style.color = '#991b1b';
+        resBox.innerHTML = \`
+            <div style="font-size: 16px; font-weight: 900; margin-bottom: 4px;">⚠️ നെഗറ്റീവ് മാർക്ക് ഡിഡക്ഷൻ! (-0.33 Marks)</div>
+            <div style="font-size: 13px;">തെറ്റായ ഉത്തരങ്ങൾക്ക് PSC 0.33 മാർക്ക് വീതം കുറയ്ക്കുന്നു. പാഠം വീണ്ടും റിവൈസ് ചെയ്യുക.</div>
+        \`;
+        window.pscAddXp(10);
+    }
+};
+
+// 6. FINISH UNIT BRIDGE
+window.pscFinishCapsule = function() {
+    if (window.PSCRanker && typeof window.PSCRanker.completeSession === 'function') {
+        window.PSCRanker.completeSession(window.pscState.xp || 250);
+    } else {
+        alert('🎉 Congratulations! You completed this Kerala PSC Capsule with ' + (window.pscState.xp || 250) + ' XP!');
+    }
+};
+<\/script>`;
+        },
+
         contentBlocks: (initial.contents || []).map(b => ({
             id: b.id,
             type: b.type,
