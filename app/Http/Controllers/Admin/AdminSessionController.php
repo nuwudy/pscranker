@@ -183,9 +183,14 @@ class AdminSessionController extends Controller
      */
     public function destroy(Session $session)
     {
+        $sessionTitle = $session->title;
+        $session->contents()->delete();
+        $session->questions()->delete();
+        $session->progress()->delete();
         $session->delete();
+
         return redirect()->route('admin.sessions.index')
-            ->with('success', 'Session deleted successfully.');
+            ->with('success', "Session '{$sessionTitle}' was deleted successfully.");
     }
 
     /**

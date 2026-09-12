@@ -869,13 +869,25 @@
 
             <!-- Submit Button Bar -->
             <div class="flex items-center justify-between py-6">
-                <a href="{{ route('admin.sessions.index') }}" class="text-xs font-bold text-slate-600 hover:underline">
-                    Cancel & Back
-                </a>
+                <div class="flex items-center gap-3">
+                    <a href="{{ route('admin.sessions.index') }}" class="text-xs font-bold text-slate-600 hover:underline">
+                        ← Cancel & Back
+                    </a>
+
+                    @if($isEdit)
+                        <button 
+                            type="button" 
+                            onclick="if(confirm('Are you sure you want to permanently delete session #{{ $session->id }} (\'{{ addslashes($session->title) }}\')? All contents, questions, and student progress for this session will be permanently deleted.')) { document.getElementById('admin-delete-session-form-{{ $session->id }}').submit(); }"
+                            class="px-3.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 text-xs font-black rounded-lg transition border border-red-200 cursor-pointer flex items-center gap-1.5"
+                        >
+                            <span>🗑️ Delete Session</span>
+                        </button>
+                    @endif
+                </div>
 
                 <button 
                     type="submit" 
-                    class="px-8 py-3.5 bg-[#0052FF] hover:bg-blue-700 active:scale-95 text-white font-black text-sm rounded-xl shadow-lg transition flex items-center gap-2"
+                    class="px-8 py-3.5 bg-[#0052FF] hover:bg-blue-700 active:scale-95 text-white font-black text-sm rounded-xl shadow-lg transition flex items-center gap-2 cursor-pointer"
                 >
                     <span>Save Learning Session</span>
                     <span>⚡</span>
@@ -883,6 +895,18 @@
             </div>
 
         </form>
+
+        @if($isEdit)
+            <form 
+                id="admin-delete-session-form-{{ $session->id }}" 
+                action="{{ route('admin.sessions.destroy', $session) }}" 
+                method="POST" 
+                class="hidden"
+            >
+                @csrf
+                @method('DELETE')
+            </form>
+        @endif
 
     </div>
 

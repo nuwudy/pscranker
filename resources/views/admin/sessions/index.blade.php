@@ -101,20 +101,35 @@
                                     @endif
                                 </div>
                             </td>
-                            <td class="p-4 text-right space-x-2">
+                            <td class="p-4 text-right space-x-2 whitespace-nowrap">
                                 <a 
                                     href="{{ route('session.show', $session->slug) }}" 
                                     target="_blank"
-                                    class="text-blue-600 hover:underline font-bold"
+                                    class="text-blue-600 hover:underline font-bold text-xs"
                                 >
                                     Preview ↗
                                 </a>
                                 <a 
                                     href="{{ route('admin.sessions.edit', $session) }}" 
-                                    class="text-[#0052FF] hover:underline font-black"
+                                    class="text-[#0052FF] hover:underline font-black text-xs"
                                 >
                                     Edit
                                 </a>
+                                <form 
+                                    action="{{ route('admin.sessions.destroy', $session) }}" 
+                                    method="POST" 
+                                    class="inline-block"
+                                    onsubmit="return confirm('Are you sure you want to permanently delete session #{{ $session->id }} (\'{{ addslashes($session->title) }}\')? This will delete all its contents and questions.');"
+                                >
+                                    @csrf
+                                    @method('DELETE')
+                                    <button 
+                                        type="submit" 
+                                        class="text-red-600 hover:text-red-800 font-bold hover:underline text-xs cursor-pointer ml-1"
+                                    >
+                                        Delete
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                     @empty
