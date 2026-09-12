@@ -10,7 +10,8 @@
         reinforcement: @js($reinforcementQuestions->values()),
         omr: @js($omrQuestions->values()),
         creationMode: @js(old('creation_mode', $session->creation_mode ?? 'manual')),
-        customHtml: @js(old('custom_html', $session->custom_html ?? ''))
+        customHtml: @js(old('custom_html', $session->custom_html ?? '')),
+        featureImage: @js(old('feature_image', $session->feature_image ?? ''))
     })"
     class="py-8 bg-slate-50 min-h-[90vh]"
 >
@@ -69,6 +70,7 @@
         <form 
             action="{{ $isEdit ? route('admin.sessions.update', $session) : route('admin.sessions.store') }}" 
             method="POST"
+            enctype="multipart/form-data"
             @submit="prepareJsonData()"
         >
             @csrf
@@ -134,6 +136,92 @@
                                 </option>
                             @endforeach
                         </select>
+                    </div>
+
+                    <!-- Featured Image Field (spans both columns) -->
+                    <div class="sm:col-span-2 pt-3 border-t border-slate-100">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                            <div>
+                                <label class="block text-xs font-black text-slate-800 uppercase tracking-wide">
+                                    Featured Image (കവർ ചിത്രം / Poster Image)
+                                </label>
+                                <p class="text-[11px] text-slate-500 font-medium">
+                                    Appears prominently above the lesson in both <strong>Manual Builder (Phase 2)</strong> and <strong>Custom Code (HTML)</strong> capsules.
+                                </p>
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div class="flex items-center gap-2 shrink-0">
+                                <button 
+                                    type="button" 
+                                    @click="openMediaPicker('feature_image', 'image')" 
+                                    class="px-2.5 py-1.5 bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 text-xs font-bold rounded-lg transition flex items-center gap-1 cursor-pointer"
+                                >
+                                    <span>🖼️ Choose from Media Library</span>
+                                </button>
+                                
+                                <label class="cursor-pointer px-2.5 py-1.5 bg-blue-50 text-[#0052FF] hover:bg-blue-100 border border-blue-200 text-xs font-bold rounded-lg transition flex items-center gap-1">
+                                    <span x-show="!isUploadingFeatureImage">⬆️ Upload Image</span>
+                                    <span x-show="isUploadingFeatureImage" class="flex items-center gap-1">
+                                        <span class="w-3 h-3 border-2 border-blue-600 border-t-yellow-400 rounded-full animate-spin"></span>
+                                        <span>Uploading...</span>
+                                    </span>
+                                    <input 
+                                        type="file" 
+                                        class="hidden" 
+                                        accept="image/*"
+                                        :disabled="isUploadingFeatureImage"
+                                        @change="uploadFeatureImageDirect($event)"
+                                    >
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Image URL Input -->
+                        <div class="flex items-center gap-2">
+                            <input 
+                                type="text" 
+                                name="feature_image" 
+                                x-model="featureImage" 
+                                placeholder="Paste image URL (e.g. https://... or /storage/media/images/photo.png)" 
+                                class="w-full px-3 py-2 text-xs font-mono rounded-lg border border-slate-300 focus:border-[#0052FF] focus:outline-none"
+                            >
+                            <button 
+                                type="button" 
+                                x-show="featureImage" 
+                                @click="featureImage = ''" 
+                                class="px-3 py-2 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 text-xs font-bold rounded-lg transition shrink-0 cursor-pointer"
+                                title="Remove Image"
+                            >
+                                ✕ Clear
+                            </button>
+                        </div>
+
+                        <!-- Live Featured Image Preview -->
+                        <template x-if="featureImage">
+                            <div class="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-4">
+                                <div class="w-24 h-20 sm:w-32 sm:h-24 rounded-lg overflow-hidden border border-slate-300 bg-white shrink-0 shadow-xs flex items-center justify-center">
+                                    <img :src="featureImage" alt="Feature Image Preview" class="w-full h-full object-cover">
+                                </div>
+                                <div class="flex-grow min-w-0">
+                                    <div class="flex items-center gap-1.5 mb-1">
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-100 text-emerald-800">
+                                            Active Cover Banner
+                                        </span>
+                                        <span class="text-slate-400 text-xs">•</span>
+                                        <span class="text-xs text-slate-600 font-bold truncate">Will be displayed above the lesson</span>
+                                    </div>
+                                    <p class="text-[11px] font-mono text-slate-500 truncate" x-text="featureImage"></p>
+                                    <button 
+                                        type="button" 
+                                        @click="featureImage = ''" 
+                                        class="mt-2 text-[11px] font-bold text-red-600 hover:text-red-800 hover:underline cursor-pointer"
+                                    >
+                                        ✕ Remove Image
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
@@ -1099,6 +1187,8 @@ function adminSessionBuilder(initial) {
         creationMode: initial.creationMode || 'manual',
         customHtml: initial.customHtml || '',
         codeTab: 'editor',
+        featureImage: initial.featureImage || '',
+        isUploadingFeatureImage: false,
 
         setCreationMode(mode) {
             this.creationMode = mode;
@@ -2639,7 +2729,9 @@ window.pscFinishCapsule = function() {
         },
 
         selectMediaItem(item) {
-            if (this.activeMediaTargetBlockIndex !== null && this.contentBlocks[this.activeMediaTargetBlockIndex]) {
+            if (this.activeMediaTargetBlockIndex === 'feature_image') {
+                this.featureImage = item.url;
+            } else if (this.activeMediaTargetBlockIndex !== null && this.contentBlocks[this.activeMediaTargetBlockIndex]) {
                 const block = this.contentBlocks[this.activeMediaTargetBlockIndex];
                 block.content_data.url = item.url;
                 if (!block.content_data.title && item.name) {
@@ -2647,6 +2739,40 @@ window.pscFinishCapsule = function() {
                 }
             }
             this.showMediaModal = false;
+        },
+
+        async uploadFeatureImageDirect(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+
+            const file = files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('title', file.name);
+
+            this.isUploadingFeatureImage = true;
+            try {
+                const response = await fetch('{{ route("admin.media.store") }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                });
+                const data = await response.json();
+                if (data.success && data.media) {
+                    this.featureImage = data.media.url;
+                } else {
+                    alert('Upload failed: ' + (data.message || 'Please check file size/type.'));
+                }
+            } catch (err) {
+                console.error('Direct feature image upload error:', err);
+                alert('Upload failed. Please try again.');
+            } finally {
+                this.isUploadingFeatureImage = false;
+                event.target.value = '';
+            }
         },
 
         async uploadDirectFromModal(event) {

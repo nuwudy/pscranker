@@ -415,6 +415,90 @@ test('admin can set in_general_stream and general_stream_order when saving a ses
     ]);
 });
 
+test('admin can save and update a session with a feature_image', function () {
+    $admin = User::factory()->create(['email' => 'admin-feature@pscranker.com']);
+    $category = Category::firstOrCreate(['slug' => 'history'], ['name' => 'History', 'order' => 4]);
+
+    $this->actingAs($admin);
+
+    // 1. Create with feature_image
+    $response = $this->post(route('admin.sessions.store'), [
+        'title' => 'History Unit 5: Revolt of 1857',
+        'title_malayalam' => '1857 ഒന്നാം സ്വാതന്ത്ര്യ സമരം',
+        'slug' => 'revolt-of-1857',
+        'feature_image' => 'https://images.unsplash.com/photo-sample-revolt.jpg',
+        'category_id' => $category->id,
+        'order' => 5,
+        'xp_reward' => 300,
+        'is_active' => 1,
+        'creation_mode' => 'manual',
+    ]);
+
+    $response->assertRedirect();
+    $session = Session::where('slug', 'revolt-of-1857')->first();
+    expect($session)->not->toBeNull();
+    expect($session->feature_image)->toBe('https://images.unsplash.com/photo-sample-revolt.jpg');
+
+    // 2. Update feature_image
+    $updateResponse = $this->put(route('admin.sessions.update', $session), [
+        'title' => 'History Unit 5: Revolt of 1857 (Updated)',
+        'title_malayalam' => '1857 സമരം',
+        'slug' => 'revolt-of-1857',
+        'feature_image' => '/storage/media/images/revolt-banner.png',
+        'category_id' => $category->id,
+        'order' => 5,
+        'xp_reward' => 350,
+        'is_active' => 1,
+        'creation_mode' => 'manual',
+    ]);
+
+    $updateResponse->assertRedirect();
+    $session->refresh();
+    expect($session->feature_image)->toBe('/storage/media/images/revolt-banner.png');
+});
+
+test('feature image appears above the lesson in both custom code and manual modes', function () {
+    $category = Category::firstOrCreate(['slug' => 'science'], ['name' => 'Science', 'order' => 3]);
+
+    // 1. Manual Session with feature_image
+    $manualSession = Session::create([
+        'title' => 'Human Eye & Vision',
+        'title_malayalam' => 'മനുഷ്യ നേത്രം',
+        'slug' => 'human-eye-vision',
+        'feature_image' => 'https://example.com/eye-anatomy.jpg',
+        'category_id' => $category->id,
+        'order' => 1,
+        'xp_reward' => 200,
+        'is_active' => true,
+        'creation_mode' => 'manual',
+    ]);
+
+    $manualResponse = $this->get(route('session.show', $manualSession->slug));
+    $manualResponse->assertStatus(200);
+    $manualResponse->assertSee('https://example.com/eye-anatomy.jpg');
+    $manualResponse->assertSee('Featured Image Banner above Manual Lesson Capsule Blocks', false);
+
+    // 2. Custom Code Session with feature_image
+    $codeSession = Session::create([
+        'title' => 'Newton Laws of Motion',
+        'title_malayalam' => 'ന്യൂട്ടന്റെ ചലന നിയമങ്ങൾ',
+        'slug' => 'newton-laws-of-motion',
+        'feature_image' => 'https://example.com/newton-apple.png',
+        'category_id' => $category->id,
+        'order' => 2,
+        'xp_reward' => 250,
+        'is_active' => true,
+        'creation_mode' => 'code',
+        'custom_html' => '<div class="newton-experiment">First Law...</div>',
+    ]);
+
+    $codeResponse = $this->get(route('session.show', $codeSession->slug));
+    $codeResponse->assertStatus(200);
+    $codeResponse->assertSee('https://example.com/newton-apple.png');
+    $codeResponse->assertSee('Featured Image Banner above Custom Code Capsule', false);
+    $codeResponse->assertSee('newton-experiment');
+});
+
 
 
 

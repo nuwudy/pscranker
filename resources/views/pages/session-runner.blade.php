@@ -301,6 +301,18 @@
             <!-- CUSTOM CODE SESSION CANVAS (Interactive Custom HTML)     -->
             <!-- ========================================================= -->
             <div class="custom-session-wrapper mb-10">
+                @if($session->feature_image)
+                    <!-- Featured Image Banner above Custom Code Capsule -->
+                    <div class="mb-6 rounded-3xl overflow-hidden border border-blue-100 shadow-md bg-white max-h-[460px] flex items-center justify-center relative">
+                        <img 
+                            src="{{ $session->feature_image }}" 
+                            alt="{{ $session->title }}"
+                            class="w-full h-auto max-h-[460px] object-cover sm:object-contain rounded-3xl"
+                            loading="eager"
+                        >
+                    </div>
+                @endif
+
                 <div class="bg-white rounded-3xl border border-blue-100/90 shadow-md p-4 sm:p-8 relative">
                     {!! $session->custom_html !!}
                 </div>
@@ -536,6 +548,18 @@
                         Concept Capsule
                     </span>
                 </div>
+
+                @if($session->feature_image)
+                    <!-- Featured Image Banner above Manual Lesson Capsule Blocks -->
+                    <div class="mb-6 rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-white max-h-[460px] flex items-center justify-center relative">
+                        <img 
+                            src="{{ $session->feature_image }}" 
+                            alt="{{ $session->title }}"
+                            class="w-full h-auto max-h-[460px] object-cover sm:object-contain rounded-2xl"
+                            loading="eager"
+                        >
+                    </div>
+                @endif
 
                 <!-- Dynamic Content Blocks -->
                 <div class="space-y-6">

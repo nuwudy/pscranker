@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\MediaFile;
 use App\Models\Question;
 use App\Models\Session;
 use App\Models\SessionContent;
@@ -50,6 +51,8 @@ class AdminSessionController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'title_malayalam' => 'nullable|string|max:255',
+            'feature_image' => 'nullable|string|max:1000',
+            'feature_image_file' => 'nullable|image|max:10240',
             'slug' => 'nullable|string|max:255|unique:learning_sessions,slug',
             'category_id' => 'nullable|exists:categories,id',
             'order' => 'required|integer',
@@ -76,9 +79,27 @@ class AdminSessionController extends Controller
 
         $creationMode = $request->input('creation_mode', 'manual');
 
+        $featureImage = $validated['feature_image'] ?? null;
+        if ($request->hasFile('feature_image_file')) {
+            $file = $request->file('feature_image_file');
+            $path = $file->store('media/images', 'public');
+            $featureImage = '/storage/' . $path;
+
+            MediaFile::create([
+                'name' => $file->getClientOriginalName(),
+                'file_path' => $path,
+                'url' => $featureImage,
+                'file_type' => 'image',
+                'mime_type' => $file->getMimeType(),
+                'file_size' => $file->getSize(),
+                'uploaded_by' => auth()->id(),
+            ]);
+        }
+
         $session = Session::create([
             'title' => $validated['title'],
             'title_malayalam' => $validated['title_malayalam'] ?? null,
+            'feature_image' => $featureImage,
             'slug' => $slug,
             'category_id' => $validated['category_id'] ?? null,
             'order' => $validated['order'],
@@ -139,6 +160,8 @@ class AdminSessionController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'title_malayalam' => 'nullable|string|max:255',
+            'feature_image' => 'nullable|string|max:1000',
+            'feature_image_file' => 'nullable|image|max:10240',
             'slug' => 'required|string|max:255|unique:learning_sessions,slug,' . $session->id,
             'category_id' => 'nullable|exists:categories,id',
             'order' => 'required|integer',
@@ -154,9 +177,27 @@ class AdminSessionController extends Controller
 
         $creationMode = $request->input('creation_mode', 'manual');
 
+        $featureImage = $validated['feature_image'] ?? $session->feature_image;
+        if ($request->hasFile('feature_image_file')) {
+            $file = $request->file('feature_image_file');
+            $path = $file->store('media/images', 'public');
+            $featureImage = '/storage/' . $path;
+
+            MediaFile::create([
+                'name' => $file->getClientOriginalName(),
+                'file_path' => $path,
+                'url' => $featureImage,
+                'file_type' => 'image',
+                'mime_type' => $file->getMimeType(),
+                'file_size' => $file->getSize(),
+                'uploaded_by' => auth()->id(),
+            ]);
+        }
+
         $session->update([
             'title' => $validated['title'],
             'title_malayalam' => $validated['title_malayalam'] ?? null,
+            'feature_image' => $featureImage,
             'slug' => Str::slug($validated['slug']),
             'category_id' => $validated['category_id'] ?? null,
             'order' => $validated['order'],

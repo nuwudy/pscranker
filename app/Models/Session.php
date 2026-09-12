@@ -17,6 +17,7 @@ class Session extends Model
     protected $fillable = [
         'title',
         'title_malayalam',
+        'feature_image',
         'slug',
         'category_id',
         'order',
