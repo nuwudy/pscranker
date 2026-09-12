@@ -6,17 +6,25 @@
 <div class="py-8 bg-slate-50 min-h-[85vh]">
     <div class="max-w-6xl mx-auto px-4 sm:px-6">
         
-        <div class="flex items-center justify-between mb-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
                 <h1 class="text-2xl sm:text-3xl font-black text-slate-900">Learning Sessions Manager</h1>
                 <p class="text-xs text-slate-500 font-medium">Create and edit 4-phase micro-learning sessions, content blocks, and question banks.</p>
             </div>
-            <a 
-                href="{{ route('admin.sessions.create') }}" 
-                class="px-5 py-2.5 bg-[#0052FF] hover:bg-blue-700 text-white font-black text-xs rounded-xl shadow-md transition flex items-center gap-1.5"
-            >
-                <span>+ Create New Session</span>
-            </a>
+            <div class="flex items-center gap-2.5">
+                <a 
+                    href="{{ route('admin.mixed-practice.index') }}" 
+                    class="px-4 py-2.5 bg-blue-50 hover:bg-blue-100 text-[#0052FF] font-black text-xs rounded-xl border border-blue-200 transition flex items-center gap-1.5 shadow-2xs"
+                >
+                    <span>🚂 Curate Mixed Practice Train ➔</span>
+                </a>
+                <a 
+                    href="{{ route('admin.sessions.create') }}" 
+                    class="px-5 py-2.5 bg-[#0052FF] hover:bg-blue-700 text-white font-black text-xs rounded-xl shadow-md transition flex items-center gap-1.5"
+                >
+                    <span>+ Create New Session</span>
+                </a>
+            </div>
         </div>
 
         @if(session('success'))

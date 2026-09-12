@@ -40,21 +40,21 @@
 
                 <!-- Primary and Secondary CTA Buttons -->
                 <div class="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5">
-                    <!-- Primary CTA leading to Course / Sessions page -->
+                    <!-- Primary CTA launching Mixed Practice Train directly -->
                     <a 
-                        href="{{ route('sessions.index') }}" 
+                        href="{{ $firstMixedSession ? route('session.show', ['slug' => $firstMixedSession->slug, 'stream' => 'general']) : route('sessions.index') }}" 
                         class="px-8 sm:px-10 py-4 sm:py-4.5 bg-[#0052FF] hover:bg-[#003ECC] text-white font-black text-base sm:text-lg rounded-full shadow-xl shadow-blue-500/35 hover:shadow-blue-500/50 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 border-2 border-[#FFD200] group"
                     >
                         <span>START COURSE UNITS</span>
                         <span class="text-yellow-300 group-hover:translate-x-1.5 transition-transform text-2xl font-black">➔</span>
                     </a>
 
-                    <!-- Secondary CTA for 6 PSC Subjects -->
+                    <!-- Secondary CTA for 7 PSC Subjects -->
                     <a 
                         href="#special-subjects" 
                         class="px-6 py-4 bg-white hover:bg-slate-100 text-slate-900 font-black text-sm sm:text-base rounded-full border-2 border-slate-200 shadow-sm hover:shadow transition flex items-center justify-center gap-2"
                     >
-                        <span>📚 6 Core PSC Subjects</span>
+                        <span>📚 7 Core PSC Subjects</span>
                     </a>
                 </div>
 

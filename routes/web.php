@@ -64,6 +64,9 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('dashboard', [DashboardController::class, 'index']);
     Route::post('settings/pricing', [DashboardController::class, 'updatePricingSettings'])->name('settings.pricing');
+    Route::get('mixed-practice', [AdminSessionController::class, 'mixedPractice'])->name('mixed-practice.index');
+    Route::post('mixed-practice/toggle', [AdminSessionController::class, 'toggleMixedPractice'])->name('mixed-practice.toggle');
+    Route::post('mixed-practice/reorder', [AdminSessionController::class, 'reorderMixedPractice'])->name('mixed-practice.reorder');
     Route::resource('sessions', AdminSessionController::class);
     Route::get('media', [MediaController::class, 'index'])->name('media.index');
     Route::get('media/api-list', [MediaController::class, 'apiList'])->name('media.api-list');

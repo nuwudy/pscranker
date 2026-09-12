@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Quiz;
 use App\Models\Question;
+use App\Models\Session;
 use App\Models\DrillAttempt;
 use Illuminate\Http\Request;
 
@@ -17,10 +18,16 @@ class HomeController extends Controller
             ->where('slug', '3-min-rapid-blitz')
             ->first() ?? Quiz::with(['questions.category'])->first();
 
-        // Fetch 6 official PSC categories with sessions and question count
+        // Fetch official PSC categories with sessions and question count
         $categories = Category::withCount(['questions', 'sessions'])
             ->orderBy('order')
             ->get();
+
+        // Fetch the first unit in the Mixed Practice Train (General Stream)
+        $firstMixedSession = Session::where('is_active', true)
+            ->where('in_general_stream', true)
+            ->orderBy('general_stream_order', 'asc')
+            ->first();
 
         // Top 3 live leaderboard for the quick-access card
         $leaderboardTop = DrillAttempt::orderByDesc('score')
@@ -43,6 +50,6 @@ class HomeController extends Controller
             'drills_completed_today' => rand(3200, 3950),
         ];
 
-        return view('pages.home', compact('featuredQuiz', 'categories', 'leaderboardTop', 'memeQuestions', 'stats'));
+        return view('pages.home', compact('featuredQuiz', 'categories', 'firstMixedSession', 'leaderboardTop', 'memeQuestions', 'stats'));
     }
 }

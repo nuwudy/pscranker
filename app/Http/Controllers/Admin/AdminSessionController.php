@@ -27,6 +27,109 @@ class AdminSessionController extends Controller
     }
 
     /**
+     * Display the Mixed Practice Train Concocter studio.
+     */
+    public function mixedPractice(Request $request)
+    {
+        $categories = Category::orderBy('order')->get();
+
+        // Active mixed practice train ordered by sequence
+        $mixedTrain = Session::with(['category'])
+            ->where('in_general_stream', true)
+            ->orderBy('general_stream_order', 'asc')
+            ->get();
+
+        // All subject sessions with recently added first
+        $availableSessions = Session::with(['category'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('admin.sessions.mixed-practice', compact('categories', 'mixedTrain', 'availableSessions'));
+    }
+
+    /**
+     * Toggle a session in/out of the Mixed Practice Train.
+     */
+    public function toggleMixedPractice(Request $request)
+    {
+        $request->validate([
+            'session_id' => 'required|exists:learning_sessions,id',
+        ]);
+
+        $session = Session::findOrFail($request->input('session_id'));
+        $newState = !$session->in_general_stream;
+
+        if ($newState) {
+            $maxOrder = Session::where('in_general_stream', true)->max('general_stream_order') ?? 0;
+            $session->in_general_stream = true;
+            $session->general_stream_order = $maxOrder + 1;
+        } else {
+            $session->in_general_stream = false;
+            $session->general_stream_order = null;
+        }
+        $session->save();
+
+        // Re-index remaining general_stream_orders so there are no gaps
+        $this->normalizeMixedTrainOrder();
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'in_general_stream' => $session->in_general_stream,
+                'general_stream_order' => $session->general_stream_order,
+                'session' => $session->fresh(['category']),
+                'mixedTrain' => Session::with(['category'])->where('in_general_stream', true)->orderBy('general_stream_order')->get(),
+            ]);
+        }
+
+        return back()->with('success', 'Mixed practice train updated successfully!');
+    }
+
+    /**
+     * Reorder the sequence of the Mixed Practice Train.
+     */
+    public function reorderMixedPractice(Request $request)
+    {
+        $request->validate([
+            'ordered_ids' => 'required|array',
+            'ordered_ids.*' => 'exists:learning_sessions,id',
+        ]);
+
+        foreach ($request->input('ordered_ids') as $index => $id) {
+            Session::where('id', $id)->update([
+                'in_general_stream' => true,
+                'general_stream_order' => $index + 1,
+            ]);
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'mixedTrain' => Session::with(['category'])->where('in_general_stream', true)->orderBy('general_stream_order')->get(),
+            ]);
+        }
+
+        return back()->with('success', 'Train order updated successfully!');
+    }
+
+    /**
+     * Normalize general stream order sequence so there are no gaps.
+     */
+    protected function normalizeMixedTrainOrder(): void
+    {
+        $sessions = Session::where('in_general_stream', true)
+            ->orderBy('general_stream_order', 'asc')
+            ->get();
+
+        foreach ($sessions as $index => $s) {
+            if ($s->general_stream_order !== ($index + 1)) {
+                $s->general_stream_order = $index + 1;
+                $s->save();
+            }
+        }
+    }
+
+    /**
      * Show the form for creating a new session.
      */
     public function create()

@@ -504,6 +504,90 @@ test('feature image appears above the lesson in both custom code and manual mode
     $catalogResponse->assertDontSee('Unit Featured Cover Thumbnail');
 });
 
+test('home page START COURSE UNITS button launches the first mixed session', function () {
+    $first = Session::where('is_active', true)
+        ->where('in_general_stream', true)
+        ->orderBy('general_stream_order', 'asc')
+        ->first();
+
+    $response = $this->get(route('home'));
+    $response->assertStatus(200);
+    $response->assertSee(route('session.show', ['slug' => $first->slug, 'stream' => 'general']));
+    $response->assertSee('START COURSE UNITS');
+    $response->assertSee('7 Core PSC Subjects');
+});
+
+test('admin can view mixed practice concocter interface', function () {
+    $admin = User::factory()->create(['email' => 'admin-mixed@pscranker.com']);
+    $this->actingAs($admin);
+
+    $response = $this->get(route('admin.mixed-practice.index'));
+    $response->assertStatus(200);
+    $response->assertSee('Mixed Practice Train Concocter');
+    $response->assertSee('Active Mixed Train');
+    $response->assertSee('Subject Sessions Pool');
+});
+
+test('admin can toggle and reorder sessions in mixed practice train via API while subject tracks remain unchanged', function () {
+    $admin = User::factory()->create(['email' => 'admin-toggle@pscranker.com']);
+    $category = Category::firstOrCreate(['slug' => 'maths'], ['name' => 'Maths', 'order' => 2]);
+
+    $session1 = Session::create([
+        'title' => 'Maths Ratio & Proportion',
+        'slug' => 'maths-ratio-proportion',
+        'category_id' => $category->id,
+        'order' => 3, // Subject unit #3
+        'in_general_stream' => false,
+        'general_stream_order' => null,
+        'xp_reward' => 250,
+        'is_active' => true,
+    ]);
+
+    $session2 = Session::create([
+        'title' => 'Maths Percentage Tricks',
+        'slug' => 'maths-percentage-tricks',
+        'category_id' => $category->id,
+        'order' => 4, // Subject unit #4
+        'in_general_stream' => false,
+        'general_stream_order' => null,
+        'xp_reward' => 250,
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($admin);
+
+    // 1. Toggle session1 into Mixed Train
+    $toggleRes1 = $this->postJson(route('admin.mixed-practice.toggle'), [
+        'session_id' => $session1->id,
+    ]);
+    $toggleRes1->assertStatus(200);
+    $toggleRes1->assertJson(['success' => true, 'in_general_stream' => true]);
+
+    // 2. Toggle session2 into Mixed Train
+    $toggleRes2 = $this->postJson(route('admin.mixed-practice.toggle'), [
+        'session_id' => $session2->id,
+    ]);
+    $toggleRes2->assertStatus(200);
+    $toggleRes2->assertJson(['success' => true, 'in_general_stream' => true]);
+
+    // 3. Reorder train so session2 is first and session1 is second
+    $reorderRes = $this->postJson(route('admin.mixed-practice.reorder'), [
+        'ordered_ids' => [$session2->id, $session1->id],
+    ]);
+    $reorderRes->assertStatus(200);
+    $reorderRes->assertJson(['success' => true]);
+
+    $session1->refresh();
+    $session2->refresh();
+    expect($session2->general_stream_order)->toBe(1);
+    expect($session1->general_stream_order)->toBe(2);
+
+    // 4. Verify that subject-wise unit ordering remains completely UNCHANGED
+    expect($session1->order)->toBe(3);
+    expect($session2->order)->toBe(4);
+});
+
+
 
 
 
