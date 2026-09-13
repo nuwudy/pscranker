@@ -62,7 +62,7 @@
                             x-model="login"
                             required 
                             autofocus
-                            placeholder="admin@pscranker.com or 9895940500"
+                            placeholder="e.g. 9876543210 or yourname@gmail.com"
                             class="w-full px-4 py-3 text-sm font-semibold rounded-xl border-2 border-slate-200 focus:border-[#0052FF] focus:outline-none transition bg-slate-50/50 focus:bg-white text-slate-900"
                         >
                     </div>
@@ -132,27 +132,6 @@
                         Register Free Account →
                     </a>
                 </p>
-            </div>
-
-            <!-- Quick Auto-fill for Admin -->
-            <div class="mt-4 pt-3 border-t border-dashed border-slate-200 text-center">
-                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2">Admin Quick Credentials:</p>
-                <div class="flex flex-wrap items-center justify-center gap-2">
-                    <button 
-                        type="button"
-                        @click="login = 'admin@pscranker.com'; document.getElementById('password').value = 'Amter9388$';"
-                        class="text-[11px] font-bold text-[#0052FF] bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-full border border-blue-200 transition cursor-pointer"
-                    >
-                        Email: admin@pscranker.com ✨
-                    </button>
-                    <button 
-                        type="button"
-                        @click="login = '9895940500'; document.getElementById('password').value = 'Amter9388$';"
-                        class="text-[11px] font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 px-3 py-1 rounded-full border border-amber-300 transition cursor-pointer"
-                    >
-                        Phone: 9895940500 ⚡
-                    </button>
-                </div>
             </div>
 
         </div>
