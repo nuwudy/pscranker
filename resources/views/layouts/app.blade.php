@@ -259,6 +259,11 @@
                     <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-4 border-b border-slate-800 pb-2">Policy &amp; Legal</h4>
                     <ul class="space-y-2.5 text-xs">
                         <li>
+                            <a href="{{ route('about') }}" class="hover:text-yellow-400 transition flex items-center gap-1.5">
+                                <span>About Us</span>
+                            </a>
+                        </li>
+                        <li>
                             <a href="{{ route('terms') }}" class="hover:text-yellow-400 transition flex items-center gap-1.5">
                                 <span>Terms &amp; Conditions</span>
                             </a>
@@ -271,6 +276,11 @@
                         <li>
                             <a href="{{ route('refund-policy') }}" class="hover:text-yellow-400 transition flex items-center gap-1.5">
                                 <span>Cancellation &amp; Refund Policy</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('shipping-policy') }}" class="hover:text-yellow-400 transition flex items-center gap-1.5">
+                                <span>Shipping &amp; Delivery Policy</span>
                             </a>
                         </li>
                         <li>
@@ -292,17 +302,24 @@
                     <div class="space-y-2.5 text-xs text-slate-400">
                         <div>
                             <span class="block text-slate-300 font-bold">Email Support:</span>
-                            <a href="mailto:admin@pscranker.com" class="text-[#0052FF] hover:underline font-mono">admin@pscranker.com</a>
+                            <a href="mailto:infopscranker@gmail.com" class="text-yellow-400 hover:underline font-mono">infopscranker@gmail.com</a>
+                        </div>
+                        <div>
+                            <span class="block text-slate-300 font-bold">Phone / WhatsApp:</span>
+                            <div class="flex flex-col gap-0.5 mt-0.5">
+                                <a href="tel:+919895204224" class="text-white hover:text-yellow-400 font-mono font-bold">+91 9895 204 224</a>
+                                <a href="https://wa.me/919895204224" target="_blank" rel="noopener noreferrer" class="text-emerald-400 hover:underline text-[11px]">Chat on WhatsApp ➔</a>
+                            </div>
                         </div>
                         <div>
                             <span class="block text-slate-300 font-bold">Operating Hours:</span>
-                            <span>Mon – Sat: 9:00 AM – 7:00 PM</span>
+                            <span>Mon – Sat: 9:00 AM – 7:00 PM IST</span>
                         </div>
                         <div>
-                            <span class="block text-slate-300 font-bold">Location:</span>
-                            <span>Kerala, India</span>
+                            <span class="block text-slate-300 font-bold">Address:</span>
+                            <span class="text-[11px] leading-tight block">Door No. 4/122, Civil Station Road, Kozhikode, Kerala - 673020, India</span>
                         </div>
-                        <div class="pt-2 text-[10px] text-slate-500">
+                        <div class="pt-1 text-[10px] text-slate-500">
                             PSCRanker.com is an independent learning portal and is not affiliated with the official Kerala PSC.
                         </div>
                     </div>
@@ -312,11 +329,13 @@
 
             <!-- Bottom Legal Bar -->
             <div class="pt-6 border-t border-slate-800/80 text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-3">
-                <div class="flex flex-wrap items-center gap-4">
+                <div class="flex flex-wrap items-center gap-3 sm:gap-4">
                     <span>&copy; {{ date('Y') }} PSCRANKER.com. All rights reserved.</span>
+                    <a href="{{ route('about') }}" class="hover:underline">About</a>
                     <a href="{{ route('terms') }}" class="hover:underline">Terms</a>
                     <a href="{{ route('privacy') }}" class="hover:underline">Privacy</a>
                     <a href="{{ route('refund-policy') }}" class="hover:underline">Refunds</a>
+                    <a href="{{ route('shipping-policy') }}" class="hover:underline">Shipping</a>
                     <a href="{{ route('contact') }}" class="hover:underline">Contact</a>
                 </div>
                 <div class="text-slate-400 font-semibold font-['Noto_Sans_Malayalam']">

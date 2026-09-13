@@ -11,7 +11,7 @@
                 ← Back to Home
             </a>
             <h1 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Cancellation &amp; Refund Policy</h1>
-            <p class="text-xs sm:text-sm text-slate-500 mt-1">Last Updated: September 4, 2026 • Razorpay Merchant Compliance</p>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">Last Updated: September 13, 2026 • Razorpay Merchant Compliance</p>
         </div>
 
         <div class="bg-white rounded-3xl p-6 sm:p-10 shadow-xs border border-slate-200 text-slate-700 text-sm leading-relaxed space-y-6">
@@ -22,7 +22,7 @@
                     1. Digital Course &amp; Prepaid Subscription Access
                 </h2>
                 <p>
-                    PSCRanker.com offers instant digital educational services, including 4-phase micro-learning capsules, OMR test simulators, speed drills, and PSC question banks. Because access to premium digital content is delivered <strong>instantaneously</strong> upon payment confirmation, standard physical product return policies do not apply.
+                    PSCRanker.com offers instant digital educational services, including 4-phase micro-learning capsules, OMR test simulators, speed drills, and Kerala PSC question banks. Because access to premium digital content is delivered <strong>instantaneously</strong> upon payment confirmation, standard physical product return policies do not apply.
                 </p>
             </section>
 
@@ -46,9 +46,9 @@
                     3. Non-Refundable Scenarios
                 </h2>
                 <ul class="list-disc list-inside space-y-1.5 mt-2">
-                    <li>Change of mind after extensive usage and downloading of question sets or test attempts.</li>
+                    <li>Change of mind after extensive usage and completion of question sets or test attempts.</li>
                     <li>Failure to appear for the official Kerala PSC exam or personal postponement of study plans.</li>
-                    <li>Account suspension resulting from violation of Terms & Conditions (e.g. sharing login credentials with other individuals).</li>
+                    <li>Account suspension resulting from violation of Terms &amp; Conditions (e.g. sharing login credentials with other individuals or commercial exploitation).</li>
                 </ul>
             </section>
 
@@ -58,7 +58,7 @@
                     4. Cancellation Policy
                 </h2>
                 <p>
-                    Because all subscriptions on PSCRanker.com are <strong>strictly prepaid</strong> (for 1 month, 2 months, 3 months, 6 months, or 12 months), <em>there are no recurring auto-debits on your bank account</em>. Your access will automatically conclude at the end of the prepaid period unless you manually choose to purchase a renewal. You are not locked into any recurring contract.
+                    Because all subscriptions on PSCRanker.com are <strong>strictly prepaid</strong> (for 1 month, 2 months, 3 months, 6 months, or 12 months), <em>there are no recurring auto-debits on your bank account</em>. Your access will automatically conclude at the end of the prepaid period unless you manually choose to purchase a renewal. You are not locked into any recurring contract and may cancel anytime by choosing not to renew.
                 </p>
             </section>
 
@@ -72,8 +72,11 @@
                 </p>
                 <div class="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div>
-                        <div class="font-bold text-slate-900 text-xs">Need assistance with a payment?</div>
-                        <div class="text-xs text-slate-500">Email your Razorpay Payment ID to: <strong class="text-slate-800">admin@pscranker.com</strong></div>
+                        <div class="font-bold text-slate-900 text-xs">Need assistance with a refund or duplicate payment?</div>
+                        <div class="text-xs text-slate-600 mt-1">
+                            Email: <a href="mailto:infopscranker@gmail.com" class="text-[#0052FF] font-bold font-mono">infopscranker@gmail.com</a> | 
+                            Phone / WhatsApp: <a href="tel:+919895204224" class="text-[#0052FF] font-bold font-mono">+91 9895 204 224</a>
+                        </div>
                     </div>
                     <a href="{{ route('contact') }}" class="px-4 py-2 bg-[#0052FF] text-white text-xs font-bold rounded-xl hover:bg-blue-600 transition shrink-0">
                         Contact Support

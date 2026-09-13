@@ -57,7 +57,9 @@ Route::post('/subscription/verify-payment', [PricingController::class, 'verifyPa
 Route::get('/terms', [PricingController::class, 'terms'])->name('terms');
 Route::get('/privacy', [PricingController::class, 'privacy'])->name('privacy');
 Route::get('/refund-policy', [PricingController::class, 'refundPolicy'])->name('refund-policy');
+Route::get('/shipping-policy', [PricingController::class, 'shippingPolicy'])->name('shipping-policy');
 Route::get('/contact', [PricingController::class, 'contact'])->name('contact');
+Route::get('/about', [PricingController::class, 'about'])->name('about');
 
 // Admin Mission Control Dashboard & Content Builder Routes (Protected by Auth)
 Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {

@@ -206,4 +206,20 @@ class PricingController extends Controller
     {
         return view('pages.legal.contact');
     }
+
+    /**
+     * Mandatory Razorpay Compliance Page: Shipping & Delivery Policy
+     */
+    public function shippingPolicy()
+    {
+        return view('pages.legal.shipping');
+    }
+
+    /**
+     * Mandatory Razorpay Compliance Page: About Us
+     */
+    public function about()
+    {
+        return view('pages.legal.about');
+    }
 }

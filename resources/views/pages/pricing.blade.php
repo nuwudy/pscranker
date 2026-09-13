@@ -438,11 +438,11 @@ function pricingEngine(tiers, razorpayKey) {
                         window.location.href = '{{ route("sessions.index") }}';
                     }, 1500);
                 } else {
-                    alert(res.error || 'Verification failed. Please contact admin@pscranker.com');
+                    alert(res.error || 'Verification failed. Please contact support at infopscranker@gmail.com or +91 9895 204 224');
                 }
             } catch (err) {
                 console.error(err);
-                alert('Verification error. Please contact support.');
+                alert('Verification error. Please contact infopscranker@gmail.com or +91 9895 204 224.');
             }
         }
     };
