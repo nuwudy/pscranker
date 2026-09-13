@@ -20,8 +20,9 @@ class AdminSessionController extends Controller
     {
         $sessions = Session::with(['category'])
             ->withCount(['contents', 'questions'])
+            ->orderBy('category_id', 'asc')
             ->orderBy('order', 'asc')
-            ->paginate(15);
+            ->paginate(20);
 
         return view('admin.sessions.index', compact('sessions'));
     }
@@ -135,6 +136,18 @@ class AdminSessionController extends Controller
     public function create()
     {
         $categories = Category::orderBy('name')->get();
+
+        // Precalculate next sequential unit number for each subject
+        $nextOrdersByCategory = $categories->mapWithKeys(function ($cat) {
+            $max = Session::where('category_id', $cat->id)->max('order') ?? 0;
+            return [$cat->id => $max + 1];
+        });
+
+        $defaultNextOrder = (Session::whereNull('category_id')->max('order') ?? 0) + 1;
+
+        // Automatically assign next step in Mixed Practice Train
+        $nextTrainOrder = (Session::where('in_general_stream', true)->max('general_stream_order') ?? 0) + 1;
+
         return view('admin.sessions.form', [
             'session' => new Session(),
             'categories' => $categories,
@@ -143,6 +156,9 @@ class AdminSessionController extends Controller
             'diagnosticQuestions' => collect(),
             'reinforcementQuestions' => collect(),
             'omrQuestions' => collect(),
+            'nextOrdersByCategory' => $nextOrdersByCategory,
+            'defaultNextOrder' => $defaultNextOrder,
+            'nextTrainOrder' => $nextTrainOrder,
         ]);
     }
 
@@ -158,7 +174,7 @@ class AdminSessionController extends Controller
             'feature_image_file' => 'nullable|image|max:10240',
             'slug' => 'nullable|string|max:255|unique:learning_sessions,slug',
             'category_id' => 'nullable|exists:categories,id',
-            'order' => 'required|integer',
+            'order' => 'nullable|integer',
             'xp_reward' => 'required|integer|min:0',
             'is_active' => 'boolean',
             'is_premium' => 'boolean',
@@ -199,19 +215,34 @@ class AdminSessionController extends Controller
             ]);
         }
 
+        // 1. Automatic Subject Sequence Assignment (keeps separate subjects intact)
+        $categoryId = $validated['category_id'] ?? null;
+        $order = ($request->filled('order') && (int)$request->input('order') > 0)
+            ? (int)$request->input('order')
+            : ((Session::where('category_id', $categoryId)->max('order') ?? 0) + 1);
+
+        // 2. Automatic Mixed Practice Train Placement (auto-appends latest session)
+        $inGeneralStream = $request->boolean('in_general_stream', true);
+        $generalStreamOrder = null;
+        if ($inGeneralStream) {
+            $generalStreamOrder = ($request->filled('general_stream_order') && (int)$request->input('general_stream_order') > 0)
+                ? (int)$request->input('general_stream_order')
+                : ((Session::where('in_general_stream', true)->max('general_stream_order') ?? 0) + 1);
+        }
+
         $session = Session::create([
             'title' => $validated['title'],
             'title_malayalam' => $validated['title_malayalam'] ?? null,
             'feature_image' => $featureImage,
             'slug' => $slug,
-            'category_id' => $validated['category_id'] ?? null,
-            'order' => $validated['order'],
+            'category_id' => $categoryId,
+            'order' => $order,
             'xp_reward' => $validated['xp_reward'],
             'is_active' => $request->boolean('is_active', true),
             'is_premium' => $request->boolean('is_premium'),
             'price' => $request->boolean('is_premium') ? ($request->input('price') ?: 199.00) : null,
-            'in_general_stream' => $request->boolean('in_general_stream', true),
-            'general_stream_order' => $request->filled('general_stream_order') ? (int)$request->input('general_stream_order') : null,
+            'in_general_stream' => $inGeneralStream,
+            'general_stream_order' => $generalStreamOrder,
             'creation_mode' => $creationMode,
             'custom_html' => $creationMode === 'code' ? $request->input('custom_html') : null,
         ]);
@@ -221,7 +252,7 @@ class AdminSessionController extends Controller
         }
 
         return redirect()->route('admin.sessions.edit', $session)
-            ->with('success', 'Learning Session created successfully!');
+            ->with('success', "Learning Session created successfully! (Unit #{$order} in subject, Train Step #{$session->fresh()->general_stream_order})");
     }
 
     /**
@@ -231,6 +262,14 @@ class AdminSessionController extends Controller
     {
         $session->load(['category', 'contents', 'questions']);
         $categories = Category::orderBy('name')->get();
+
+        $nextOrdersByCategory = $categories->mapWithKeys(function ($cat) {
+            $max = Session::where('category_id', $cat->id)->max('order') ?? 0;
+            return [$cat->id => $max + 1];
+        });
+
+        $defaultNextOrder = (Session::whereNull('category_id')->max('order') ?? 0) + 1;
+        $nextTrainOrder = (Session::where('in_general_stream', true)->max('general_stream_order') ?? 0) + 1;
 
         $contents = $session->contents()->orderBy('order', 'asc')->get();
         $diagnosticQuestions = $session->questions()->where('phase_type', 'diagnostic')->get();
@@ -252,6 +291,9 @@ class AdminSessionController extends Controller
             'diagnosticQuestions' => $diagnosticQuestions,
             'reinforcementQuestions' => $reinforcementQuestions,
             'omrQuestions' => $omrQuestions,
+            'nextOrdersByCategory' => $nextOrdersByCategory,
+            'defaultNextOrder' => $defaultNextOrder,
+            'nextTrainOrder' => $nextTrainOrder,
         ]);
     }
 
@@ -267,7 +309,7 @@ class AdminSessionController extends Controller
             'feature_image_file' => 'nullable|image|max:10240',
             'slug' => 'required|string|max:255|unique:learning_sessions,slug,' . $session->id,
             'category_id' => 'nullable|exists:categories,id',
-            'order' => 'required|integer',
+            'order' => 'nullable|integer',
             'xp_reward' => 'required|integer|min:0',
             'is_active' => 'boolean',
             'is_premium' => 'boolean',
@@ -297,19 +339,32 @@ class AdminSessionController extends Controller
             ]);
         }
 
+        $categoryId = $validated['category_id'] ?? null;
+        $order = ($request->filled('order') && (int)$request->input('order') > 0)
+            ? (int)$request->input('order')
+            : ($session->order ?: ((Session::where('category_id', $categoryId)->max('order') ?? 0) + 1));
+
+        $inGeneralStream = $request->boolean('in_general_stream', true);
+        $generalStreamOrder = null;
+        if ($inGeneralStream) {
+            $generalStreamOrder = ($request->filled('general_stream_order') && (int)$request->input('general_stream_order') > 0)
+                ? (int)$request->input('general_stream_order')
+                : ($session->general_stream_order ?: ((Session::where('in_general_stream', true)->max('general_stream_order') ?? 0) + 1));
+        }
+
         $session->update([
             'title' => $validated['title'],
             'title_malayalam' => $validated['title_malayalam'] ?? null,
             'feature_image' => $featureImage,
             'slug' => Str::slug($validated['slug']),
-            'category_id' => $validated['category_id'] ?? null,
-            'order' => $validated['order'],
+            'category_id' => $categoryId,
+            'order' => $order,
             'xp_reward' => $validated['xp_reward'],
             'is_active' => $request->boolean('is_active', true),
             'is_premium' => $request->boolean('is_premium'),
             'price' => $request->boolean('is_premium') ? ($request->input('price') ?: 199.00) : null,
-            'in_general_stream' => $request->boolean('in_general_stream', true),
-            'general_stream_order' => $request->filled('general_stream_order') ? (int)$request->input('general_stream_order') : null,
+            'in_general_stream' => $inGeneralStream,
+            'general_stream_order' => $generalStreamOrder,
             'creation_mode' => $creationMode,
             'custom_html' => $creationMode === 'code' ? $request->input('custom_html') : $session->custom_html,
         ]);
@@ -332,6 +387,8 @@ class AdminSessionController extends Controller
         $session->questions()->delete();
         $session->progress()->delete();
         $session->delete();
+
+        $this->normalizeMixedTrainOrder();
 
         return redirect()->route('admin.sessions.index')
             ->with('success', "Session '{$sessionTitle}' was deleted successfully.");

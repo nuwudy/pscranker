@@ -587,6 +587,69 @@ test('admin can toggle and reorder sessions in mixed practice train via API whil
     expect($session2->order)->toBe(4);
 });
 
+test('new session automatically gets next sequential unit number in its subject when order is omitted', function () {
+    $admin = User::factory()->create(['email' => 'admin-auto@pscranker.com']);
+    $categoryA = Category::firstOrCreate(['slug' => 'science-auto'], ['name' => 'General Science', 'order' => 3]);
+    $categoryB = Category::firstOrCreate(['slug' => 'history-auto'], ['name' => 'History', 'order' => 4]);
+
+    $this->actingAs($admin);
+
+    // Create first unit in Science
+    $res1 = $this->post(route('admin.sessions.store'), [
+        'title' => 'Science Unit 1: Digestive System',
+        'category_id' => $categoryA->id,
+        'xp_reward' => 250,
+        'creation_mode' => 'code',
+    ]);
+    $res1->assertRedirect();
+    $session1 = Session::where('slug', 'science-unit-1-digestive-system')->first();
+    expect($session1->order)->toBe(1);
+
+    // Create second unit in Science WITHOUT order field
+    $res2 = $this->post(route('admin.sessions.store'), [
+        'title' => 'Science Unit 2: Respiratory System',
+        'category_id' => $categoryA->id,
+        'xp_reward' => 250,
+        'creation_mode' => 'code',
+    ]);
+    $res2->assertRedirect();
+    $session2 = Session::where('slug', 'science-unit-2-respiratory-system')->first();
+    expect($session2->order)->toBe(2);
+
+    // Create unit in History WITHOUT order field - should start at 1 for History
+    $res3 = $this->post(route('admin.sessions.store'), [
+        'title' => 'History Unit 1: Kerala Renaissance Pioneers',
+        'category_id' => $categoryB->id,
+        'xp_reward' => 250,
+        'creation_mode' => 'code',
+    ]);
+    $res3->assertRedirect();
+    $session3 = Session::where('slug', 'history-unit-1-kerala-renaissance-pioneers')->first();
+    expect($session3->order)->toBe(1);
+});
+
+test('new session automatically gets appended to mixed practice train with sequential order', function () {
+    $admin = User::factory()->create(['email' => 'admin-train-auto@pscranker.com']);
+    $category = Category::firstOrCreate(['slug' => 'english-auto'], ['name' => 'English', 'order' => 1]);
+
+    $this->actingAs($admin);
+
+    $currentMaxTrain = Session::where('in_general_stream', true)->max('general_stream_order') ?? 0;
+
+    $res = $this->post(route('admin.sessions.store'), [
+        'title' => 'English Unit 99: Idioms and Phrases',
+        'category_id' => $category->id,
+        'xp_reward' => 250,
+        'creation_mode' => 'code',
+    ]);
+    $res->assertRedirect();
+
+    $session = Session::where('slug', 'english-unit-99-idioms-and-phrases')->first();
+    expect($session->in_general_stream)->toBeTrue();
+    expect($session->general_stream_order)->toBe($currentMaxTrain + 1);
+});
+
+
 
 
 

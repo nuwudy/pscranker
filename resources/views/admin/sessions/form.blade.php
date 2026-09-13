@@ -11,7 +11,15 @@
         omr: @js($omrQuestions->values()),
         creationMode: @js(old('creation_mode', $session->creation_mode ?? 'manual')),
         customHtml: @js(old('custom_html', $session->custom_html ?? '')),
-        featureImage: @js(old('feature_image', $session->feature_image ?? ''))
+        featureImage: @js(old('feature_image', $session->feature_image ?? '')),
+        categoryId: @js(old('category_id', $session->category_id ?? (request('category_id') ?? ''))),
+        nextOrdersByCategory: @js($nextOrdersByCategory ?? []),
+        defaultNextOrder: @js($defaultNextOrder ?? 1),
+        order: @js(old('order', $session->order ?? null)),
+        inGeneralStream: @js((bool) old('in_general_stream', $session->in_general_stream ?? true)),
+        generalStreamOrder: @js(old('general_stream_order', $session->general_stream_order ?? null)),
+        nextTrainOrder: @js($nextTrainOrder ?? 1),
+        isEdit: @js($isEdit)
     })"
     class="py-8 bg-slate-50 min-h-[90vh]"
 >
@@ -123,9 +131,16 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">PSC Subject Stream *</label>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide">PSC Subject Stream *</label>
+                            <span class="text-[10px] font-bold text-blue-600" x-show="categoryId && nextOrdersByCategory[categoryId]">
+                                Next: Unit #<span x-text="nextOrdersByCategory[categoryId]"></span>
+                            </span>
+                        </div>
                         <select 
                             name="category_id" 
+                            x-model="categoryId"
+                            @change="onCategoryChange($event.target.value)"
                             class="w-full px-3 py-2 text-xs font-bold rounded-lg border border-slate-300 focus:border-[#0052FF] focus:outline-none"
                             required
                         >
@@ -224,17 +239,32 @@
                         </template>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">Unit # (Sequential) *</label>
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide">
+                                    Unit # (Subject Sequence) *
+                                </label>
+                                <button 
+                                    type="button" 
+                                    @click="updateAutoOrder()" 
+                                    class="text-[10px] font-bold text-[#0052FF] hover:underline cursor-pointer flex items-center gap-1"
+                                    title="Auto-calculate next sequential unit number in this subject"
+                                >
+                                    <span>⚡ Auto-Next</span>
+                                </button>
+                            </div>
                             <input 
                                 type="number" 
                                 name="order" 
-                                value="{{ old('order', $session->order ?? 1) }}" 
+                                x-model="order"
                                 class="w-full px-3 py-2 text-xs font-bold rounded-lg border border-slate-300 focus:border-[#0052FF] focus:outline-none"
                                 required
                                 min="1"
                             >
+                            <p class="text-[10px] text-slate-500 mt-1">
+                                <span class="text-blue-600 font-bold">Auto-calculated:</span> Preserves separate subject sequence (Unit #1, #2...). Admin can edit if needed.
+                            </p>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">XP Reward</label>
@@ -244,6 +274,7 @@
                                 value="{{ old('xp_reward', $session->xp_reward ?? 250) }}" 
                                 class="w-full px-3 py-2 text-xs font-bold rounded-lg border border-slate-300 focus:border-[#0052FF] focus:outline-none text-amber-600"
                             >
+                            <p class="text-[10px] text-slate-400 mt-1">Default 250 XP earned on completion</p>
                         </div>
                     </div>
 
@@ -281,7 +312,7 @@
                             </div>
                         </div>
 
-                        <!-- General Stream Concoction Settings -->
+                        <!-- General Stream Concoction Settings (Auto Mixed Practice Train) -->
                         <div class="w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-xl bg-blue-50/80 border border-blue-200">
                             <div class="flex items-start gap-3">
                                 <input 
@@ -289,31 +320,41 @@
                                     id="in_general_stream" 
                                     name="in_general_stream" 
                                     value="1" 
-                                    {{ old('in_general_stream', $session->in_general_stream ?? true) ? 'checked' : '' }}
+                                    x-model="inGeneralStream"
                                     class="w-4 h-4 mt-0.5 rounded text-[#0052FF] focus:ring-blue-500 cursor-pointer"
                                 >
                                 <div>
                                     <label for="in_general_stream" class="text-xs font-black text-blue-950 flex items-center gap-1.5 cursor-pointer">
                                         <span>🚂 Include in General Stream (Mixed Master Train)</span>
-                                        <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-blue-200 text-blue-900">All-Round Train</span>
+                                        <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                            ⚡ Auto-Appended
+                                        </span>
                                     </label>
                                     <p class="text-[11px] text-blue-800 font-medium mt-0.5">
-                                        When checked, this unit appears in the mixed all-round train when students launch <strong>[START COURSE UNITS]</strong>.
+                                        Automatically added to the end of the mixed practice train launched from the homepage. Admin can edit train order # below.
                                     </p>
                                 </div>
                             </div>
 
-                            <div class="flex items-center gap-2 shrink-0">
-                                <label for="general_stream_order" class="text-xs font-bold text-blue-900 whitespace-nowrap">Train Order #:</label>
+                            <div class="flex items-center gap-2 shrink-0" x-show="inGeneralStream">
+                                <label for="general_stream_order" class="text-xs font-bold text-blue-900 whitespace-nowrap">Train Step #:</label>
                                 <input 
                                     type="number" 
                                     id="general_stream_order" 
                                     name="general_stream_order" 
-                                    value="{{ old('general_stream_order', $session->general_stream_order ?? 1) }}" 
+                                    x-model="generalStreamOrder"
                                     min="1"
-                                    placeholder="1"
+                                    placeholder="Auto"
                                     class="w-20 px-3 py-1.5 text-xs font-black rounded-lg border border-blue-300 bg-white focus:border-[#0052FF] focus:outline-none text-center"
                                 >
+                                <button 
+                                    type="button" 
+                                    @click="generalStreamOrder = nextTrainOrder" 
+                                    class="px-2 py-1.5 bg-white hover:bg-blue-100 border border-blue-300 text-blue-700 text-[10px] font-bold rounded-md transition cursor-pointer"
+                                    title="Reset to next available train step"
+                                >
+                                    Auto Next
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -1189,6 +1230,42 @@ function adminSessionBuilder(initial) {
         codeTab: 'editor',
         featureImage: initial.featureImage || '',
         isUploadingFeatureImage: false,
+
+        // Auto-sequencing & Mixed Practice Train state
+        categoryId: initial.categoryId || '',
+        nextOrdersByCategory: initial.nextOrdersByCategory || {},
+        defaultNextOrder: initial.defaultNextOrder || 1,
+        order: (initial.order !== null && initial.order !== '') ? initial.order : '',
+        inGeneralStream: initial.inGeneralStream !== undefined ? Boolean(initial.inGeneralStream) : true,
+        generalStreamOrder: (initial.generalStreamOrder !== null && initial.generalStreamOrder !== '') ? initial.generalStreamOrder : '',
+        nextTrainOrder: initial.nextTrainOrder || 1,
+        isEdit: Boolean(initial.isEdit),
+
+        init() {
+            if (!this.isEdit) {
+                if (!this.order) {
+                    this.updateAutoOrder();
+                }
+                if (!this.generalStreamOrder) {
+                    this.generalStreamOrder = this.nextTrainOrder;
+                }
+            }
+        },
+
+        updateAutoOrder() {
+            if (this.categoryId && this.nextOrdersByCategory && this.nextOrdersByCategory[this.categoryId]) {
+                this.order = this.nextOrdersByCategory[this.categoryId];
+            } else {
+                this.order = this.defaultNextOrder || 1;
+            }
+        },
+
+        onCategoryChange(newCatId) {
+            this.categoryId = newCatId;
+            if (!this.isEdit || !this.order) {
+                this.updateAutoOrder();
+            }
+        },
 
         setCreationMode(mode) {
             this.creationMode = mode;

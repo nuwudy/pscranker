@@ -51,7 +51,11 @@
                 <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
                     @forelse($sessions as $session)
                         <tr class="hover:bg-blue-50/30 transition">
-                            <td class="p-4 font-mono font-bold">{{ $session->order }}</td>
+                            <td class="p-4 font-mono font-bold">
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200 text-slate-800 text-xs font-black">
+                                    Unit #{{ $session->order }}
+                                </span>
+                            </td>
                             <td class="p-4">
                                 <div class="font-bold text-slate-900">{{ $session->title }}</div>
                                 @if($session->title_malayalam)
