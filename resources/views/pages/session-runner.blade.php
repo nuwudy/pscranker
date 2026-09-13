@@ -1676,16 +1676,58 @@ window.PSCRanker = {
             });
             const data = await response.json();
             if (data.success) {
-                alert('🎉 Congratulations! You completed this unit and earned +' + (options.xp || {{ $session->xp_reward }}) + ' XP!');
-                if (this.nextSessionUrl) {
-                    window.location.href = this.nextSessionUrl;
+                const earnedXp = (options.xp || {{ $session->xp_reward }});
+                if (window.showPscModal) {
+                    window.showPscModal({
+                        type: 'celebration',
+                        icon: '🏆',
+                        badge: '🎉 Unit Completed!',
+                        title: 'Congratulations, PSC Ranker!',
+                        titleMalayalam: 'കലക്കി! ഈ യൂണിറ്റ് നിങ്ങൾ വിജയകരമായി പൂർത്തിയാക്കി! 🚀',
+                        message: 'You have conquered all 4 phases of this unit. Your score and +' + earnedXp + ' XP have been added to your profile.',
+                        xp: earnedXp,
+                        nextUrl: this.nextSessionUrl,
+                        confirmText: this.nextSessionUrl ? 'അടുത്ത പാഠത്തിലേക്ക് പോകാം (Next Unit) ➔' : 'Awesome, Got It! ⚡',
+                        cancelText: 'ഇവിടെ തുടരുക (Review Test)',
+                        showCancel: !!this.nextSessionUrl
+                    });
+                } else {
+                    alert('🎉 Congratulations! You completed this unit and earned +' + earnedXp + ' XP!');
+                    if (this.nextSessionUrl) {
+                        window.location.href = this.nextSessionUrl;
+                    }
                 }
             } else {
-                alert('Session saved!');
+                if (window.showPscModal) {
+                    window.showPscModal({
+                        type: 'success',
+                        icon: '✅',
+                        badge: 'Progress Saved',
+                        title: 'Session Saved!',
+                        message: 'Your progress in this session has been saved successfully.',
+                        confirmText: 'Continue ⚡'
+                    });
+                } else {
+                    alert('Session saved!');
+                }
             }
         } catch (err) {
             console.error(err);
-            alert('Unit completed! +' + (options.xp || {{ $session->xp_reward }}) + ' XP earned.');
+            const earnedXp = (options.xp || {{ $session->xp_reward }});
+            if (window.showPscModal) {
+                window.showPscModal({
+                    type: 'celebration',
+                    icon: '🏆',
+                    badge: '🎉 Unit Completed!',
+                    title: 'Congratulations!',
+                    titleMalayalam: 'കലക്കി! മുന്നേറ്റം തുടരുക! 🚀',
+                    message: 'Unit completed! +' + earnedXp + ' XP earned.',
+                    xp: earnedXp,
+                    confirmText: 'Awesome, Continue ⚡'
+                });
+            } else {
+                alert('Unit completed! +' + earnedXp + ' XP earned.');
+            }
         }
     }
 };
@@ -2139,15 +2181,31 @@ window.PSCRanker = {
         } catch (e) {
             console.error('Progress save error:', e);
         }
-        if (window.confetti) {
-            window.confetti({ particleCount: 140, spread: 90, origin: { y: 0.55 } });
-        }
-        if (window.PscSound && window.PscSound.playFanfare) {
-            window.PscSound.playFanfare();
-        }
-        alert('🎉 Congratulations! You have completed this Kerala PSC Capsule and earned +' + xp + ' XP!');
-        if (this.nextSessionUrl) {
-            window.location.href = this.nextSessionUrl;
+        if (window.showPscModal) {
+            window.showPscModal({
+                type: 'celebration',
+                icon: '🏆',
+                badge: '🎉 Capsule Completed!',
+                title: 'Congratulations, PSC Ranker!',
+                titleMalayalam: 'കലക്കി! ഈ ക്യാപ്സ്യൂൾ നിങ്ങൾ വിജയകരമായി പൂർത്തിയാക്കി! 🚀',
+                message: 'You have completed this Kerala PSC Capsule and earned +' + xp + ' XP! Your rank points have been saved.',
+                xp: xp,
+                nextUrl: this.nextSessionUrl,
+                confirmText: this.nextSessionUrl ? 'അടുത്ത പാഠത്തിലേക്ക് പോകാം (Next Unit) ➔' : 'Awesome, Continue ⚡',
+                cancelText: 'ഇവിടെ തുടരുക (Stay Here)',
+                showCancel: !!this.nextSessionUrl
+            });
+        } else {
+            if (window.confetti) {
+                window.confetti({ particleCount: 140, spread: 90, origin: { y: 0.55 } });
+            }
+            if (window.PscSound && window.PscSound.playFanfare) {
+                window.PscSound.playFanfare();
+            }
+            alert('🎉 Congratulations! You have completed this Kerala PSC Capsule and earned +' + xp + ' XP!');
+            if (this.nextSessionUrl) {
+                window.location.href = this.nextSessionUrl;
+            }
         }
     }
 };

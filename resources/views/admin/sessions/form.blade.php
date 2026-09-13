@@ -2783,6 +2783,17 @@ window.pscEvaluateOmr = function() {
 window.pscFinishCapsule = function() {
     if (window.PSCRanker && typeof window.PSCRanker.completeSession === 'function') {
         window.PSCRanker.completeSession(window.pscState.xp || 250);
+    } else if (window.showPscModal) {
+        window.showPscModal({
+            type: 'celebration',
+            icon: '🏆',
+            badge: '🎉 Capsule Completed!',
+            title: 'Congratulations!',
+            titleMalayalam: 'കലക്കി! മികച്ച മുന്നേറ്റം! 🚀',
+            message: 'Preview test: You completed this Kerala PSC Capsule successfully!',
+            xp: (window.pscState.xp || 250),
+            confirmText: 'Awesome, Continue ⚡'
+        });
     } else {
         alert('🎉 Congratulations! You completed this Kerala PSC Capsule with ' + (window.pscState.xp || 250) + ' XP!');
     }

@@ -587,8 +587,217 @@
             }
         };
     }
+
+    function pscGlobalModal() {
+        return {
+            isOpen: false,
+            modalData: {
+                type: 'celebration',
+                icon: '🏆',
+                badge: '🎉 Capsule Completed!',
+                title: 'Congratulations!',
+                titleMalayalam: 'കലക്കി! മികച്ച മുന്നേറ്റം! 🚀',
+                message: '',
+                xp: 0,
+                nextUrl: '',
+                confirmText: 'Continue ➔',
+                cancelText: 'Stay Here',
+                showCancel: false,
+                allowBackdropClose: true,
+                onConfirm: null
+            },
+            init() {
+                window.showPscModal = (opts) => {
+                    const isCelebration = (opts.type === 'celebration') || (opts.xp && opts.xp > 0);
+                    this.modalData = Object.assign({
+                        type: isCelebration ? 'celebration' : (opts.type || 'info'),
+                        icon: opts.icon || (opts.type === 'error' ? '⚠️' : (opts.type === 'success' ? '✅' : (isCelebration ? '🏆' : '⚡'))),
+                        badge: opts.badge || (isCelebration ? '🎉 Unit Completed!' : 'PSC Ranker Notice'),
+                        title: opts.title || (isCelebration ? 'Congratulations, PSC Ranker!' : 'Notice'),
+                        titleMalayalam: opts.titleMalayalam || (isCelebration ? 'കലക്കി! മികച്ച മുന്നേറ്റം! 🚀' : ''),
+                        message: opts.message || '',
+                        xp: opts.xp || 0,
+                        nextUrl: opts.nextUrl || '',
+                        confirmText: opts.confirmText || (opts.nextUrl ? 'അടുത്ത പാഠത്തിലേക്ക് പോകാം (Next Unit) ➔' : 'Awesome, Got It! ⚡'),
+                        cancelText: opts.cancelText || 'ഇവിടെ തുടരുക (Stay Here)',
+                        showCancel: opts.showCancel !== undefined ? opts.showCancel : !!opts.nextUrl,
+                        allowBackdropClose: opts.allowBackdropClose !== false,
+                        onConfirm: opts.onConfirm || null
+                    }, opts);
+
+                    this.isOpen = true;
+
+                    if (this.modalData.type === 'celebration' || this.modalData.xp > 0) {
+                        if (window.confetti) {
+                            window.confetti({ particleCount: 150, spread: 90, origin: { y: 0.55 } });
+                        }
+                        if (window.PscSound && window.PscSound.playFanfare) {
+                            window.PscSound.playFanfare();
+                        }
+                    } else if (this.modalData.type === 'success' && window.PscSound && window.PscSound.playCorrect) {
+                        window.PscSound.playCorrect();
+                    }
+                };
+
+                // Gracefully override window.alert so even standard alerts look stunning and colorful!
+                window.alert = (msg) => {
+                    const isCelebration = typeof msg === 'string' && (msg.includes('Congratulations') || msg.includes('completed') || msg.includes('XP'));
+                    const xpMatch = typeof msg === 'string' ? msg.match(/\+(\d+)\s*XP/i) : null;
+                    const xp = xpMatch ? parseInt(xpMatch[1]) : (isCelebration ? 250 : 0);
+
+                    window.showPscModal({
+                        type: isCelebration ? 'celebration' : 'info',
+                        icon: isCelebration ? '🏆' : '⚡',
+                        badge: isCelebration ? '🎉 Unit Completed!' : 'PSC Ranker',
+                        title: isCelebration ? 'Congratulations, PSC Ranker!' : 'Notification',
+                        titleMalayalam: isCelebration ? 'കലക്കി! മികച്ച മുന്നേറ്റം! 🚀' : '',
+                        message: typeof msg === 'string' ? msg.replace(/🎉\s*/g, '') : String(msg),
+                        xp: xp,
+                        confirmText: 'Awesome, Got It! ⚡',
+                        showCancel: false
+                    });
+                };
+            },
+            confirm() {
+                const url = this.modalData.nextUrl;
+                const cb = this.modalData.onConfirm;
+                this.isOpen = false;
+                if (cb && typeof cb === 'function') {
+                    cb();
+                }
+                if (url) {
+                    window.location.href = url;
+                }
+            },
+            close() {
+                this.isOpen = false;
+            }
+        };
+    }
     </script>
     <script src="{{ asset('js/psc-globe.js') }}"></script>
+
+    <!-- ========================================================================= -->
+    <!-- GLOBAL COLORFUL CELEBRATION & ALERT MODAL                                 -->
+    <!-- ========================================================================= -->
+    <div 
+        x-data="pscGlobalModal()" 
+        x-cloak
+        x-show="isOpen"
+        x-transition:enter="transition ease-out duration-300 transform"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-200 transform"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        @keydown.escape.window="close()"
+        class="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 select-none"
+        style="display: none;"
+    >
+        <!-- Backdrop with Blur -->
+        <div 
+            class="fixed inset-0 bg-slate-950/80 backdrop-blur-md transition-opacity" 
+            @click="modalData.allowBackdropClose ? close() : null"
+        ></div>
+
+        <!-- Colorful Modal Card -->
+        <div 
+            x-show="isOpen"
+            x-transition:enter="transition ease-out duration-300 transform"
+            x-transition:enter-start="opacity-0 scale-90 translate-y-6"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-200 transform"
+            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+            x-transition:leave-end="opacity-0 scale-90 translate-y-6"
+            class="relative w-full max-w-md bg-white rounded-3xl border-2 shadow-2xl p-6 sm:p-8 text-center overflow-hidden z-10"
+            :class="{
+                'border-amber-400 ring-8 ring-yellow-400/25 shadow-yellow-500/30': modalData.type === 'celebration',
+                'border-emerald-400 ring-8 ring-emerald-400/25 shadow-emerald-500/30': modalData.type === 'success',
+                'border-blue-400 ring-8 ring-blue-400/25 shadow-blue-500/30': modalData.type === 'info',
+                'border-red-400 ring-8 ring-red-400/25 shadow-red-500/30': modalData.type === 'error'
+            }"
+        >
+            <!-- Glowing Background Orbs -->
+            <div class="absolute -top-14 -right-14 w-40 h-40 bg-gradient-to-br from-yellow-300/40 via-amber-400/30 to-blue-500/20 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="absolute -bottom-14 -left-14 w-40 h-40 bg-gradient-to-tr from-blue-400/30 via-indigo-400/20 to-purple-500/20 rounded-full blur-2xl pointer-events-none"></div>
+
+            <!-- Animated Header Badge / Trophy Icon -->
+            <div class="relative mx-auto mb-3">
+                <div 
+                    class="w-20 h-20 rounded-3xl flex items-center justify-center text-4xl mx-auto shadow-xl transition transform hover:scale-105"
+                    :class="{
+                        'bg-gradient-to-tr from-amber-400 via-yellow-400 to-amber-500 shadow-yellow-400/50 text-slate-950 animate-bounce': modalData.type === 'celebration',
+                        'bg-gradient-to-tr from-emerald-400 to-teal-500 shadow-emerald-400/40 text-white': modalData.type === 'success',
+                        'bg-gradient-to-tr from-[#0052FF] to-indigo-600 shadow-blue-400/40 text-white': modalData.type === 'info',
+                        'bg-gradient-to-tr from-red-500 to-rose-600 shadow-red-400/40 text-white': modalData.type === 'error'
+                    }"
+                    x-text="modalData.icon"
+                ></div>
+            </div>
+
+            <!-- Top Pill Badge -->
+            <template x-if="modalData.badge">
+                <div class="mb-2">
+                    <span 
+                        class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider border shadow-2xs"
+                        :class="{
+                            'bg-yellow-100 text-yellow-900 border-yellow-300': modalData.type === 'celebration',
+                            'bg-emerald-100 text-emerald-900 border-emerald-300': modalData.type === 'success',
+                            'bg-blue-100 text-blue-900 border-blue-300': modalData.type === 'info',
+                            'bg-red-100 text-red-900 border-red-300': modalData.type === 'error'
+                        }"
+                        x-text="modalData.badge"
+                    ></span>
+                </div>
+            </template>
+
+            <!-- Main Heading -->
+            <h3 class="text-xl sm:text-2xl font-black text-slate-950 tracking-tight leading-snug" x-text="modalData.title"></h3>
+
+            <!-- Malayalam Cheer / Micro-copy -->
+            <template x-if="modalData.titleMalayalam">
+                <p class="text-sm sm:text-base font-bold text-[#0052FF] mt-1 font-['Noto_Sans_Malayalam']" x-text="modalData.titleMalayalam"></p>
+            </template>
+
+            <!-- XP Reward Banner (if XP > 0) -->
+            <template x-if="modalData.xp && modalData.xp > 0">
+                <div class="my-4 p-3.5 bg-gradient-to-r from-amber-50 via-yellow-100 to-amber-50 border-2 border-amber-300 rounded-2xl flex items-center justify-center gap-2.5 shadow-inner">
+                    <span class="text-2xl animate-pulse">⚡</span>
+                    <span class="font-mono font-black text-xl text-amber-950">+<span x-text="modalData.xp"></span> XP</span>
+                    <span class="text-[10px] font-black uppercase tracking-wide px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900">Rank Bonus Earned</span>
+                </div>
+            </template>
+
+            <!-- Description Body Message -->
+            <p class="text-xs sm:text-sm text-slate-600 font-medium mt-2 leading-relaxed" x-text="modalData.message"></p>
+
+            <!-- Action Buttons -->
+            <div class="mt-6 space-y-2.5">
+                <button 
+                    type="button" 
+                    @click="confirm()"
+                    class="w-full py-3.5 px-5 font-black text-sm uppercase tracking-wider rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                    :class="{
+                        'bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 shadow-yellow-500/30 border border-yellow-300': modalData.type === 'celebration',
+                        'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-emerald-500/30': modalData.type === 'success',
+                        'bg-gradient-to-r from-[#0052FF] to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white shadow-blue-500/30': modalData.type === 'info',
+                        'bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-700 hover:to-rose-800 text-white shadow-red-500/30': modalData.type === 'error'
+                    }"
+                >
+                    <span x-text="modalData.confirmText"></span>
+                </button>
+
+                <template x-if="modalData.showCancel || modalData.nextUrl">
+                    <button 
+                        type="button" 
+                        @click="close()"
+                        class="w-full py-2.5 px-4 text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+                        x-text="modalData.cancelText"
+                    ></button>
+                </template>
+            </div>
+        </div>
+    </div>
 
     @stack('scripts')
 </body>
