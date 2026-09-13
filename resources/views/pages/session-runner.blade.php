@@ -256,6 +256,29 @@
                         </a>
                     @endif
 
+                    <!-- Retake Button in Header -->
+                    @if($session->isCustomCode())
+                        <button 
+                            type="button" 
+                            onclick="window.PSCRanker?.retakeSession()" 
+                            class="px-2.5 py-1 bg-white hover:bg-blue-50 text-[#0052FF] hover:text-blue-800 rounded-lg text-xs font-black border border-blue-200 transition flex items-center gap-1 shadow-2xs active:scale-95 cursor-pointer"
+                            title="Reset this session and start fresh from beginning"
+                        >
+                            <span class="text-sm">🔄</span>
+                            <span>Retake</span>
+                        </button>
+                    @else
+                        <button 
+                            type="button" 
+                            @click="restartSession()" 
+                            class="px-2.5 py-1 bg-white hover:bg-blue-50 text-[#0052FF] hover:text-blue-800 rounded-lg text-xs font-black border border-blue-200 transition flex items-center gap-1 shadow-2xs active:scale-95 cursor-pointer"
+                            title="Reset this session and start fresh from beginning"
+                        >
+                            <span class="text-sm">🔄</span>
+                            <span>Retake</span>
+                        </button>
+                    @endif
+
                     <div class="flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200 text-amber-900 rounded-full text-xs font-black shadow-xs">
                         <span class="text-amber-500 animate-pulse">⚡</span>
                         <span x-text="totalXpEarned"></span> <span class="text-[10px] text-amber-700 font-bold uppercase">XP</span>
@@ -418,7 +441,18 @@
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-2.5 w-full sm:w-auto">
+                    <div class="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+                        <button 
+                            type="button" 
+                            id="pscranker-retake-unit-btn"
+                            onclick="window.PSCRanker?.retakeSession()"
+                            class="w-full sm:w-auto px-5 py-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-blue-500/25 transition active:scale-95 flex items-center justify-center gap-2 border border-blue-400 cursor-pointer"
+                            title="Reset all questions and restart from Screen 1"
+                        >
+                            <span class="text-base">🔄</span>
+                            <span>Retake Capsule (വീണ്ടും ചെയ്യുക)</span>
+                        </button>
+
                         <button 
                             type="button" 
                             id="pscranker-complete-unit-btn"
@@ -1602,10 +1636,11 @@
 
                         <button 
                             @click="restartSession()" 
-                            class="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs sm:text-sm rounded-xl transition flex items-center justify-center gap-1.5"
-                            title="Retake this unit"
+                            class="px-5 py-3.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-blue-500/25 transition flex items-center justify-center gap-2 border border-blue-400 active:scale-95 cursor-pointer"
+                            title="Reset all questions and restart this unit from Phase 1"
                         >
-                            <span>Retake 🔄</span>
+                            <span class="text-base">🔄</span>
+                            <span>RETAKE SESSION (വീണ്ടും ചെയ്യുക)</span>
                         </button>
 
                         <a 
@@ -1648,90 +1683,6 @@
 
 @push('scripts')
 <script>
-window.PSCRanker = {
-    sessionId: {{ $session->id }},
-    xpReward: {{ $session->xp_reward }},
-    nextSessionUrl: @js($nextSession ? route('session.show', ['slug' => $nextSession->slug, 'stream' => $stream]) : route('sessions.index')),
-    completeSession: async function(options) {
-        options = options || {};
-        const btn = document.getElementById('pscranker-complete-unit-btn');
-        if (btn) {
-            btn.disabled = true;
-            btn.innerText = 'Saving Progress & Awarding XP... ⏳';
-        }
-        try {
-            const response = await fetch(@js(route('api.session.progress', $session->id)), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    current_phase: 'summary',
-                    is_completed: true,
-                    xp_earned: options.xp || {{ $session->xp_reward }},
-                    time_taken_seconds: options.time || 60
-                })
-            });
-            const data = await response.json();
-            if (data.success) {
-                const earnedXp = (options.xp || {{ $session->xp_reward }});
-                if (window.showPscModal) {
-                    window.showPscModal({
-                        type: 'celebration',
-                        icon: '🏆',
-                        badge: '🎉 Unit Completed!',
-                        title: 'Congratulations, PSC Ranker!',
-                        titleMalayalam: 'കലക്കി! ഈ യൂണിറ്റ് നിങ്ങൾ വിജയകരമായി പൂർത്തിയാക്കി! 🚀',
-                        message: 'You have conquered all 4 phases of this unit. Your score and +' + earnedXp + ' XP have been added to your profile.',
-                        xp: earnedXp,
-                        nextUrl: this.nextSessionUrl,
-                        confirmText: this.nextSessionUrl ? 'അടുത്ത പാഠത്തിലേക്ക് പോകാം (Next Unit) ➔' : 'Awesome, Got It! ⚡',
-                        cancelText: 'ഇവിടെ തുടരുക (Review Test)',
-                        showCancel: !!this.nextSessionUrl
-                    });
-                } else {
-                    alert('🎉 Congratulations! You completed this unit and earned +' + earnedXp + ' XP!');
-                    if (this.nextSessionUrl) {
-                        window.location.href = this.nextSessionUrl;
-                    }
-                }
-            } else {
-                if (window.showPscModal) {
-                    window.showPscModal({
-                        type: 'success',
-                        icon: '✅',
-                        badge: 'Progress Saved',
-                        title: 'Session Saved!',
-                        message: 'Your progress in this session has been saved successfully.',
-                        confirmText: 'Continue ⚡'
-                    });
-                } else {
-                    alert('Session saved!');
-                }
-            }
-        } catch (err) {
-            console.error(err);
-            const earnedXp = (options.xp || {{ $session->xp_reward }});
-            if (window.showPscModal) {
-                window.showPscModal({
-                    type: 'celebration',
-                    icon: '🏆',
-                    badge: '🎉 Unit Completed!',
-                    title: 'Congratulations!',
-                    titleMalayalam: 'കലക്കി! മുന്നേറ്റം തുടരുക! 🚀',
-                    message: 'Unit completed! +' + earnedXp + ' XP earned.',
-                    xp: earnedXp,
-                    confirmText: 'Awesome, Continue ⚡'
-                });
-            } else {
-                alert('Unit completed! +' + earnedXp + ' XP earned.');
-            }
-        }
-    }
-};
-
 function sessionEngine(config) {
     return {
         sessionId: config.sessionId,
@@ -2088,23 +2039,36 @@ function sessionEngine(config) {
         },
 
         restartSession() {
-            this.currentPhase = 'diagnostic';
+            this.currentPhase = this.diagnostic ? 'diagnostic' : 'lesson';
             this.phaseUnlocked = {
                 diagnostic: true,
-                lesson: false,
+                lesson: !this.diagnostic,
                 reinforcement: false,
                 omr: false,
             };
             this.sessionCompleted = false;
             this.diagnosticState = { answered: false, selectedOption: null, isCorrect: false };
             this.blitzIndex = 0;
+            this.blitzTimer = 20;
+            if (this.blitzTimerInterval) {
+                clearInterval(this.blitzTimerInterval);
+                this.blitzTimerInterval = null;
+            }
             this.blitzAnswered = false;
+            this.blitzSelectedOption = null;
+            this.blitzIsCorrect = false;
+            this.blitzUnderTenSec = false;
             this.blitzCorrectCount = 0;
             this.omrAnswers = {};
+            this.omrActiveIndex = 0;
             this.omrSummary = null;
             this.omrDetails = [];
             this.totalXpEarned = 0;
+            this.totalSessionSeconds = 0;
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (window.PscSound && window.PscSound.playTick) {
+                window.PscSound.playTick();
+            }
         },
 
         // Helper to normalize options from question model
@@ -2149,13 +2113,14 @@ function sessionEngine(config) {
     }
 }
 
-// Global Bridge for Custom Code Sessions
+// Global Bridge for Custom Code Sessions & Universal Session Reset
 window.PSCRanker = {
     sessionId: {{ $session->id }},
     xpReward: {{ $session->xp_reward }},
     progressUrl: @js(route('api.session.progress', $session->id)),
     csrfToken: '{{ csrf_token() }}',
     nextSessionUrl: @js($nextSession ? route('session.show', ['slug' => $nextSession->slug, 'stream' => $stream]) : route('sessions.index')),
+
     completeSession: async function(customXp) {
         const btn = document.getElementById('pscranker-complete-unit-btn');
         if (btn) {
@@ -2181,6 +2146,7 @@ window.PSCRanker = {
         } catch (e) {
             console.error('Progress save error:', e);
         }
+
         if (window.showPscModal) {
             window.showPscModal({
                 type: 'celebration',
@@ -2193,7 +2159,12 @@ window.PSCRanker = {
                 nextUrl: this.nextSessionUrl,
                 confirmText: this.nextSessionUrl ? 'അടുത്ത പാഠത്തിലേക്ക് പോകാം (Next Unit) ➔' : 'Awesome, Continue ⚡',
                 cancelText: 'ഇവിടെ തുടരുക (Stay Here)',
-                showCancel: !!this.nextSessionUrl
+                showCancel: !!this.nextSessionUrl,
+                showRetake: true,
+                retakeText: '🔄 ഈ യൂണിറ്റ് വീണ്ടും ചെയ്യുക (Retake Unit)',
+                onRetake: () => {
+                    this.retakeSession();
+                }
             });
         } else {
             if (window.confetti) {
@@ -2206,6 +2177,138 @@ window.PSCRanker = {
             if (this.nextSessionUrl) {
                 window.location.href = this.nextSessionUrl;
             }
+        }
+    },
+
+    retakeSession: function() {
+        // 1. Reset Custom Code internal JavaScript state
+        if (window.pscState) {
+            window.pscState.xp = 0;
+            window.pscState.hookSolved = false;
+            window.pscState.hookAnswered = false;
+            if (window.pscState.mcqs) {
+                Object.keys(window.pscState.mcqs).forEach(k => {
+                    window.pscState.mcqs[k] = false;
+                });
+            }
+            if (window.pscState.omr) {
+                Object.keys(window.pscState.omr).forEach(k => {
+                    window.pscState.omr[k] = null;
+                });
+            }
+        }
+
+        // 2. Reset Custom Code XP Counter & Progress Bar
+        const xpVal = document.getElementById('psc-xp-val');
+        if (xpVal) xpVal.innerText = '0';
+        const pBar = document.getElementById('psc-progress-bar');
+        if (pBar) pBar.style.width = '25%';
+
+        // 3. Clean all options & buttons across custom capsule DOM
+        const customWrapper = document.querySelector('.custom-session-wrapper') || document;
+        const allOptionButtons = customWrapper.querySelectorAll(
+            '.psc-opt-btn, .psc-bubble, .psc-omr-choice-row, [data-opt], button[onclick*="pscSelectHook"], button[onclick*="pscCheckMcq"]'
+        );
+        allOptionButtons.forEach(btn => {
+            btn.classList.remove('correct', 'wrong', 'darkened', 'selected', 'disabled', 'active');
+            btn.style.pointerEvents = 'auto';
+            btn.style.backgroundColor = '';
+            btn.style.borderColor = '';
+            btn.style.color = '';
+            if ('disabled' in btn) btn.disabled = false;
+        });
+
+        // 4. Hide all feedback containers & clear content
+        const feedbackEls = customWrapper.querySelectorAll(
+            '.psc-feedback, .psc-omr-result-box, [id$="-feedback"], [id^="psc-drill-fb-"], #psc-omr-result'
+        );
+        feedbackEls.forEach(fb => {
+            fb.style.display = 'none';
+            fb.classList.remove('psc-fb-correct', 'psc-fb-trap');
+            fb.style.background = '';
+            fb.style.border = '';
+            fb.style.color = '';
+            const content = fb.querySelector('#psc-hook-feedback-content');
+            if (content) content.innerHTML = '';
+        });
+
+        // 5. Hide all intra-capsule Next/Continue buttons
+        const nextButtons = customWrapper.querySelectorAll(
+            '[id^="psc-next-mcq-btn-"], #psc-to-omr-btn, .psc-btn-next'
+        );
+        nextButtons.forEach(btn => {
+            btn.style.display = 'none';
+            btn.classList.remove('psc-pulse');
+        });
+
+        // 6. Reset sequential screens back to Screen 1 (Hook Question)
+        const screenIds = ['psc-screen-hook', 'psc-screen-lesson', 'psc-screen-mcqs', 'psc-screen-omr'];
+        screenIds.forEach((id, idx) => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.style.display = (idx === 0 ? 'block' : 'none');
+            }
+        });
+
+        // Also reset any elements using .psc-screen
+        const screens = customWrapper.querySelectorAll('.psc-screen');
+        if (screens.length > 0) {
+            screens.forEach((sc, i) => {
+                sc.style.display = (i === 0 ? 'block' : 'none');
+            });
+        }
+
+        // Reset single-screen MCQ cards to Card 1
+        const mcq1 = document.getElementById('psc-mcq-card-1');
+        const mcq2 = document.getElementById('psc-mcq-card-2');
+        if (mcq1) mcq1.style.display = 'block';
+        if (mcq2) mcq2.style.display = 'none';
+
+        // 7. Reset Stepper Pills: Pill 1 active, others inactive and uncompleted
+        const pillIds = ['psc-pill-hook', 'psc-pill-lesson', 'psc-pill-mcqs', 'psc-pill-omr'];
+        pillIds.forEach((id, idx) => {
+            const pill = document.getElementById(id);
+            if (pill) {
+                pill.classList.remove('completed');
+                if (idx === 0) {
+                    pill.classList.add('active');
+                } else {
+                    pill.classList.remove('active');
+                }
+            }
+        });
+
+        const allStepPills = customWrapper.querySelectorAll('.psc-step-pill');
+        if (allStepPills.length > 0) {
+            allStepPills.forEach((p, idx) => {
+                p.classList.remove('completed', 'active');
+                if (idx === 0) p.classList.add('active');
+            });
+        }
+
+        // 8. Re-enable Completion Button in Session Runner
+        const completeBtn = document.getElementById('pscranker-complete-unit-btn');
+        if (completeBtn) {
+            completeBtn.disabled = false;
+            completeBtn.innerHTML = '<span>Claim +' + (this.xpReward || 250) + ' XP &amp; Complete 🚀</span>';
+        }
+
+        // 9. Call custom capsule's own reset function if defined
+        if (typeof window.pscResetCapsule === 'function') {
+            try { window.pscResetCapsule(); } catch (err) { console.warn(err); }
+        }
+
+        // 10. Scroll smoothly to top of capsule
+        const targetContainer = document.getElementById('psc-capsule-container') || customWrapper;
+        if (targetContainer) {
+            targetContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // 11. Subtle sound confirmation
+        if (window.PscSound && window.PscSound.playTick) {
+            window.PscSound.playTick();
         }
     }
 };

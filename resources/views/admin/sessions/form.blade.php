@@ -1818,9 +1818,14 @@ function adminSessionBuilder(initial) {
                 <h4>Capsule Completed!</h4>
                 <p>You have mastered Kerala PSC Sports Autobiographies with negative marking mastery.</p>
                 
-                <button type="button" class="psc-btn-complete psc-pulse" onclick="window.pscFinishCapsule()">
-                    സെഷൻ പൂർത്തിയാക്കി 250 XP നേടുക (Claim 250 XP &amp; Complete) 🚀
-                </button>
+                <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 14px;">
+                    <button type="button" class="psc-btn-complete psc-pulse" onclick="window.pscFinishCapsule()">
+                        സെഷൻ പൂർത്തിയാക്കി 250 XP നേടുക (Claim 250 XP &amp; Complete) 🚀
+                    </button>
+                    <button type="button" class="psc-btn-retake" onclick="window.pscResetCapsule()" style="background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 12px 20px; border-radius: 12px; font-size: 13px; font-weight: 800; cursor: pointer; transition: all 0.2s;">
+                        🔄 വീണ്ടും പരിശീലിക്കുക (Retake Session)
+                    </button>
+                </div>
             </div>
 
             <div class="psc-nav-buttons" style="margin-top: 15px;">
@@ -2792,10 +2797,42 @@ window.pscFinishCapsule = function() {
             titleMalayalam: 'കലക്കി! മികച്ച മുന്നേറ്റം! 🚀',
             message: 'Preview test: You completed this Kerala PSC Capsule successfully!',
             xp: (window.pscState.xp || 250),
-            confirmText: 'Awesome, Continue ⚡'
+            confirmText: 'Awesome, Continue ⚡',
+            showRetake: true,
+            retakeText: '🔄 ഈ യൂണിറ്റ് വീണ്ടും ചെയ്യുക (Retake Unit)',
+            onRetake: () => { window.pscResetCapsule(); }
         });
     } else {
         alert('🎉 Congratulations! You completed this Kerala PSC Capsule with ' + (window.pscState.xp || 250) + ' XP!');
+    }
+};
+
+// 7. RETAKE CAPSULE BRIDGE
+window.pscResetCapsule = function() {
+    if (window.PSCRanker && typeof window.PSCRanker.retakeSession === 'function') {
+        window.PSCRanker.retakeSession();
+    } else {
+        // Fallback standalone reset
+        if (window.pscState) {
+            window.pscState.xp = 0;
+            window.pscState.hookSolved = false;
+            window.pscState.mcqs = { 1: false, 2: false };
+            window.pscState.omr = { 1: null, 2: null };
+        }
+        document.querySelectorAll('.psc-opt-btn, .psc-bubble, .psc-omr-choice-row').forEach(b => {
+            b.classList.remove('correct', 'wrong', 'darkened', 'selected', 'disabled');
+            b.style.pointerEvents = 'auto';
+            b.style.backgroundColor = '';
+            b.style.borderColor = '';
+            b.style.color = '';
+        });
+        document.querySelectorAll('.psc-feedback, .psc-omr-result-box').forEach(fb => {
+            fb.style.display = 'none';
+        });
+        document.querySelectorAll('[id^="psc-next-mcq-btn-"], #psc-to-omr-btn').forEach(b => b.style.display = 'none');
+        window.pscGoTo('hook');
+        const xpEl = document.getElementById('psc-xp-val');
+        if (xpEl) xpEl.innerText = '0';
     }
 };
 <\/script>`;

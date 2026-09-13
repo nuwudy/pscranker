@@ -603,8 +603,11 @@
                 confirmText: 'Continue ➔',
                 cancelText: 'Stay Here',
                 showCancel: false,
+                showRetake: false,
+                retakeText: '🔄 Retake Unit (വീണ്ടും ചെയ്യുക)',
                 allowBackdropClose: true,
-                onConfirm: null
+                onConfirm: null,
+                onRetake: null
             },
             init() {
                 window.showPscModal = (opts) => {
@@ -621,8 +624,11 @@
                         confirmText: opts.confirmText || (opts.nextUrl ? 'അടുത്ത പാഠത്തിലേക്ക് പോകാം (Next Unit) ➔' : 'Awesome, Got It! ⚡'),
                         cancelText: opts.cancelText || 'ഇവിടെ തുടരുക (Stay Here)',
                         showCancel: opts.showCancel !== undefined ? opts.showCancel : !!opts.nextUrl,
+                        showRetake: opts.showRetake !== undefined ? opts.showRetake : isCelebration,
+                        retakeText: opts.retakeText || '🔄 ഈ യൂണിറ്റ് വീണ്ടും ചെയ്യുക (Retake Unit)',
                         allowBackdropClose: opts.allowBackdropClose !== false,
-                        onConfirm: opts.onConfirm || null
+                        onConfirm: opts.onConfirm || null,
+                        onRetake: opts.onRetake || null
                     }, opts);
 
                     this.isOpen = true;
@@ -667,6 +673,15 @@
                 }
                 if (url) {
                     window.location.href = url;
+                }
+            },
+            retake() {
+                const onRetakeCb = this.modalData.onRetake;
+                this.isOpen = false;
+                if (onRetakeCb && typeof onRetakeCb === 'function') {
+                    onRetakeCb();
+                } else if (window.PSCRanker && typeof window.PSCRanker.retakeSession === 'function') {
+                    window.PSCRanker.retakeSession();
                 }
             },
             close() {
@@ -786,6 +801,16 @@
                 >
                     <span x-text="modalData.confirmText"></span>
                 </button>
+
+                <template x-if="modalData.showRetake">
+                    <button 
+                        type="button" 
+                        @click="retake()"
+                        class="w-full py-3 px-4 font-black text-xs sm:text-sm rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0052FF] border-2 border-blue-300 shadow-sm transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                        <span x-text="modalData.retakeText || '🔄 ഈ യൂണിറ്റ് വീണ്ടും ചെയ്യുക (Retake Unit)'"></span>
+                    </button>
+                </template>
 
                 <template x-if="modalData.showCancel || modalData.nextUrl">
                     <button 
