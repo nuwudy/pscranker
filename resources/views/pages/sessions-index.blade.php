@@ -188,9 +188,13 @@
                                             {{ $catIcon }} {{ $session->category ? $session->category->name : 'Subject' }}
                                         </span>
                                     </div>
-                                    @if($session->is_premium)
+                                    @if($session->access_level === 'premium' || $session->is_premium)
                                         <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 shadow-xs">
                                             👑 PRO PASS
+                                        </span>
+                                    @elseif($session->access_level === 'registered')
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-100 text-blue-900 border border-blue-300">
+                                            🔵 MEMBER FREE
                                         </span>
                                     @else
                                         <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">
@@ -244,10 +248,12 @@
                             <div class="mt-5 pt-2">
                                 <a 
                                     href="{{ route('session.show', ['slug' => $session->slug, 'stream' => 'general']) }}" 
-                                    class="w-full py-3 px-4 font-black text-xs rounded-2xl transition-all text-center flex items-center justify-center gap-2 active:scale-95 {{ $session->is_premium ? 'bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300 shadow-xs' : 'bg-[#0052FF] hover:bg-blue-700 text-white shadow-md shadow-blue-500/20' }}"
+                                    class="w-full py-3 px-4 font-black text-xs rounded-2xl transition-all text-center flex items-center justify-center gap-2 active:scale-95 {{ ($session->access_level === 'premium' || $session->is_premium) ? 'bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300 shadow-xs' : (($session->access_level === 'registered') ? 'bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-300' : 'bg-[#0052FF] hover:bg-blue-700 text-white shadow-md shadow-blue-500/20') }}"
                                 >
-                                    @if($session->is_premium)
+                                    @if($session->access_level === 'premium' || $session->is_premium)
                                         <span>👑 Open PRO Step #{{ $session->general_stream_order ?? $loop->iteration }}</span>
+                                    @elseif($session->access_level === 'registered')
+                                        <span>🔵 Open Member Step #{{ $session->general_stream_order ?? $loop->iteration }}</span>
                                     @else
                                         <span>Launch Train Step #{{ $session->general_stream_order ?? $loop->iteration }}</span>
                                     @endif
@@ -362,9 +368,13 @@
                                                 <span class="px-2.5 py-1 rounded-xl bg-blue-50 text-[#0052FF] font-black border border-blue-200">
                                                     Unit #{{ $session->order }}
                                                 </span>
-                                                @if($session->is_premium)
+                                                @if($session->access_level === 'premium' || $session->is_premium)
                                                     <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 shadow-xs">
                                                         👑 PRO PASS
+                                                    </span>
+                                                @elseif($session->access_level === 'registered')
+                                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-100 text-blue-900 border border-blue-300">
+                                                        🔵 MEMBER FREE
                                                     </span>
                                                 @else
                                                     <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">
@@ -422,10 +432,12 @@
                                     <div class="mt-5 pt-2">
                                         <a 
                                             href="{{ route('session.show', ['slug' => $session->slug, 'stream' => 'subject']) }}" 
-                                            class="w-full py-3 px-4 font-black text-xs rounded-2xl transition-all text-center flex items-center justify-center gap-2 active:scale-95 {{ $session->is_premium ? 'bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300 shadow-xs' : 'bg-[#0052FF] hover:bg-blue-700 text-white shadow-md shadow-blue-500/20' }}"
+                                            class="w-full py-3 px-4 font-black text-xs rounded-2xl transition-all text-center flex items-center justify-center gap-2 active:scale-95 {{ ($session->access_level === 'premium' || $session->is_premium) ? 'bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300 shadow-xs' : (($session->access_level === 'registered') ? 'bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-300' : 'bg-[#0052FF] hover:bg-blue-700 text-white shadow-md shadow-blue-500/20') }}"
                                         >
-                                            @if($session->is_premium)
+                                            @if($session->access_level === 'premium' || $session->is_premium)
                                                 <span>👑 Open PRO Unit (Prepaid Pass)</span>
+                                            @elseif($session->access_level === 'registered')
+                                                <span>🔵 Open Member Unit #{{ $session->order }}</span>
                                             @else
                                                 <span>Start Unit #{{ $session->order }}</span>
                                             @endif

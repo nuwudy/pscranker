@@ -102,36 +102,68 @@
                 </nav>
 
                 <!-- Action CTA Buttons (Guest vs Authenticated Admin) -->
-                <div class="hidden sm:flex items-center gap-3">
+                <!-- Action CTA Buttons (Guest vs Authenticated Candidate vs Admin) -->
+                <div class="hidden sm:flex items-center gap-2 lg:gap-3">
                     @guest
-                        <a href="{{ route('login') }}" class="px-4 py-2 text-sm font-bold text-slate-700 hover:text-[#0052FF] rounded-lg transition">
+                        <a href="{{ route('login') }}" class="px-3.5 py-2 text-sm font-bold text-slate-700 hover:text-[#0052FF] rounded-lg transition">
                             Login
                         </a>
-                        <a href="{{ route('sessions.index') }}" class="px-5 py-2.5 text-sm font-extrabold text-slate-950 bg-[#FFD200] hover:bg-[#F5C500] active:scale-95 rounded-full shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 border border-yellow-400">
-                            <span>Start Lessons Free</span>
+                        <a href="{{ route('register') }}" class="px-3.5 py-2 text-sm font-extrabold text-[#0052FF] hover:bg-blue-50 rounded-lg transition border border-blue-200">
+                            Register Free
+                        </a>
+                        <a href="{{ route('sessions.index') }}" class="px-4 py-2.5 text-sm font-extrabold text-slate-950 bg-[#FFD200] hover:bg-[#F5C500] active:scale-95 rounded-full shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 border border-yellow-400">
+                            <span>Start Lessons</span>
                             <span class="text-xs">⚡</span>
                         </a>
                     @endguest
 
                     @auth
-                        <div class="flex items-center gap-2">
-                            <a href="{{ route('admin.dashboard') }}" class="px-3 py-1.5 text-xs font-black text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg transition border border-slate-300">
-                                📊 Dashboard
-                            </a>
-                            <a href="{{ route('admin.sessions.index') }}" class="px-3 py-1.5 text-xs font-black text-[#0052FF] bg-blue-50 hover:bg-blue-100 rounded-lg transition border border-blue-200">
-                                ⚙️ Lessons Manager
-                            </a>
-                            <a href="{{ route('admin.media.index') }}" class="px-3 py-1.5 text-xs font-black text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-lg transition border border-purple-200">
-                                📁 Media
-                            </a>
-                            <span class="text-xs font-bold text-slate-600 hidden lg:inline">{{ Auth::user()->name }}</span>
-                            <form action="{{ route('logout') }}" method="POST" class="inline">
-                                @csrf
-                                <button type="submit" class="px-3 py-1.5 text-xs font-bold text-slate-500 hover:text-red-600 rounded-lg hover:bg-slate-100 transition">
-                                    Logout
-                                </button>
-                            </form>
-                        </div>
+                        @php
+                            $user = Auth::user();
+                            $isAdmin = ($user->email === 'admin@pscranker.com' || $user->phone === '9895940500' || ($user->is_admin ?? false));
+                        @endphp
+
+                        @if($isAdmin)
+                            <div class="flex items-center gap-2">
+                                <a href="{{ route('admin.dashboard') }}" class="px-3 py-1.5 text-xs font-black text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg transition border border-slate-300">
+                                    📊 Dashboard
+                                </a>
+                                <a href="{{ route('admin.sessions.index') }}" class="px-3 py-1.5 text-xs font-black text-[#0052FF] bg-blue-50 hover:bg-blue-100 rounded-lg transition border border-blue-200">
+                                    ⚙️ Lessons Manager
+                                </a>
+                                <a href="{{ route('admin.media.index') }}" class="px-3 py-1.5 text-xs font-black text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-lg transition border border-purple-200">
+                                    📁 Media
+                                </a>
+                                <span class="text-xs font-bold text-slate-600 hidden lg:inline">{{ $user->name }}</span>
+                                <form action="{{ route('logout') }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="px-3 py-1.5 text-xs font-bold text-slate-500 hover:text-red-600 rounded-lg hover:bg-slate-100 transition cursor-pointer">
+                                        Logout
+                                    </button>
+                                </form>
+                            </div>
+                        @else
+                            <div class="flex items-center gap-2.5">
+                                @if($user->isSubscribed())
+                                    <span class="px-2.5 py-1 rounded-full text-xs font-black bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 shadow-xs">
+                                        👑 PRO PASS
+                                    </span>
+                                @else
+                                    <span class="px-2.5 py-1 rounded-full text-xs font-black bg-blue-100 text-blue-900 border border-blue-200">
+                                        🎓 Free Member
+                                    </span>
+                                @endif
+
+                                <span class="text-xs font-extrabold text-slate-800">{{ $user->name }}</span>
+
+                                <form action="{{ route('logout') }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="px-3 py-1.5 text-xs font-bold text-slate-500 hover:text-red-600 rounded-lg hover:bg-slate-100 transition cursor-pointer">
+                                        Logout
+                                    </button>
+                                </form>
+                            </div>
+                        @endif
                     @endauth
                 </div>
 
@@ -171,6 +203,7 @@
                         @guest
                             <div class="pt-2 border-t border-slate-100 flex flex-col gap-2">
                                 <a href="{{ route('login') }}" class="px-4 py-2.5 rounded-xl hover:bg-blue-50 text-slate-800">🔐 Login to Account</a>
+                                <a href="{{ route('register') }}" class="px-4 py-2.5 rounded-xl bg-blue-50 text-[#0052FF] font-black">⚡ Register Free Account</a>
                                 <a href="{{ route('sessions.index') }}" class="w-full text-center py-3 bg-[#FFD200] font-black text-slate-950 rounded-xl shadow-xs">
                                     Start Lessons Free ⚡
                                 </a>
@@ -178,14 +211,31 @@
                         @endguest
 
                         @auth
+                            @php
+                                $mobileUser = Auth::user();
+                                $isMobileAdmin = ($mobileUser->email === 'admin@pscranker.com' || $mobileUser->phone === '9895940500' || ($mobileUser->is_admin ?? false));
+                            @endphp
+
                             <div class="pt-2 border-t border-slate-100 flex flex-col gap-2">
-                                <a href="{{ route('admin.dashboard') }}" class="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-900 font-black">📊 Admin Dashboard</a>
-                                <a href="{{ route('admin.sessions.index') }}" class="px-4 py-2.5 rounded-xl bg-blue-50 text-[#0052FF] font-black">⚙️ Lessons Manager</a>
-                                <a href="{{ route('admin.media.index') }}" class="px-4 py-2.5 rounded-xl bg-purple-50 text-purple-700 font-black">📁 Media Library</a>
+                                @if($isMobileAdmin)
+                                    <a href="{{ route('admin.dashboard') }}" class="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-900 font-black">📊 Admin Dashboard</a>
+                                    <a href="{{ route('admin.sessions.index') }}" class="px-4 py-2.5 rounded-xl bg-blue-50 text-[#0052FF] font-black">⚙️ Lessons Manager</a>
+                                    <a href="{{ route('admin.media.index') }}" class="px-4 py-2.5 rounded-xl bg-purple-50 text-purple-700 font-black">📁 Media Library</a>
+                                @else
+                                    <div class="px-4 py-2 flex items-center justify-between">
+                                        <span class="text-sm font-bold text-slate-800">{{ $mobileUser->name }}</span>
+                                        @if($mobileUser->isSubscribed())
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-200 text-amber-900">PRO PASS</span>
+                                        @else
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-100 text-blue-800">FREE MEMBER</span>
+                                        @endif
+                                    </div>
+                                @endif
+
                                 <form action="{{ route('logout') }}" method="POST">
                                     @csrf
                                     <button type="submit" class="w-full text-left px-4 py-2 text-xs font-bold text-red-600 rounded-xl hover:bg-red-50">
-                                        🚪 Logout ({{ Auth::user()->name }})
+                                        🚪 Logout ({{ $mobileUser->name }})
                                     </button>
                                 </form>
                             </div>

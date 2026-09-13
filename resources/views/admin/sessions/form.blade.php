@@ -293,22 +293,68 @@
                             </label>
                         </div>
 
-                        <!-- Monetization Settings (Free vs Premium) -->
-                        <div class="flex items-center gap-3 bg-amber-50/80 border border-amber-300/80 px-4 py-2.5 rounded-xl">
-                            <input 
-                                type="checkbox" 
-                                id="is_premium" 
-                                name="is_premium" 
-                                value="1" 
-                                {{ old('is_premium', $session->is_premium ?? false) ? 'checked' : '' }}
-                                class="w-4 h-4 rounded text-amber-600 focus:ring-amber-500 cursor-pointer"
-                            >
-                            <div>
-                                <label for="is_premium" class="text-xs font-black text-amber-950 flex items-center gap-1.5 cursor-pointer">
-                                    <span>👑 Premium Unit</span>
-                                    <span class="px-2 py-0.2 rounded-full text-[9px] font-black uppercase bg-amber-200 text-amber-900">Prepaid Pass</span>
+                        <!-- 3-Tier Access Level Settings -->
+                        <div class="w-full p-4 rounded-xl bg-slate-50 border border-slate-200">
+                            <label class="block text-xs font-black text-slate-900 uppercase tracking-wide mb-2">
+                                🔒 Candidate Access Level &amp; Monetization Tier *
+                            </label>
+                            @php
+                                $currentAccess = old('access_level', $session->access_level ?? ($session->is_premium ? 'premium' : 'guest'));
+                            @endphp
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <!-- Option 1: Guest (Free for All) -->
+                                <label class="flex items-start gap-3 p-3 rounded-xl border-2 cursor-pointer transition hover:border-emerald-400 bg-white has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50/70">
+                                    <input 
+                                        type="radio" 
+                                        name="access_level" 
+                                        value="guest" 
+                                        {{ $currentAccess === 'guest' ? 'checked' : '' }}
+                                        class="mt-0.5 text-emerald-600 focus:ring-emerald-500"
+                                    >
+                                    <div>
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="text-xs font-black text-emerald-950">Free (All Users)</span>
+                                            <span class="px-1.5 py-0.2 rounded text-[9px] font-black uppercase bg-emerald-100 text-emerald-800">Public</span>
+                                        </div>
+                                        <p class="text-[11px] text-slate-600 mt-0.5 leading-snug">Anyone can study freely without needing to log in.</p>
+                                    </div>
                                 </label>
-                                <p class="text-[10px] text-amber-800 font-medium">Unchecked = Free Unit for all learners • Checked = Included in Prepaid Pass</p>
+
+                                <!-- Option 2: Registered (Free Members Only) -->
+                                <label class="flex items-start gap-3 p-3 rounded-xl border-2 cursor-pointer transition hover:border-blue-400 bg-white has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50/70">
+                                    <input 
+                                        type="radio" 
+                                        name="access_level" 
+                                        value="registered" 
+                                        {{ $currentAccess === 'registered' ? 'checked' : '' }}
+                                        class="mt-0.5 text-blue-600 focus:ring-blue-500"
+                                    >
+                                    <div>
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="text-xs font-black text-blue-950">Registered Only</span>
+                                            <span class="px-1.5 py-0.2 rounded text-[9px] font-black uppercase bg-blue-100 text-blue-800">Member Free</span>
+                                        </div>
+                                        <p class="text-[11px] text-slate-600 mt-0.5 leading-snug">Free only for logged-in registered candidates.</p>
+                                    </div>
+                                </label>
+
+                                <!-- Option 3: Premium (PRO Subscribers Only) -->
+                                <label class="flex items-start gap-3 p-3 rounded-xl border-2 cursor-pointer transition hover:border-amber-400 bg-white has-[:checked]:border-amber-400 has-[:checked]:bg-amber-50/80">
+                                    <input 
+                                        type="radio" 
+                                        name="access_level" 
+                                        value="premium" 
+                                        {{ $currentAccess === 'premium' ? 'checked' : '' }}
+                                        class="mt-0.5 text-amber-600 focus:ring-amber-500"
+                                    >
+                                    <div>
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="text-xs font-black text-amber-950">Premium (PRO Pass)</span>
+                                            <span class="px-1.5 py-0.2 rounded text-[9px] font-black uppercase bg-amber-200 text-amber-900">Paid Plan</span>
+                                        </div>
+                                        <p class="text-[11px] text-slate-600 mt-0.5 leading-snug">Exclusive to candidates with an active prepaid pass.</p>
+                                    </div>
+                                </label>
                             </div>
                         </div>
 

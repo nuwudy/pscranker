@@ -26,7 +26,7 @@
 
         <!-- Login Card -->
         <div 
-            x-data="{ showPass: false, email: '{{ old('email') }}' }"
+            x-data="{ showPass: false, login: '{{ old('login', old('email')) }}' }"
             class="bg-white rounded-3xl border-2 border-blue-100/90 shadow-2xl p-6 sm:p-8 relative overflow-hidden"
         >
             <!-- Decorative corner lightning -->
@@ -46,23 +46,27 @@
             <form action="{{ route('login') }}" method="POST" class="space-y-4">
                 @csrf
 
-                <!-- Email Input -->
+                <!-- Login Input: Email or Phone -->
                 <div>
-                    <label for="email" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
-                        Email Address
-                    </label>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label for="login" class="block text-xs font-bold text-slate-700 uppercase tracking-wide">
+                            Email or Mobile Number *
+                        </label>
+                        <span class="text-[10px] text-blue-600 font-bold">10-Digit Mobile or Email</span>
+                    </div>
                     <div class="relative">
                         <input 
-                            type="email" 
-                            id="email" 
-                            name="email" 
-                            x-model="email"
+                            type="text" 
+                            id="login" 
+                            name="login" 
+                            x-model="login"
                             required 
                             autofocus
-                            placeholder="admin@pscranker.com"
+                            placeholder="admin@pscranker.com or 9895940500"
                             class="w-full px-4 py-3 text-sm font-semibold rounded-xl border-2 border-slate-200 focus:border-[#0052FF] focus:outline-none transition bg-slate-50/50 focus:bg-white text-slate-900"
                         >
                     </div>
+                    <p class="text-[10px] text-slate-400 mt-1">Enter your 10-digit phone number or your registered email address.</p>
                 </div>
 
                 <!-- Password Input with Show/Hide -->
@@ -112,7 +116,7 @@
                 <div class="pt-2">
                     <button 
                         type="submit" 
-                        class="w-full py-3.5 px-4 bg-gradient-to-r from-[#0052FF] to-blue-700 hover:from-blue-600 hover:to-blue-800 active:scale-95 text-white font-black text-sm rounded-xl shadow-lg shadow-blue-500/25 transition flex items-center justify-center gap-2 border border-blue-400"
+                        class="w-full py-3.5 px-4 bg-gradient-to-r from-[#0052FF] to-blue-700 hover:from-blue-600 hover:to-blue-800 active:scale-95 text-white font-black text-sm rounded-xl shadow-lg shadow-blue-500/25 transition flex items-center justify-center gap-2 border border-blue-400 cursor-pointer"
                     >
                         <span>LOG IN TO ACCOUNT</span>
                         <span class="text-yellow-300">⚡</span>
@@ -120,16 +124,35 @@
                 </div>
             </form>
 
+            <!-- Register New Account Link -->
+            <div class="mt-5 pt-4 border-t border-slate-100 text-center">
+                <p class="text-xs text-slate-600 font-medium">
+                    Don't have an account yet?
+                    <a href="{{ route('register') }}" class="font-bold text-[#0052FF] hover:underline ml-1">
+                        Register Free Account →
+                    </a>
+                </p>
+            </div>
+
             <!-- Quick Auto-fill for Admin -->
-            <div class="mt-6 pt-4 border-t border-slate-100 text-center">
-                <p class="text-[11px] text-slate-400 font-medium mb-2">Admin Quick Fill:</p>
-                <button 
-                    type="button"
-                    @click="email = 'admin@pscranker.com'; document.getElementById('password').value = 'Amter9388$';"
-                    class="text-[11px] font-bold text-[#0052FF] bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-full border border-blue-200 transition"
-                >
-                    Fill admin@pscranker.com credentials ✨
-                </button>
+            <div class="mt-4 pt-3 border-t border-dashed border-slate-200 text-center">
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2">Admin Quick Credentials:</p>
+                <div class="flex flex-wrap items-center justify-center gap-2">
+                    <button 
+                        type="button"
+                        @click="login = 'admin@pscranker.com'; document.getElementById('password').value = 'Amter9388$';"
+                        class="text-[11px] font-bold text-[#0052FF] bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-full border border-blue-200 transition cursor-pointer"
+                    >
+                        Email: admin@pscranker.com ✨
+                    </button>
+                    <button 
+                        type="button"
+                        @click="login = '9895940500'; document.getElementById('password').value = 'Amter9388$';"
+                        class="text-[11px] font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 px-3 py-1 rounded-full border border-amber-300 transition cursor-pointer"
+                    >
+                        Phone: 9895940500 ⚡
+                    </button>
+                </div>
             </div>
 
         </div>

@@ -21,6 +21,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'phone',
         'password',
         'subscribed_until',
         'subscription_plan',
@@ -55,13 +56,29 @@ class User extends Authenticatable
     /**
      * Check whether user has active prepaid subscription or is admin.
      */
-    public function isSubscribed(): bool
+     public function isSubscribed(): bool
     {
         if ($this->email === 'admin@pscranker.com') {
             return true;
         }
 
         return $this->subscribed_until && $this->subscribed_until->isFuture();
+    }
+
+    /**
+     * Alias for isSubscribed to represent the Premium tier.
+     */
+    public function isPremium(): bool
+    {
+        return $this->isSubscribed();
+    }
+
+    /**
+     * Check whether user is a registered member.
+     */
+    public function isRegistered(): bool
+    {
+        return true;
     }
 
     /**

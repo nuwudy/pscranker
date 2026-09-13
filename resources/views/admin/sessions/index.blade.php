@@ -102,13 +102,17 @@
                                         <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-200 text-slate-600">Draft</span>
                                     @endif
 
-                                    @if($session->is_premium)
+                                    @if($session->access_level === 'premium' || $session->is_premium)
                                         <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300">
                                             👑 PRO (Prepaid Pass)
                                         </span>
+                                    @elseif($session->access_level === 'registered')
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-100 text-blue-900 border border-blue-200">
+                                            🔵 Member Free
+                                        </span>
                                     @else
-                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-100 text-slate-700">
-                                            FREE
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                            🟢 Free (All)
                                         </span>
                                     @endif
                                 </div>

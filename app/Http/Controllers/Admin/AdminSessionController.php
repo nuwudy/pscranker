@@ -177,6 +177,7 @@ class AdminSessionController extends Controller
             'order' => 'nullable|integer',
             'xp_reward' => 'required|integer|min:0',
             'is_active' => 'boolean',
+            'access_level' => 'nullable|string|in:guest,registered,premium',
             'is_premium' => 'boolean',
             'price' => 'nullable|numeric|min:0',
             'in_general_stream' => 'boolean',
@@ -230,6 +231,9 @@ class AdminSessionController extends Controller
                 : ((Session::where('in_general_stream', true)->max('general_stream_order') ?? 0) + 1);
         }
 
+        $accessLevel = $request->input('access_level') ?: ($request->boolean('is_premium') ? 'premium' : 'guest');
+        $isPremium = ($accessLevel === 'premium');
+
         $session = Session::create([
             'title' => $validated['title'],
             'title_malayalam' => $validated['title_malayalam'] ?? null,
@@ -239,8 +243,9 @@ class AdminSessionController extends Controller
             'order' => $order,
             'xp_reward' => $validated['xp_reward'],
             'is_active' => $request->boolean('is_active', true),
-            'is_premium' => $request->boolean('is_premium'),
-            'price' => $request->boolean('is_premium') ? ($request->input('price') ?: 199.00) : null,
+            'access_level' => $accessLevel,
+            'is_premium' => $isPremium,
+            'price' => $isPremium ? ($request->input('price') ?: 199.00) : null,
             'in_general_stream' => $inGeneralStream,
             'general_stream_order' => $generalStreamOrder,
             'creation_mode' => $creationMode,
@@ -312,6 +317,7 @@ class AdminSessionController extends Controller
             'order' => 'nullable|integer',
             'xp_reward' => 'required|integer|min:0',
             'is_active' => 'boolean',
+            'access_level' => 'nullable|string|in:guest,registered,premium',
             'is_premium' => 'boolean',
             'price' => 'nullable|numeric|min:0',
             'in_general_stream' => 'boolean',
@@ -352,6 +358,9 @@ class AdminSessionController extends Controller
                 : ($session->general_stream_order ?: ((Session::where('in_general_stream', true)->max('general_stream_order') ?? 0) + 1));
         }
 
+        $accessLevel = $request->input('access_level') ?: ($request->boolean('is_premium') ? 'premium' : ($session->access_level ?? 'guest'));
+        $isPremium = ($accessLevel === 'premium');
+
         $session->update([
             'title' => $validated['title'],
             'title_malayalam' => $validated['title_malayalam'] ?? null,
@@ -361,8 +370,9 @@ class AdminSessionController extends Controller
             'order' => $order,
             'xp_reward' => $validated['xp_reward'],
             'is_active' => $request->boolean('is_active', true),
-            'is_premium' => $request->boolean('is_premium'),
-            'price' => $request->boolean('is_premium') ? ($request->input('price') ?: 199.00) : null,
+            'access_level' => $accessLevel,
+            'is_premium' => $isPremium,
+            'price' => $isPremium ? ($request->input('price') ?: 199.00) : null,
             'in_general_stream' => $inGeneralStream,
             'general_stream_order' => $generalStreamOrder,
             'creation_mode' => $creationMode,

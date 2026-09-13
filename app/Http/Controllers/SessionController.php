@@ -81,10 +81,29 @@ class SessionController extends Controller
             $streamTitleMalayalam = ($session->category ? $session->category->name_malayalam : 'പ്രത്യേക വിഷയം');
         }
 
-        // Premium gating check (Admins and active subscribers bypass)
-        $isAdmin = auth()->check() && (auth()->user()->email === 'admin@pscranker.com' || auth()->user()->is_admin ?? false);
-        $isSubscribed = auth()->check() && auth()->user()->isSubscribed();
-        $isLocked = $session->is_premium && !($isAdmin || $isSubscribed);
+        // 3-Tier Access Gating Check:
+        // Tier 1: 'guest' -> Publicly open to anyone without login.
+        // Tier 2: 'registered' -> Free for all logged-in members.
+        // Tier 3: 'premium' -> Exclusive to PRO subscribers / prepaid pass holders.
+        $user = auth()->user();
+        $isAdmin = $user && ($user->email === 'admin@pscranker.com' || $user->phone === '9895940500' || ($user->is_admin ?? false));
+        $isSubscribed = $user && $user->isSubscribed();
+
+        $accessLevel = $session->access_level ?? ($session->is_premium ? 'premium' : 'guest');
+        $isLocked = false;
+        $lockReason = null; // 'requires_registration' or 'requires_premium'
+
+        if ($accessLevel === 'premium' || $session->is_premium) {
+            if (!$isAdmin && !$isSubscribed) {
+                $isLocked = true;
+                $lockReason = 'requires_premium';
+            }
+        } elseif ($accessLevel === 'registered') {
+            if (!$user) {
+                $isLocked = true;
+                $lockReason = 'requires_registration';
+            }
+        }
 
         return view('pages.session-runner', compact(
             'session',
@@ -93,6 +112,7 @@ class SessionController extends Controller
             'unitNumber',
             'totalUnits',
             'isLocked',
+            'lockReason',
             'stream',
             'streamTitle',
             'streamTitleMalayalam'

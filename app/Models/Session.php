@@ -23,6 +23,7 @@ class Session extends Model
         'order',
         'xp_reward',
         'is_active',
+        'access_level',
         'is_premium',
         'price',
         'in_general_stream',
@@ -33,6 +34,7 @@ class Session extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
+        'access_level' => 'string',
         'is_premium' => 'boolean',
         'price' => 'decimal:2',
         'order' => 'integer',
@@ -52,9 +54,24 @@ class Session extends Model
         return !$this->isCustomCode();
     }
 
+    public function isGuest(): bool
+    {
+        return ($this->access_level ?? 'guest') === 'guest';
+    }
+
+    public function isRegisteredOnly(): bool
+    {
+        return ($this->access_level ?? 'guest') === 'registered';
+    }
+
+    public function isPremiumOnly(): bool
+    {
+        return ($this->access_level ?? 'guest') === 'premium' || $this->is_premium;
+    }
+
     public function isFree(): bool
     {
-        return !$this->is_premium;
+        return !$this->isPremiumOnly();
     }
 
     public function getFormattedPriceAttribute(): string

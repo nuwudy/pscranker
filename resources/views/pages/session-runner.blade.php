@@ -22,97 +22,182 @@
     class="py-4 sm:py-8 bg-gradient-to-b from-blue-50/60 via-slate-50 to-white min-h-[90vh] select-none"
 >
 @if($isLocked)
-    <!-- ============================================================= -->
-    <!-- PREMIUM PAYWALL GATE (PhonePe / Razorpay Ready)              -->
-    <!-- ============================================================= -->
-    <div class="py-8 sm:py-16 max-w-xl mx-auto px-4">
-        <div class="bg-white rounded-3xl border-2 border-amber-300 shadow-2xl p-6 sm:p-10 text-center relative overflow-hidden">
-            
-            <!-- Glow Accent -->
-            <div class="absolute -top-16 -right-16 w-36 h-36 bg-amber-300/20 rounded-full blur-2xl pointer-events-none"></div>
+    @if(($lockReason ?? 'requires_premium') === 'requires_registration')
+        <!-- ============================================================= -->
+        <!-- FREE REGISTERED MEMBER ACCESS REQUIRED GATE                   -->
+        <!-- ============================================================= -->
+        <div class="py-8 sm:py-16 max-w-xl mx-auto px-4">
+            <div class="bg-white rounded-3xl border-2 border-blue-200 shadow-2xl p-6 sm:p-10 text-center relative overflow-hidden">
+                
+                <!-- Glow Accent -->
+                <div class="absolute -top-16 -right-16 w-36 h-36 bg-blue-200/40 rounded-full blur-2xl pointer-events-none"></div>
 
-            <div class="w-16 h-16 rounded-3xl bg-gradient-to-tr from-amber-400 to-yellow-500 text-slate-950 flex items-center justify-center text-3xl mx-auto mb-4 shadow-lg shadow-yellow-400/30">
-                👑
-            </div>
-
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-900 border border-amber-200 text-xs font-black uppercase tracking-wider rounded-full mb-3">
-                <span>PRO Unit Locked</span>
-            </span>
-
-            <h1 class="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
-                {{ $session->title }}
-            </h1>
-
-            @if($session->title_malayalam)
-                <p class="text-sm font-bold text-[#0052FF] mt-1 font-['Noto_Sans_Malayalam']">
-                    {{ $session->title_malayalam }}
-                </p>
-            @endif
-
-            <p class="text-xs sm:text-sm text-slate-600 font-medium mt-3 leading-relaxed">
-                This is an advanced high-yield PSC Rank Maker capsule featuring exclusive SCERT mnemonics, audio explanations, and full OMR simulator test.
-            </p>
-
-            <!-- Feature Badges -->
-            <div class="my-6 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-left space-y-2.5 text-xs font-bold text-slate-700">
-                <div class="flex items-center gap-2">
-                    <span class="text-emerald-500 font-black">✓</span>
-                    <span>Phase 1 Diagnostic Trap Hook (+50 XP)</span>
+                <div class="w-16 h-16 rounded-3xl bg-gradient-to-tr from-[#0052FF] to-blue-600 text-white flex items-center justify-center text-3xl mx-auto mb-4 shadow-lg shadow-blue-500/30">
+                    🎓
                 </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-emerald-500 font-black">✓</span>
-                    <span>Phase 2 Audio Summary &amp; Visual Mnemonics</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-emerald-500 font-black">✓</span>
-                    <span>Phase 3 20-Sec Speed Blitz with Multipliers</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-emerald-500 font-black">✓</span>
-                    <span>Phase 4 Authentic Kerala PSC OMR Bubble Exam</span>
-                </div>
-            </div>
 
-            <!-- Price and Payment Gateway CTA -->
-            <div class="p-5 rounded-2xl bg-gradient-to-br from-slate-900 to-blue-950 text-white shadow-xl mb-6">
-                <span class="text-[10px] uppercase font-bold text-yellow-400 tracking-widest block mb-1">
-                    👑 Premium Unit • Prepaid Pass Required
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-900 border border-blue-200 text-xs font-black uppercase tracking-wider rounded-full mb-3">
+                    <span>Free for Registered Members</span>
                 </span>
-                <div class="text-2xl sm:text-3xl font-black text-white font-mono">
-                    Prepaid Learning Pass
-                </div>
-                <p class="text-[11px] text-slate-300 mt-1">Unlocks all current &amp; upcoming PSC units • Plans start from ₹{{ (int)\App\Models\SiteSetting::get('course_base_monthly_fee', 299) }} (Save up to 40%)</p>
 
-                <!-- PG Buttons preview -->
-                <div class="mt-4 pt-4 border-t border-slate-800">
-                    <a 
-                        href="{{ route('pricing') }}" 
-                        class="w-full py-3.5 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-black text-sm rounded-xl shadow-lg transition flex items-center justify-center gap-2 active:scale-95"
-                    >
-                        <span>Unlock with UPI / PhonePe / Razorpay 🚀</span>
-                    </a>
-                    <div class="flex items-center justify-center gap-3 mt-2.5 text-[10px] text-slate-400">
-                        <span>🔒 256-Bit Razorpay</span>
-                        <span>•</span>
-                        <span>UPI / PhonePe / GPay / Cards</span>
+                <h1 class="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
+                    {{ $session->title }}
+                </h1>
+
+                @if($session->title_malayalam)
+                    <p class="text-sm font-bold text-[#0052FF] mt-1 font-['Noto_Sans_Malayalam']">
+                        {{ $session->title_malayalam }}
+                    </p>
+                @endif
+
+                <p class="text-xs sm:text-sm text-slate-600 font-medium mt-3 leading-relaxed">
+                    This high-yield learning capsule is reserved free for registered members. Create a free account or log in with your mobile number to start learning right now.
+                </p>
+
+                <!-- Free Member Benefits -->
+                <div class="my-6 p-4 rounded-2xl bg-blue-50/60 border border-blue-200 text-left space-y-2.5 text-xs font-bold text-slate-700">
+                    <div class="flex items-center gap-2">
+                        <span class="text-emerald-600 font-black">✓</span>
+                        <span>100% Free Forever — No credit card or fee needed</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-emerald-600 font-black">✓</span>
+                        <span>Save your scores, diagnostic badges &amp; XP progress</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-emerald-600 font-black">✓</span>
+                        <span>Full access to Diagnostic, Lesson, MCQs &amp; OMR Test</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-emerald-600 font-black">✓</span>
+                        <span>Quick 10-second registration with name &amp; phone</span>
                     </div>
                 </div>
-            </div>
 
-            <!-- Navigation Back -->
-            <div class="flex flex-col sm:flex-row items-center justify-center gap-3 text-xs font-bold">
-                @if($previousSession)
-                    <a href="{{ route('session.show', $previousSession->slug) }}" class="text-slate-600 hover:text-slate-900 hover:underline">
-                        ← Back to Previous Unit: {{ Str::limit($previousSession->title, 20) }}
+                <!-- Registration & Login CTAs -->
+                <div class="space-y-3 mb-6">
+                    <a 
+                        href="{{ route('register') }}" 
+                        class="w-full py-3.5 bg-gradient-to-r from-[#0052FF] to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white font-black text-sm rounded-xl shadow-lg shadow-blue-500/25 transition flex items-center justify-center gap-2 active:scale-95 border border-blue-400"
+                    >
+                        <span>REGISTER FREE ACCOUNT (10 SECONDS) ⚡</span>
                     </a>
-                @endif
-                <a href="{{ route('sessions.index') }}" class="text-[#0052FF] hover:underline">
-                    Browse All Free Units →
-                </a>
-            </div>
+                    
+                    <a 
+                        href="{{ route('login') }}" 
+                        class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-black text-xs rounded-xl transition flex items-center justify-center gap-1.5 border border-slate-300"
+                    >
+                        <span>Already registered? Log in with Mobile or Email →</span>
+                    </a>
+                </div>
 
+                <!-- Navigation Back -->
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-3 text-xs font-bold">
+                    @if($previousSession)
+                        <a href="{{ route('session.show', $previousSession->slug) }}" class="text-slate-600 hover:text-slate-900 hover:underline">
+                            ← Previous Unit: {{ Str::limit($previousSession->title, 20) }}
+                        </a>
+                    @endif
+                    <a href="{{ route('sessions.index') }}" class="text-[#0052FF] hover:underline">
+                        Browse All Free Units →
+                    </a>
+                </div>
+
+            </div>
         </div>
-    </div>
+    @else
+        <!-- ============================================================= -->
+        <!-- PREMIUM PAYWALL GATE (PhonePe / Razorpay Ready)              -->
+        <!-- ============================================================= -->
+        <div class="py-8 sm:py-16 max-w-xl mx-auto px-4">
+            <div class="bg-white rounded-3xl border-2 border-amber-300 shadow-2xl p-6 sm:p-10 text-center relative overflow-hidden">
+                
+                <!-- Glow Accent -->
+                <div class="absolute -top-16 -right-16 w-36 h-36 bg-amber-300/20 rounded-full blur-2xl pointer-events-none"></div>
+
+                <div class="w-16 h-16 rounded-3xl bg-gradient-to-tr from-amber-400 to-yellow-500 text-slate-950 flex items-center justify-center text-3xl mx-auto mb-4 shadow-lg shadow-yellow-400/30">
+                    👑
+                </div>
+
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-900 border border-amber-200 text-xs font-black uppercase tracking-wider rounded-full mb-3">
+                    <span>PRO Unit Locked</span>
+                </span>
+
+                <h1 class="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
+                    {{ $session->title }}
+                </h1>
+
+                @if($session->title_malayalam)
+                    <p class="text-sm font-bold text-[#0052FF] mt-1 font-['Noto_Sans_Malayalam']">
+                        {{ $session->title_malayalam }}
+                    </p>
+                @endif
+
+                <p class="text-xs sm:text-sm text-slate-600 font-medium mt-3 leading-relaxed">
+                    This is an advanced high-yield PSC Rank Maker capsule featuring exclusive SCERT mnemonics, audio explanations, and full OMR simulator test.
+                </p>
+
+                <!-- Feature Badges -->
+                <div class="my-6 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-left space-y-2.5 text-xs font-bold text-slate-700">
+                    <div class="flex items-center gap-2">
+                        <span class="text-emerald-500 font-black">✓</span>
+                        <span>Phase 1 Diagnostic Trap Hook (+50 XP)</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-emerald-500 font-black">✓</span>
+                        <span>Phase 2 Audio Summary &amp; Visual Mnemonics</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-emerald-500 font-black">✓</span>
+                        <span>Phase 3 20-Sec Speed Blitz with Multipliers</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-emerald-500 font-black">✓</span>
+                        <span>Phase 4 Authentic Kerala PSC OMR Bubble Exam</span>
+                    </div>
+                </div>
+
+                <!-- Price and Payment Gateway CTA -->
+                <div class="p-5 rounded-2xl bg-gradient-to-br from-slate-900 to-blue-950 text-white shadow-xl mb-6">
+                    <span class="text-[10px] uppercase font-bold text-yellow-400 tracking-widest block mb-1">
+                        👑 Premium Unit • Prepaid Pass Required
+                    </span>
+                    <div class="text-2xl sm:text-3xl font-black text-white font-mono">
+                        Prepaid Learning Pass
+                    </div>
+                    <p class="text-[11px] text-slate-300 mt-1">Unlocks all current &amp; upcoming PSC units • Plans start from ₹{{ (int)\App\Models\SiteSetting::get('course_base_monthly_fee', 299) }} (Save up to 40%)</p>
+
+                    <!-- PG Buttons preview -->
+                    <div class="mt-4 pt-4 border-t border-slate-800">
+                        <a 
+                            href="{{ route('pricing') }}" 
+                            class="w-full py-3.5 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-black text-sm rounded-xl shadow-lg transition flex items-center justify-center gap-2 active:scale-95"
+                        >
+                            <span>Unlock with UPI / PhonePe / Razorpay 🚀</span>
+                        </a>
+                        <div class="flex items-center justify-center gap-3 mt-2.5 text-[10px] text-slate-400">
+                            <span>🔒 256-Bit Razorpay</span>
+                            <span>•</span>
+                            <span>UPI / PhonePe / GPay / Cards</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Back -->
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-3 text-xs font-bold">
+                    @if($previousSession)
+                        <a href="{{ route('session.show', $previousSession->slug) }}" class="text-slate-600 hover:text-slate-900 hover:underline">
+                            ← Back to Previous Unit: {{ Str::limit($previousSession->title, 20) }}
+                        </a>
+                    @endif
+                    <a href="{{ route('sessions.index') }}" class="text-[#0052FF] hover:underline">
+                        Browse All Free Units →
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    @endif
 @else
     <div class="max-w-4xl mx-auto px-3 sm:px-6">
 
@@ -133,9 +218,13 @@
                         <span x-text="categoryName"></span>
                     </span>
 
-                    @if($session->is_premium)
+                    @if($session->access_level === 'premium' || $session->is_premium)
                         <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 shadow-xs">
                             <span>👑 PRO PASS</span>
+                        </span>
+                    @elseif($session->access_level === 'registered')
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black bg-blue-100 text-blue-900 border border-blue-300">
+                            🔵 MEMBER FREE
                         </span>
                     @else
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">
