@@ -21,7 +21,7 @@ class PricingController extends Controller
     {
         $tiers = SiteSetting::getPricingTiers();
         $baseMonthlyFee = (float) SiteSetting::get('course_base_monthly_fee', 299);
-        $razorpayKey = SiteSetting::get('razorpay_key_id', config('services.razorpay.key', 'rzp_test_demo12345678'));
+        $razorpayKey = SiteSetting::get('razorpay_key_id') ?: (config('services.razorpay.key') ?: 'rzp_test_demo12345678');
 
         return view('pages.pricing', compact('tiers', 'baseMonthlyFee', 'razorpayKey'));
     }
@@ -50,8 +50,8 @@ class PricingController extends Controller
         $currency = 'INR';
         $receipt = 'order_rcpt_' . time() . '_' . Str::random(5);
 
-        $razorpayKey = SiteSetting::get('razorpay_key_id', config('services.razorpay.key'));
-        $razorpaySecret = SiteSetting::get('razorpay_key_secret', config('services.razorpay.secret'));
+        $razorpayKey = SiteSetting::get('razorpay_key_id') ?: config('services.razorpay.key');
+        $razorpaySecret = SiteSetting::get('razorpay_key_secret') ?: config('services.razorpay.secret');
 
         $razorpayOrderId = null;
 
@@ -133,8 +133,8 @@ class PricingController extends Controller
             return response()->json(['error' => 'Order not found.'], 404);
         }
 
-        $razorpayKey = SiteSetting::get('razorpay_key_id', config('services.razorpay.key'));
-        $razorpaySecret = SiteSetting::get('razorpay_key_secret', config('services.razorpay.secret'));
+        $razorpayKey = SiteSetting::get('razorpay_key_id') ?: config('services.razorpay.key');
+        $razorpaySecret = SiteSetting::get('razorpay_key_secret') ?: config('services.razorpay.secret');
 
         // Verify Razorpay signature if live secret is available
         if ($razorpaySecret && !empty($validated['razorpay_signature'])) {
