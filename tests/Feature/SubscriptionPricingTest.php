@@ -121,16 +121,43 @@ test('admin can update base monthly fee and rebate percentages from dashboard', 
 });
 
 test('all mandatory razorpay compliance legal pages load properly', function () {
-    $this->get('/terms')->assertStatus(200)->assertSee('Terms and Conditions');
-    $this->get('/privacy')->assertStatus(200)->assertSee('Privacy Policy');
-    $this->get('/refund-policy')->assertStatus(200)->assertSee('Cancellation &amp; Refund Policy', false);
-    $this->get('/shipping-policy')->assertStatus(200)->assertSee('Shipping &amp; Delivery Policy', false);
-    $this->get('/about')->assertStatus(200)->assertSee('About PSCRanker');
+    $this->get('/terms')
+        ->assertStatus(200)
+        ->assertSee('Terms and Conditions')
+        ->assertSee('Fort Kochi')
+        ->assertSee('682001');
+
+    $this->get('/privacy')
+        ->assertStatus(200)
+        ->assertSee('Privacy Policy')
+        ->assertSee('Fort Kochi')
+        ->assertSee('682001');
+
+    $this->get('/refund-policy')
+        ->assertStatus(200)
+        ->assertSee('Cancellation &amp; Refund Policy', false)
+        ->assertSee('5 to 7 business days')
+        ->assertSee('Fort Kochi');
+
+    $this->get('/shipping-policy')
+        ->assertStatus(200)
+        ->assertSee('Shipping &amp; Delivery Policy', false)
+        ->assertSee('instantaneously')
+        ->assertSee('Fort Kochi');
+
+    $this->get('/about')
+        ->assertStatus(200)
+        ->assertSee('About PSCRanker')
+        ->assertSee('Fort Kochi')
+        ->assertSee('682001');
+
     $this->get('/contact')
         ->assertStatus(200)
         ->assertSee('Contact Us &amp; Student Support', false)
         ->assertSee('infopscranker@gmail.com')
-        ->assertSee('9895 204 224');
+        ->assertSee('9895 204 224')
+        ->assertSee('Fort Kochi')
+        ->assertSee('682001');
 });
 
 test('subscribed student can access premium sessions without lock', function () {

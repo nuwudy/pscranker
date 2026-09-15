@@ -74,11 +74,11 @@
                     For any privacy inquiries, data rectification, or request for account deletion, please email our grievance officer:
                 </p>
                 <div class="mt-2 text-xs bg-blue-50 p-4 rounded-xl border border-blue-200 text-blue-900 space-y-1.5 font-mono">
-                    <div><strong>Business Name:</strong> PSCRanker (PSCRanker.com)</div>
+                    <div><strong>Business Name:</strong> PSC Ranker (PSCRanker.com)</div>
                     <div><strong>Grievance Email:</strong> <a href="mailto:infopscranker@gmail.com" class="text-[#0052FF] font-bold hover:underline">infopscranker@gmail.com</a></div>
                     <div><strong>Phone / WhatsApp:</strong> <a href="tel:+919895204224" class="text-[#0052FF] font-bold hover:underline">+91 9895 204 224</a></div>
                     <div><strong>Operating Hours:</strong> Monday – Saturday, 9:00 AM – 7:00 PM IST</div>
-                    <div><strong>Postal Address:</strong> Door No. 4/122, Civil Station Road, Kozhikode, Kerala - 673020, India</div>
+                    <div><strong>Postal Address:</strong> 3/109 Puthampurakkal, Nellukadavu, Fort Kochi, Kochi, Ernakulam, Kerala – 682001, India</div>
                 </div>
             </section>
 

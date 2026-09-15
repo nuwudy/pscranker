@@ -101,7 +101,7 @@
                 </div>
 
                 <div class="mt-4 text-xs text-slate-500 p-4 rounded-2xl bg-slate-50 border border-slate-200">
-                    <strong class="text-slate-700">Operational Address:</strong> PSCRanker Operations Desk, Door No. 4/122, Civil Station Road, Kozhikode, Kerala - 673020, India.
+                    <strong class="text-slate-700">Operational Address:</strong> PSC Ranker, 3/109 Puthampurakkal, Nellukadavu, Fort Kochi, Kochi, Ernakulam, Kerala – 682001, India.
                 </div>
             </section>
 

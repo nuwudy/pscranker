@@ -79,6 +79,9 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
+        $loginInput = trim((string) ($request->input('login') ?? $request->input('email', '')));
+        $request->merge(['login' => $loginInput]);
+
         $request->validate([
             'login' => ['required', 'string'],
             'password' => ['required', 'string'],
@@ -86,7 +89,6 @@ class AuthController extends Controller
             'login.required' => 'Please enter your registered email or 10-digit mobile number.',
         ]);
 
-        $loginInput = trim($request->input('login'));
         $password = $request->input('password');
         $remember = $request->boolean('remember');
 

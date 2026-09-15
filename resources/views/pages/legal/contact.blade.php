@@ -70,10 +70,10 @@
                         📍
                     </div>
                     <h3 class="text-xs font-black uppercase text-slate-900 tracking-wider mb-1">Operational Desk</h3>
-                    <p class="text-[11px] text-slate-500 mb-2">Kozhikode, Kerala - 673020, India.</p>
+                    <p class="text-[11px] text-slate-500 mb-2">3/109 Puthampurakkal, Nellukadavu, Fort Kochi, Kochi, Ernakulam, Kerala – 682001, India.</p>
                 </div>
                 <div class="text-[11px] font-bold text-slate-700">
-                    Kerala, India
+                    Fort Kochi, Kerala
                 </div>
             </div>
 
@@ -82,8 +82,8 @@
         <!-- Registered Entity & Grievance Notice -->
         <div class="bg-blue-50/60 border border-blue-100 rounded-2xl p-4 mb-8 text-xs text-blue-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
-                <strong class="font-black text-slate-900">Registered Business Name:</strong> PSCRanker (PSCRanker.com)<br>
-                <span class="text-slate-600">Postal Address: Door No. 4/122, Civil Station Road, Kozhikode, Kerala - 673020, India</span>
+                <strong class="font-black text-slate-900">Registered Business Name:</strong> PSC Ranker (PSCRanker.com)<br>
+                <span class="text-slate-600">Postal Address: 3/109 Puthampurakkal, Nellukadavu, Fort Kochi, Kochi, Ernakulam, Kerala – 682001, India</span>
             </div>
             <div class="shrink-0 text-slate-500">
                 Grievance Officer: <strong class="text-slate-800">Support Desk Head</strong>

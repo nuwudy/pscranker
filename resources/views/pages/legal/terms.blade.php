@@ -88,7 +88,7 @@
                     7. Governing Law &amp; Jurisdiction
                 </h2>
                 <p>
-                    These Terms are governed by and construed in accordance with the laws of India. Any disputes arising out of these terms shall be subject to the exclusive jurisdiction of the competent courts in Kozhikode / Kerala, India.
+                    These Terms are governed by and construed in accordance with the laws of India. Any disputes arising out of these terms shall be subject to the exclusive jurisdiction of the competent courts in Kochi / Ernakulam, Kerala, India.
                 </p>
             </section>
 
@@ -101,10 +101,10 @@
                     For queries or grievance redressal regarding these Terms, please contact:
                 </p>
                 <div class="mt-2 text-xs bg-slate-50 p-4 rounded-xl border border-slate-200 text-slate-800 space-y-1">
-                    <div><strong>Business Name:</strong> PSCRanker (PSCRanker.com)</div>
+                    <div><strong>Business Name:</strong> PSC Ranker (PSCRanker.com)</div>
                     <div><strong>Email:</strong> <a href="mailto:infopscranker@gmail.com" class="text-[#0052FF] font-bold font-mono">infopscranker@gmail.com</a></div>
                     <div><strong>Phone / WhatsApp:</strong> <a href="tel:+919895204224" class="text-[#0052FF] font-bold font-mono">+91 9895 204 224</a></div>
-                    <div><strong>Address:</strong> Door No. 4/122, Civil Station Road, Kozhikode, Kerala - 673020, India</div>
+                    <div><strong>Address:</strong> 3/109 Puthampurakkal, Nellukadavu, Fort Kochi, Kochi, Ernakulam, Kerala – 682001, India</div>
                 </div>
             </section>
 

@@ -74,8 +74,11 @@
                     <div>
                         <div class="font-bold text-slate-900 text-xs">Need assistance with a refund or duplicate payment?</div>
                         <div class="text-xs text-slate-600 mt-1">
-                            Email: <a href="mailto:infopscranker@gmail.com" class="text-[#0052FF] font-bold font-mono">infopscranker@gmail.com</a> | 
+                            <strong>PSC Ranker</strong> • Email: <a href="mailto:infopscranker@gmail.com" class="text-[#0052FF] font-bold font-mono">infopscranker@gmail.com</a> | 
                             Phone / WhatsApp: <a href="tel:+919895204224" class="text-[#0052FF] font-bold font-mono">+91 9895 204 224</a>
+                        </div>
+                        <div class="text-[11px] text-slate-500 mt-1">
+                            Address: 3/109 Puthampurakkal, Nellukadavu, Fort Kochi, Kochi, Ernakulam, Kerala – 682001
                         </div>
                     </div>
                     <a href="{{ route('contact') }}" class="px-4 py-2 bg-[#0052FF] text-white text-xs font-bold rounded-xl hover:bg-blue-600 transition shrink-0">

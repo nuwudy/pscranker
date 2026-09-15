@@ -367,7 +367,7 @@
                         </div>
                         <div>
                             <span class="block text-slate-300 font-bold">Address:</span>
-                            <span class="text-[11px] leading-tight block">Door No. 4/122, Civil Station Road, Kozhikode, Kerala - 673020, India</span>
+                            <span class="text-[11px] leading-tight block">PSC Ranker, 3/109 Puthampurakkal, Nellukadavu, Fort Kochi, Kochi, Ernakulam, Kerala – 682001, India</span>
                         </div>
                         <div class="pt-1 text-[10px] text-slate-500">
                             PSCRanker.com is an independent learning portal and is not affiliated with the official Kerala PSC.
