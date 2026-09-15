@@ -155,6 +155,7 @@ test('all mandatory razorpay compliance legal pages load properly', function () 
         ->assertStatus(200)
         ->assertSee('Contact Us &amp; Student Support', false)
         ->assertSee('infopscranker@gmail.com')
+        ->assertSee('80896 12287')
         ->assertSee('9895 204 224')
         ->assertSee('Fort Kochi')
         ->assertSee('682001');

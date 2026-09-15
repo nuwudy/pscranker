@@ -93,9 +93,14 @@
 
                     <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200">
                         <span class="text-slate-400 block font-bold uppercase mb-1">Helpline / WhatsApp</span>
-                        <a href="tel:+919895204224" class="text-[#0052FF] font-black hover:underline font-mono text-sm">
-                            +91 9895 204 224
-                        </a>
+                        <div class="flex flex-col gap-0.5">
+                            <a href="tel:+918089612287" class="text-[#0052FF] font-black hover:underline font-mono text-sm">
+                                +91 80896 12287
+                            </a>
+                            <a href="tel:+919895204224" class="text-slate-600 font-bold hover:underline font-mono text-xs">
+                                +91 9895 204 224
+                            </a>
+                        </div>
                         <p class="text-[11px] text-slate-500 mt-1">Available Mon–Sat: 9:00 AM – 7:00 PM IST.</p>
                     </div>
                 </div>

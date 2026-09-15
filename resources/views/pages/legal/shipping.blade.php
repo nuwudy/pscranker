@@ -77,7 +77,7 @@
                         <div class="font-bold text-slate-900 text-xs">Need help with instant access delivery?</div>
                         <div class="text-xs text-slate-600 mt-0.5">
                             <strong>PSC Ranker</strong> • Email: <a href="mailto:infopscranker@gmail.com" class="text-[#0052FF] font-bold hover:underline">infopscranker@gmail.com</a> | 
-                            Phone / WhatsApp: <a href="tel:+919895204224" class="text-[#0052FF] font-bold hover:underline">+91 9895 204 224</a>
+                            Phone / WhatsApp: <a href="tel:+918089612287" class="text-[#0052FF] font-bold hover:underline">+91 80896 12287</a> / <a href="tel:+919895204224" class="text-[#0052FF] font-bold hover:underline">+91 9895 204 224</a>
                         </div>
                         <div class="text-[11px] text-slate-500 mt-1">
                             Address: 3/109 Puthampurakkal, Nellukadavu, Fort Kochi, Kochi, Ernakulam, Kerala – 682001

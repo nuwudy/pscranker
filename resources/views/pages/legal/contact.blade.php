@@ -40,12 +40,20 @@
                     <p class="text-[11px] text-slate-500 mb-2">Call or chat directly with our student support helpdesk.</p>
                 </div>
                 <div class="flex flex-col gap-1 text-xs font-mono font-bold">
-                    <a href="tel:+919895204224" class="text-slate-900 hover:text-[#0052FF] transition">
-                        +91 9895 204 224
+                    <a href="tel:+918089612287" class="text-slate-900 hover:text-[#0052FF] transition flex items-center gap-1.5">
+                        <span class="text-emerald-600">●</span> +91 80896 12287
                     </a>
-                    <a href="https://wa.me/919895204224" target="_blank" rel="noopener noreferrer" class="text-emerald-600 hover:underline text-[11px] flex items-center gap-1">
-                        <span>Chat on WhatsApp</span> ➔
+                    <a href="tel:+919895204224" class="text-slate-600 hover:text-[#0052FF] transition flex items-center gap-1.5 text-[11px]">
+                        <span>●</span> +91 9895 204 224
                     </a>
+                    <div class="pt-1 flex flex-col gap-1 text-[11px]">
+                        <a href="https://wa.me/918089612287" target="_blank" rel="noopener noreferrer" class="text-emerald-600 hover:underline flex items-center gap-1">
+                            <span>Chat on WhatsApp (8089612287)</span> ➔
+                        </a>
+                        <a href="https://wa.me/919895204224" target="_blank" rel="noopener noreferrer" class="text-slate-500 hover:text-emerald-600 hover:underline flex items-center gap-1">
+                            <span>WhatsApp (9895204224)</span> ➔
+                        </a>
+                    </div>
                 </div>
             </div>
 
@@ -112,7 +120,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">Phone Number / WhatsApp</label>
-                        <input type="tel" placeholder="+91 98952 04224" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-hidden focus:border-[#0052FF] text-xs">
+                        <input type="tel" placeholder="+91 80896 12287 / +91 98952 04224" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-hidden focus:border-[#0052FF] text-xs">
                     </div>
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">Topic</label>
