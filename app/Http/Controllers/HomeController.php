@@ -27,6 +27,7 @@ class HomeController extends Controller
         $firstMixedSession = Session::where('is_active', true)
             ->where('in_general_stream', true)
             ->orderBy('general_stream_order', 'asc')
+            ->orderBy('id', 'asc')
             ->first();
 
         // Top 3 live leaderboard for the quick-access card

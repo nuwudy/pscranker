@@ -99,9 +99,20 @@
                         <template x-for="(item, idx) in trainList" :key="item.id">
                             <div class="p-3.5 rounded-2xl border-2 border-slate-200 bg-slate-50/70 hover:border-[#0052FF] hover:bg-white transition-all flex items-center justify-between gap-3 group">
                                 <div class="flex items-start gap-3 min-w-0">
-                                    <!-- Step Number Pill -->
-                                    <div class="w-8 h-8 rounded-xl bg-[#0052FF] text-white flex items-center justify-center font-black text-xs shrink-0 shadow-xs mt-0.5">
-                                        <span x-text="'#' + (idx + 1)"></span>
+                                    <!-- Step Number Badge with Direct Input -->
+                                    <div class="flex flex-col items-center gap-1 shrink-0 mt-0.5">
+                                        <div class="relative group/step">
+                                            <input 
+                                                type="number" 
+                                                :value="idx + 1"
+                                                @change="changeStepDirect(idx, parseInt($event.target.value))"
+                                                min="1"
+                                                :max="trainList.length"
+                                                class="w-11 h-8 rounded-xl bg-[#0052FF] text-white text-center font-black text-xs shadow-xs focus:ring-2 focus:ring-yellow-400 focus:bg-blue-700 outline-none cursor-pointer"
+                                                title="Step number in mixed practice train. Type any number (e.g. 1) to jump directly."
+                                            >
+                                        </div>
+                                        <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">Step</span>
                                     </div>
 
                                     <div class="min-w-0">
@@ -125,14 +136,23 @@
                                     </div>
                                 </div>
 
-                                <!-- Action Buttons: Move Up, Down, Remove -->
+                                <!-- Action Buttons: Move to Top, Move Up, Down, Edit, Remove -->
                                 <div class="flex items-center gap-1 shrink-0">
+                                    <button 
+                                        type="button" 
+                                        @click="changeStepDirect(idx, 1)" 
+                                        x-show="idx > 0"
+                                        class="px-2 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#0052FF] border border-blue-200 text-[10px] font-black transition cursor-pointer"
+                                        title="Move to Step #1 (Front of Mixed Practice Train)"
+                                    >
+                                        Top #1
+                                    </button>
                                     <button 
                                         type="button" 
                                         @click="moveStep(idx, -1)" 
                                         :disabled="idx === 0"
-                                        class="w-7 h-7 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center font-black text-xs transition"
-                                        title="Move Up"
+                                        class="w-7 h-7 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center font-black text-xs transition cursor-pointer"
+                                        title="Move Up 1 Step"
                                     >
                                         ▲
                                     </button>
@@ -140,15 +160,23 @@
                                         type="button" 
                                         @click="moveStep(idx, 1)" 
                                         :disabled="idx === trainList.length - 1"
-                                        class="w-7 h-7 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center font-black text-xs transition"
-                                        title="Move Down"
+                                        class="w-7 h-7 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center font-black text-xs transition cursor-pointer"
+                                        title="Move Down 1 Step"
                                     >
                                         ▼
                                     </button>
+                                    <a 
+                                        :href="'/admin/sessions/' + item.id + '/edit'" 
+                                        target="_blank"
+                                        class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-black text-xs transition ml-0.5"
+                                        title="Edit Session in New Tab"
+                                    >
+                                        ✏️
+                                    </a>
                                     <button 
                                         type="button" 
                                         @click="toggleSession(item.id)" 
-                                        class="w-7 h-7 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 flex items-center justify-center font-black text-xs transition ml-1"
+                                        class="w-7 h-7 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 flex items-center justify-center font-black text-xs transition ml-0.5 cursor-pointer"
                                         title="Remove from Train"
                                     >
                                         ✕
@@ -380,12 +408,25 @@ function mixedTrainConcocter(config) {
             const targetIndex = currentIndex + direction;
             if (targetIndex < 0 || targetIndex >= this.trainList.length) return;
 
-            // Swap in local array
-            const temp = this.trainList[currentIndex];
-            this.trainList[currentIndex] = this.trainList[targetIndex];
-            this.trainList[targetIndex] = temp;
+            const [item] = this.trainList.splice(currentIndex, 1);
+            this.trainList.splice(targetIndex, 0, item);
 
-            // Save to server
+            await this.saveOrderToServer();
+        },
+
+        async changeStepDirect(currentIndex, newStepNumber) {
+            if (isNaN(newStepNumber) || newStepNumber < 1) newStepNumber = 1;
+            if (newStepNumber > this.trainList.length) newStepNumber = this.trainList.length;
+            const targetIndex = newStepNumber - 1;
+            if (targetIndex === currentIndex) return;
+
+            const [item] = this.trainList.splice(currentIndex, 1);
+            this.trainList.splice(targetIndex, 0, item);
+
+            await this.saveOrderToServer();
+        },
+
+        async saveOrderToServer() {
             const orderedIds = this.trainList.map(s => s.id);
             try {
                 const response = await fetch(this.reorderUrl, {
@@ -398,8 +439,8 @@ function mixedTrainConcocter(config) {
                     body: JSON.stringify({ ordered_ids: orderedIds })
                 });
                 const data = await response.json();
-                if (data.success) {
-                    this.trainList = data.mixedTrain || [];
+                if (data.success && data.mixedTrain) {
+                    this.trainList = data.mixedTrain;
                 }
             } catch (err) {
                 console.error('Reorder error:', err);

@@ -25,12 +25,14 @@ class SessionController extends Controller
             ->where('is_active', true)
             ->where('in_general_stream', true)
             ->orderBy('general_stream_order', 'asc')
+            ->orderBy('id', 'asc')
             ->get();
 
         $featuredSession = $generalSessions->first()
             ?? Session::with(['category', 'contents', 'questions'])
                 ->where('is_active', true)
                 ->orderBy('order', 'asc')
+                ->orderBy('id', 'asc')
                 ->first();
 
         $activeTab = $request->query('subject') 

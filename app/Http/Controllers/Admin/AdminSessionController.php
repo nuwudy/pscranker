@@ -32,12 +32,16 @@ class AdminSessionController extends Controller
      */
     public function mixedPractice(Request $request)
     {
+        // Normalize any gaps or legacy duplicate order entries
+        $this->normalizeMixedTrainOrder();
+
         $categories = Category::orderBy('order')->get();
 
         // Active mixed practice train ordered by sequence
         $mixedTrain = Session::with(['category'])
             ->where('in_general_stream', true)
             ->orderBy('general_stream_order', 'asc')
+            ->orderBy('id', 'asc')
             ->get();
 
         // All subject sessions with recently added first
@@ -91,6 +95,28 @@ class AdminSessionController extends Controller
      */
     public function reorderMixedPractice(Request $request)
     {
+        // 1. Direct single session order update (session_id + target_order)
+        if ($request->filled('session_id') && $request->filled('target_order')) {
+            $request->validate([
+                'session_id' => 'required|exists:learning_sessions,id',
+                'target_order' => 'required|integer|min:1',
+            ]);
+
+            $session = Session::findOrFail($request->input('session_id'));
+            $this->setSessionTrainOrder($session, (int)$request->input('target_order'), $session->general_stream_order);
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "Moved '{$session->title}' to Train Step #{$session->fresh()->general_stream_order}.",
+                    'mixedTrain' => Session::with(['category'])->where('in_general_stream', true)->orderBy('general_stream_order')->orderBy('id')->get(),
+                ]);
+            }
+
+            return back()->with('success', "Moved '{$session->title}' to Train Step #{$session->fresh()->general_stream_order}.");
+        }
+
+        // 2. Full array reorder (ordered_ids)
         $request->validate([
             'ordered_ids' => 'required|array',
             'ordered_ids.*' => 'exists:learning_sessions,id',
@@ -106,7 +132,7 @@ class AdminSessionController extends Controller
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'mixedTrain' => Session::with(['category'])->where('in_general_stream', true)->orderBy('general_stream_order')->get(),
+                'mixedTrain' => Session::with(['category'])->where('in_general_stream', true)->orderBy('general_stream_order')->orderBy('id')->get(),
             ]);
         }
 
@@ -114,17 +140,124 @@ class AdminSessionController extends Controller
     }
 
     /**
-     * Normalize general stream order sequence so there are no gaps.
+     * Place a session at a specific train order, shifting colliding sessions.
      */
-    protected function normalizeMixedTrainOrder(): void
+    public function setSessionTrainOrder(Session $targetSession, ?int $desiredOrder, ?int $oldOrder = null): void
+    {
+        if (!$targetSession->in_general_stream || $desiredOrder === null || $desiredOrder <= 0) {
+            $targetSession->in_general_stream = false;
+            $targetSession->general_stream_order = null;
+            $targetSession->save();
+            return;
+        }
+
+        $desiredOrder = (int)$desiredOrder;
+
+        if ($oldOrder !== null && $oldOrder > 0) {
+            if ($desiredOrder < $oldOrder) {
+                // Moving up: shift items in [$desiredOrder, $oldOrder - 1] up (+1)
+                Session::where('in_general_stream', true)
+                    ->where('id', '!=', $targetSession->id)
+                    ->where('general_stream_order', '>=', $desiredOrder)
+                    ->where('general_stream_order', '<', $oldOrder)
+                    ->increment('general_stream_order');
+            } elseif ($desiredOrder > $oldOrder) {
+                // Moving down: shift items in [$oldOrder + 1, $desiredOrder] down (-1)
+                Session::where('in_general_stream', true)
+                    ->where('id', '!=', $targetSession->id)
+                    ->where('general_stream_order', '>', $oldOrder)
+                    ->where('general_stream_order', '<=', $desiredOrder)
+                    ->decrement('general_stream_order');
+            }
+        } else {
+            // Newly placed into train: shift existing items >= $desiredOrder up (+1)
+            Session::where('in_general_stream', true)
+                ->where('id', '!=', $targetSession->id)
+                ->where('general_stream_order', '>=', $desiredOrder)
+                ->increment('general_stream_order');
+        }
+
+        $targetSession->in_general_stream = true;
+        $targetSession->general_stream_order = $desiredOrder;
+        $targetSession->save();
+    }
+
+    /**
+     * Place a session at a specific category/subject unit order, shifting colliding sessions.
+     */
+    public function setSessionCategoryOrder(Session $targetSession, ?int $categoryId, ?int $desiredOrder, ?int $oldOrder = null, ?int $oldCategoryId = null): void
+    {
+        if ($desiredOrder === null || $desiredOrder <= 0) {
+            return;
+        }
+
+        $desiredOrder = (int)$desiredOrder;
+
+        $query = Session::where('id', '!=', $targetSession->id);
+        if ($categoryId) {
+            $query->where('category_id', $categoryId);
+        } else {
+            $query->whereNull('category_id');
+        }
+
+        if ($oldCategoryId == $categoryId && $oldOrder !== null && $oldOrder > 0) {
+            if ($desiredOrder < $oldOrder) {
+                (clone $query)->where('order', '>=', $desiredOrder)
+                    ->where('order', '<', $oldOrder)
+                    ->increment('order');
+            } elseif ($desiredOrder > $oldOrder) {
+                (clone $query)->where('order', '>', $oldOrder)
+                    ->where('order', '<=', $desiredOrder)
+                    ->decrement('order');
+            }
+        } else {
+            (clone $query)->where('order', '>=', $desiredOrder)
+                ->increment('order');
+        }
+
+        $targetSession->order = $desiredOrder;
+        $targetSession->save();
+    }
+
+    /**
+     * Normalize general stream order sequence so there are no gaps or duplicates.
+     */
+    public function normalizeMixedTrainOrder(): void
     {
         $sessions = Session::where('in_general_stream', true)
             ->orderBy('general_stream_order', 'asc')
+            ->orderBy('id', 'asc')
             ->get();
 
         foreach ($sessions as $index => $s) {
-            if ($s->general_stream_order !== ($index + 1)) {
-                $s->general_stream_order = $index + 1;
+            $expected = $index + 1;
+            if ($s->general_stream_order !== $expected) {
+                $s->general_stream_order = $expected;
+                $s->save();
+            }
+        }
+    }
+
+    /**
+     * Normalize subject unit orders within a category so there are no gaps or duplicates.
+     */
+    public function normalizeCategoryOrder(?int $categoryId): void
+    {
+        $query = Session::query();
+        if ($categoryId) {
+            $query->where('category_id', $categoryId);
+        } else {
+            $query->whereNull('category_id');
+        }
+
+        $sessions = $query->orderBy('order', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
+
+        foreach ($sessions as $index => $s) {
+            $expected = $index + 1;
+            if ($s->order !== $expected) {
+                $s->order = $expected;
                 $s->save();
             }
         }
@@ -272,12 +405,22 @@ class AdminSessionController extends Controller
             'custom_html' => $creationMode === 'code' ? $request->input('custom_html') : null,
         ]);
 
+        // Place and re-sequence category order & train order cleanly without collision
+        $this->setSessionCategoryOrder($session, $categoryId, $order);
+        if ($inGeneralStream) {
+            $this->setSessionTrainOrder($session, $generalStreamOrder);
+        } else {
+            $session->update(['in_general_stream' => false, 'general_stream_order' => null]);
+            $this->normalizeMixedTrainOrder();
+        }
+
         if ($creationMode === 'manual') {
             $this->syncContentsAndQuestions($session, $request);
         }
 
+        $fresh = $session->fresh();
         return redirect()->route('admin.sessions.edit', $session)
-            ->with('success', "Learning Session created successfully! (Unit #{$order} in subject, Train Step #{$session->fresh()->general_stream_order})");
+            ->with('success', "Learning Session created successfully! (Unit #{$fresh->order} in subject, Train Step #" . ($fresh->general_stream_order ?? 'N/A') . ")");
     }
 
     /**
@@ -384,6 +527,10 @@ class AdminSessionController extends Controller
             ]);
         }
 
+        $oldCategoryId = $session->category_id;
+        $oldSubjectOrder = $session->order;
+        $oldTrainOrder = $session->in_general_stream ? $session->general_stream_order : null;
+
         $categoryId = $validated['category_id'] ?? null;
         $order = ($request->filled('order') && (int)$request->input('order') > 0)
             ? (int)$request->input('order')
@@ -419,12 +566,27 @@ class AdminSessionController extends Controller
             'custom_html' => $creationMode === 'code' ? $request->input('custom_html') : $session->custom_html,
         ]);
 
+        // Re-sequence subject category order
+        if ($oldCategoryId && $oldCategoryId != $categoryId) {
+            $this->normalizeCategoryOrder($oldCategoryId);
+        }
+        $this->setSessionCategoryOrder($session, $categoryId, $order, $oldSubjectOrder, $oldCategoryId);
+
+        // Re-sequence general mixed practice train order
+        if ($inGeneralStream) {
+            $this->setSessionTrainOrder($session, $generalStreamOrder, $oldTrainOrder);
+        } else {
+            $session->update(['in_general_stream' => false, 'general_stream_order' => null]);
+            $this->normalizeMixedTrainOrder();
+        }
+
         if ($creationMode === 'manual') {
             $this->syncContentsAndQuestions($session, $request);
         }
 
+        $fresh = $session->fresh();
         return redirect()->route('admin.sessions.edit', $session)
-            ->with('success', 'Session updated successfully!');
+            ->with('success', "Session updated successfully! (Unit #{$fresh->order} in subject, Train Step #" . ($fresh->general_stream_order ?? 'N/A') . ")");
     }
 
     /**
@@ -432,6 +594,7 @@ class AdminSessionController extends Controller
      */
     public function destroy(Session $session)
     {
+        $categoryId = $session->category_id;
         $sessionTitle = $session->title;
         $session->contents()->delete();
         $session->questions()->delete();
@@ -439,6 +602,7 @@ class AdminSessionController extends Controller
         $session->delete();
 
         $this->normalizeMixedTrainOrder();
+        $this->normalizeCategoryOrder($categoryId);
 
         return redirect()->route('admin.sessions.index')
             ->with('success', "Session '{$sessionTitle}' was deleted successfully.");

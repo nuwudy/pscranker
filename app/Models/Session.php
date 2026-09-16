@@ -129,6 +129,7 @@ class Session extends Model
                 ->where('in_general_stream', true)
                 ->where('general_stream_order', '<', $this->general_stream_order ?? 999999)
                 ->orderBy('general_stream_order', 'desc')
+                ->orderBy('id', 'desc')
                 ->first();
             if ($prev) {
                 return $prev;
@@ -143,10 +144,12 @@ class Session extends Model
             })
             ->where('order', '<', $this->order)
             ->orderBy('order', 'desc')
+            ->orderBy('id', 'desc')
             ->first() 
             ?? self::where('is_active', true)
                 ->where('order', '<', $this->order)
                 ->orderBy('order', 'desc')
+                ->orderBy('id', 'desc')
                 ->first();
     }
 
@@ -157,6 +160,7 @@ class Session extends Model
                 ->where('in_general_stream', true)
                 ->where('general_stream_order', '>', $this->general_stream_order ?? 0)
                 ->orderBy('general_stream_order', 'asc')
+                ->orderBy('id', 'asc')
                 ->first();
             if ($next) {
                 return $next;
@@ -171,10 +175,12 @@ class Session extends Model
             })
             ->where('order', '>', $this->order)
             ->orderBy('order', 'asc')
+            ->orderBy('id', 'asc')
             ->first()
             ?? self::where('is_active', true)
                 ->where('order', '>', $this->order)
                 ->orderBy('order', 'asc')
+                ->orderBy('id', 'asc')
                 ->first();
     }
 

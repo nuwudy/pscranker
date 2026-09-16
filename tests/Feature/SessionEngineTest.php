@@ -742,6 +742,147 @@ test('new session automatically gets appended to mixed practice train with seque
     expect($session->general_stream_order)->toBe($currentMaxTrain + 1);
 });
 
+test('admin can explicitly change train order of a session and all other train sessions shift without collision', function () {
+    $admin = User::factory()->create(['email' => 'admin-reorder-ctrl@pscranker.com']);
+    $category = Category::firstOrCreate(['slug' => 'gk-train'], ['name' => 'General Knowledge', 'order' => 1]);
+
+    $this->actingAs($admin);
+
+    Session::query()->update(['in_general_stream' => false]);
+
+    // Create 3 sessions
+    $s1 = Session::create([
+        'title' => 'Original Step 1',
+        'slug' => 'original-step-1',
+        'category_id' => $category->id,
+        'order' => 1,
+        'in_general_stream' => true,
+        'general_stream_order' => 1,
+        'xp_reward' => 200,
+        'is_active' => true,
+    ]);
+
+    $s2 = Session::create([
+        'title' => 'Original Step 2',
+        'slug' => 'original-step-2',
+        'category_id' => $category->id,
+        'order' => 2,
+        'in_general_stream' => true,
+        'general_stream_order' => 2,
+        'xp_reward' => 200,
+        'is_active' => true,
+    ]);
+
+    $s3 = Session::create([
+        'title' => 'Original Step 3 (Wants to be first)',
+        'slug' => 'original-step-3-first',
+        'category_id' => $category->id,
+        'order' => 3,
+        'in_general_stream' => true,
+        'general_stream_order' => 3,
+        'xp_reward' => 200,
+        'is_active' => true,
+    ]);
+
+    // Admin edits s3 and sets general_stream_order = 1
+    $updateRes = $this->put(route('admin.sessions.update', $s3), [
+        'title' => 'Step 3 Promoted to Step 1',
+        'slug' => 'original-step-3-first',
+        'category_id' => $category->id,
+        'order' => 3,
+        'in_general_stream' => 1,
+        'general_stream_order' => 1,
+        'xp_reward' => 200,
+        'is_active' => 1,
+        'creation_mode' => 'code',
+    ]);
+    $updateRes->assertRedirect();
+
+    $s1->refresh();
+    $s2->refresh();
+    $s3->refresh();
+
+    // Verify s3 is now Step 1, s1 shifted to Step 2, s2 shifted to Step 3
+    expect($s3->general_stream_order)->toBe(1);
+    expect($s1->general_stream_order)->toBe(2);
+    expect($s2->general_stream_order)->toBe(3);
+
+    // Verify runner navigation for the general stream follows this new order:
+    // Next unit after s3 is s1, and next unit after s1 is s2
+    $nextAfterS3 = $s3->getNextSession('general');
+    expect($nextAfterS3)->not->toBeNull();
+    expect($nextAfterS3->id)->toBe($s1->id);
+
+    $nextAfterS1 = $s1->getNextSession('general');
+    expect($nextAfterS1)->not->toBeNull();
+    expect($nextAfterS1->id)->toBe($s2->id);
+
+    // Verify homepage launches s3 as Step 1
+    $firstMixed = Session::where('is_active', true)
+        ->where('in_general_stream', true)
+        ->orderBy('general_stream_order', 'asc')
+        ->orderBy('id', 'asc')
+        ->first();
+    expect($firstMixed->id)->toBe($s3->id);
+});
+
+test('admin can directly reposition a session in mixed practice studio via single session API', function () {
+    $admin = User::factory()->create(['email' => 'admin-studio-reorder@pscranker.com']);
+    $category = Category::firstOrCreate(['slug' => 'science-studio'], ['name' => 'Science', 'order' => 1]);
+
+    $this->actingAs($admin);
+
+    $unitA = Session::create([
+        'title' => 'Studio Unit A',
+        'slug' => 'studio-unit-a',
+        'category_id' => $category->id,
+        'order' => 1,
+        'in_general_stream' => true,
+        'general_stream_order' => 1,
+        'xp_reward' => 200,
+        'is_active' => true,
+    ]);
+
+    $unitB = Session::create([
+        'title' => 'Studio Unit B',
+        'slug' => 'studio-unit-b',
+        'category_id' => $category->id,
+        'order' => 2,
+        'in_general_stream' => true,
+        'general_stream_order' => 2,
+        'xp_reward' => 200,
+        'is_active' => true,
+    ]);
+
+    $unitC = Session::create([
+        'title' => 'Studio Unit C',
+        'slug' => 'studio-unit-c',
+        'category_id' => $category->id,
+        'order' => 3,
+        'in_general_stream' => true,
+        'general_stream_order' => 3,
+        'xp_reward' => 200,
+        'is_active' => true,
+    ]);
+
+    // Move unit C directly to position 1
+    $res = $this->postJson(route('admin.mixed-practice.reorder'), [
+        'session_id' => $unitC->id,
+        'target_order' => 1,
+    ]);
+    $res->assertStatus(200);
+    $res->assertJson(['success' => true]);
+
+    $unitA->refresh();
+    $unitB->refresh();
+    $unitC->refresh();
+
+    expect($unitC->general_stream_order)->toBe(1);
+    expect($unitA->general_stream_order)->toBe(2);
+    expect($unitB->general_stream_order)->toBe(3);
+});
+
+
 
 
 

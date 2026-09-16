@@ -515,25 +515,30 @@
                                 </div>
                             </div>
 
-                            <div class="flex items-center gap-2 shrink-0" x-show="inGeneralStream">
-                                <label for="general_stream_order" class="text-xs font-bold text-blue-900 whitespace-nowrap">Train Step #:</label>
-                                <input 
-                                    type="number" 
-                                    id="general_stream_order" 
-                                    name="general_stream_order" 
-                                    x-model="generalStreamOrder"
-                                    min="1"
-                                    placeholder="Auto"
-                                    class="w-20 px-3 py-1.5 text-xs font-black rounded-lg border border-blue-300 bg-white focus:border-[#0052FF] focus:outline-none text-center"
-                                >
-                                <button 
-                                    type="button" 
-                                    @click="generalStreamOrder = nextTrainOrder" 
-                                    class="px-2 py-1.5 bg-white hover:bg-blue-100 border border-blue-300 text-blue-700 text-[10px] font-bold rounded-md transition cursor-pointer"
-                                    title="Reset to next available train step"
-                                >
-                                    Auto Next
-                                </button>
+                            <div class="flex flex-col sm:flex-row sm:items-center gap-2 shrink-0" x-show="inGeneralStream">
+                                <div class="flex items-center gap-2">
+                                    <label for="general_stream_order" class="text-xs font-bold text-blue-900 whitespace-nowrap">Train Step #:</label>
+                                    <input 
+                                        type="number" 
+                                        id="general_stream_order" 
+                                        name="general_stream_order" 
+                                        x-model="generalStreamOrder"
+                                        min="1"
+                                        placeholder="Auto"
+                                        class="w-20 px-3 py-1.5 text-xs font-black rounded-lg border border-blue-300 bg-white focus:border-[#0052FF] focus:outline-none text-center"
+                                    >
+                                    <button 
+                                        type="button" 
+                                        @click="generalStreamOrder = nextTrainOrder" 
+                                        class="px-2 py-1.5 bg-white hover:bg-blue-100 border border-blue-300 text-blue-700 text-[10px] font-bold rounded-md transition cursor-pointer"
+                                        title="Reset to next available train step"
+                                    >
+                                        Auto Next
+                                    </button>
+                                </div>
+                                <span class="text-[10px] text-blue-600 font-bold block sm:inline">
+                                    (e.g. enter <strong>1</strong> for first unit; other train units shift automatically)
+                                </span>
                             </div>
                         </div>
                     </div>
