@@ -12,6 +12,7 @@
         creationMode: @js(old('creation_mode', $session->creation_mode ?? 'manual')),
         customHtml: @js(old('custom_html', $session->custom_html ?? '')),
         featureImage: @js(old('feature_image', $session->feature_image ?? '')),
+        featureVideo: @js(old('feature_video', $session->feature_video ?? '')),
         categoryId: @js(old('category_id', $session->category_id ?? (request('category_id') ?? ''))),
         nextOrdersByCategory: @js($nextOrdersByCategory ?? []),
         defaultNextOrder: @js($defaultNextOrder ?? 1),
@@ -153,90 +154,222 @@
                         </select>
                     </div>
 
-                    <!-- Featured Image Field (spans both columns) -->
-                    <div class="sm:col-span-2 pt-3 border-t border-slate-100">
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                    <!-- Featured Media Section (Video / Image) -->
+                    <div class="sm:col-span-2 pt-4 pb-2 border-t border-slate-100">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
                             <div>
-                                <label class="block text-xs font-black text-slate-800 uppercase tracking-wide">
-                                    Featured Image (കവർ ചിത്രം / Poster Image)
+                                <label class="block text-xs font-black text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
+                                    <span>Featured Media (കവർ ചിത്രം / ഫീച്ചർ വീഡിയോ)</span>
                                 </label>
                                 <p class="text-[11px] text-slate-500 font-medium">
                                     Appears prominently above the lesson in both <strong>Manual Builder (Phase 2)</strong> and <strong>Custom Code (HTML)</strong> capsules.
                                 </p>
                             </div>
-                            
-                            <!-- Action Buttons -->
-                            <div class="flex items-center gap-2 shrink-0">
+
+                            <!-- Media Type Selector Tabs -->
+                            <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl shrink-0 self-start sm:self-auto">
                                 <button 
                                     type="button" 
-                                    @click="openMediaPicker('feature_image', 'image')" 
-                                    class="px-2.5 py-1.5 bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 text-xs font-bold rounded-lg transition flex items-center gap-1 cursor-pointer"
+                                    @click="featureMediaTab = 'video'" 
+                                    :class="featureMediaTab === 'video' ? 'bg-white text-blue-700 shadow-xs font-black' : 'text-slate-600 hover:text-slate-900 font-bold'"
+                                    class="px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1.5 cursor-pointer"
                                 >
-                                    <span>🖼️ Choose from Media Library</span>
+                                    <span>🎥 Feature Video</span>
+                                    <span x-show="featureVideo" class="w-2 h-2 rounded-full bg-emerald-500" title="Video attached"></span>
                                 </button>
-                                
-                                <label class="cursor-pointer px-2.5 py-1.5 bg-blue-50 text-[#0052FF] hover:bg-blue-100 border border-blue-200 text-xs font-bold rounded-lg transition flex items-center gap-1">
-                                    <span x-show="!isUploadingFeatureImage">⬆️ Upload Image</span>
-                                    <span x-show="isUploadingFeatureImage" class="flex items-center gap-1">
-                                        <span class="w-3 h-3 border-2 border-blue-600 border-t-yellow-400 rounded-full animate-spin"></span>
-                                        <span>Uploading...</span>
-                                    </span>
-                                    <input 
-                                        type="file" 
-                                        class="hidden" 
-                                        accept="image/*"
-                                        :disabled="isUploadingFeatureImage"
-                                        @change="uploadFeatureImageDirect($event)"
-                                    >
-                                </label>
+                                <button 
+                                    type="button" 
+                                    @click="featureMediaTab = 'image'" 
+                                    :class="featureMediaTab === 'image' ? 'bg-white text-blue-700 shadow-xs font-black' : 'text-slate-600 hover:text-slate-900 font-bold'"
+                                    class="px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1.5 cursor-pointer"
+                                >
+                                    <span>🖼️ Feature Image</span>
+                                    <span x-show="featureImage" class="w-2 h-2 rounded-full bg-emerald-500" title="Image attached"></span>
+                                </button>
                             </div>
                         </div>
 
-                        <!-- Image URL Input -->
-                        <div class="flex items-center gap-2">
-                            <input 
-                                type="text" 
-                                name="feature_image" 
-                                x-model="featureImage" 
-                                placeholder="Paste image URL (e.g. https://... or /storage/media/images/photo.png)" 
-                                class="w-full px-3 py-2 text-xs font-mono rounded-lg border border-slate-300 focus:border-[#0052FF] focus:outline-none"
-                            >
-                            <button 
-                                type="button" 
-                                x-show="featureImage" 
-                                @click="featureImage = ''" 
-                                class="px-3 py-2 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 text-xs font-bold rounded-lg transition shrink-0 cursor-pointer"
-                                title="Remove Image"
-                            >
-                                ✕ Clear
-                            </button>
-                        </div>
-
-                        <!-- Live Featured Image Preview -->
-                        <template x-if="featureImage">
-                            <div class="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-4">
-                                <div class="w-24 h-20 sm:w-32 sm:h-24 rounded-lg overflow-hidden border border-slate-300 bg-white shrink-0 shadow-xs flex items-center justify-center">
-                                    <img :src="featureImage" alt="Feature Image Preview" class="w-full h-full object-cover">
-                                </div>
-                                <div class="flex-grow min-w-0">
-                                    <div class="flex items-center gap-1.5 mb-1">
-                                        <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-100 text-emerald-800">
-                                            Active Cover Banner
-                                        </span>
-                                        <span class="text-slate-400 text-xs">•</span>
-                                        <span class="text-xs text-slate-600 font-bold truncate">Will be displayed above the lesson</span>
-                                    </div>
-                                    <p class="text-[11px] font-mono text-slate-500 truncate" x-text="featureImage"></p>
+                        <!-- 1. FEATURE VIDEO PANEL -->
+                        <div x-show="featureMediaTab === 'video'" class="bg-blue-50/40 p-3.5 rounded-2xl border border-blue-100/80">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                                <span class="text-xs font-bold text-slate-700 flex items-center gap-1">
+                                    <span>🎥 Video Source (YouTube / Vimeo / MP4)</span>
+                                </span>
+                                <div class="flex items-center gap-2 shrink-0">
                                     <button 
                                         type="button" 
-                                        @click="featureImage = ''" 
-                                        class="mt-2 text-[11px] font-bold text-red-600 hover:text-red-800 hover:underline cursor-pointer"
+                                        @click="openMediaPicker('feature_video', 'video')" 
+                                        class="px-2.5 py-1.5 bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 text-xs font-bold rounded-lg transition flex items-center gap-1 cursor-pointer"
                                     >
-                                        ✕ Remove Image
+                                        <span>📂 Choose from Media Library</span>
                                     </button>
+                                    
+                                    <label class="cursor-pointer px-2.5 py-1.5 bg-blue-50 text-[#0052FF] hover:bg-blue-100 border border-blue-200 text-xs font-bold rounded-lg transition flex items-center gap-1">
+                                        <span x-show="!isUploadingFeatureVideo">⬆️ Upload Video</span>
+                                        <span x-show="isUploadingFeatureVideo" class="flex items-center gap-1">
+                                            <span class="w-3 h-3 border-2 border-blue-600 border-t-yellow-400 rounded-full animate-spin"></span>
+                                            <span>Uploading...</span>
+                                        </span>
+                                        <input 
+                                            type="file" 
+                                            class="hidden" 
+                                            accept="video/*"
+                                            :disabled="isUploadingFeatureVideo"
+                                            @change="uploadFeatureVideoDirect($event)"
+                                        >
+                                    </label>
                                 </div>
                             </div>
-                        </template>
+
+                            <div class="flex items-center gap-2">
+                                <input 
+                                    type="text" 
+                                    name="feature_video" 
+                                    x-model="featureVideo" 
+                                    placeholder="Paste YouTube (e.g. https://youtu.be/... or watch?v=...), Vimeo, or MP4 URL" 
+                                    class="w-full px-3 py-2 text-xs font-mono rounded-lg border border-slate-300 focus:border-[#0052FF] focus:outline-none bg-white"
+                                >
+                                <button 
+                                    type="button" 
+                                    x-show="featureVideo" 
+                                    @click="featureVideo = ''" 
+                                    class="px-3 py-2 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 text-xs font-bold rounded-lg transition shrink-0 cursor-pointer"
+                                    title="Remove Video"
+                                >
+                                    ✕ Clear
+                                </button>
+                            </div>
+
+                            <!-- Live Featured Video Preview -->
+                            <template x-if="featureVideo">
+                                <div class="mt-3 p-3 bg-white border border-slate-200 rounded-xl">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-100 text-emerald-800">
+                                                Active Feature Video
+                                            </span>
+                                            <span class="text-slate-400 text-xs">•</span>
+                                            <span class="text-xs text-slate-600 font-bold">Appears right above lesson capsule</span>
+                                        </div>
+                                        <button 
+                                            type="button" 
+                                            @click="featureVideo = ''" 
+                                            class="text-[11px] font-bold text-red-600 hover:text-red-800 hover:underline cursor-pointer"
+                                        >
+                                            ✕ Remove Video
+                                        </button>
+                                    </div>
+
+                                    <!-- Embed Preview (YouTube / Vimeo) -->
+                                    <template x-if="isFeatureVideoEmbed()">
+                                        <div class="w-full aspect-video max-w-xl mx-auto rounded-xl overflow-hidden border border-slate-200 bg-black">
+                                            <iframe 
+                                                :src="getFeatureVideoEmbedUrl()" 
+                                                class="w-full h-full" 
+                                                frameborder="0" 
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                                allowfullscreen
+                                            ></iframe>
+                                        </div>
+                                    </template>
+
+                                    <!-- Direct HTML5 Video Preview -->
+                                    <template x-if="!isFeatureVideoEmbed()">
+                                        <div class="w-full aspect-video max-w-xl mx-auto rounded-xl overflow-hidden border border-slate-200 bg-black flex items-center justify-center">
+                                            <video 
+                                                controls 
+                                                playsinline 
+                                                :src="featureVideo" 
+                                                :poster="featureImage"
+                                                class="w-full h-full object-contain"
+                                            >
+                                                Your browser does not support HTML5 video.
+                                            </video>
+                                        </div>
+                                    </template>
+
+                                    <p class="text-[11px] font-mono text-slate-500 mt-2 truncate text-center" x-text="featureVideo"></p>
+                                </div>
+                            </template>
+                        </div>
+
+                        <!-- 2. FEATURE IMAGE PANEL -->
+                        <div x-show="featureMediaTab === 'image'" class="bg-purple-50/40 p-3.5 rounded-2xl border border-purple-100/80">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                                <span class="text-xs font-bold text-slate-700 flex items-center gap-1">
+                                    <span>🖼️ Image / Video Poster Source</span>
+                                </span>
+                                <div class="flex items-center gap-2 shrink-0">
+                                    <button 
+                                        type="button" 
+                                        @click="openMediaPicker('feature_image', 'image')" 
+                                        class="px-2.5 py-1.5 bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 text-xs font-bold rounded-lg transition flex items-center gap-1 cursor-pointer"
+                                    >
+                                        <span>📂 Choose from Media Library</span>
+                                    </button>
+                                    
+                                    <label class="cursor-pointer px-2.5 py-1.5 bg-blue-50 text-[#0052FF] hover:bg-blue-100 border border-blue-200 text-xs font-bold rounded-lg transition flex items-center gap-1">
+                                        <span x-show="!isUploadingFeatureImage">⬆️ Upload Image</span>
+                                        <span x-show="isUploadingFeatureImage" class="flex items-center gap-1">
+                                            <span class="w-3 h-3 border-2 border-blue-600 border-t-yellow-400 rounded-full animate-spin"></span>
+                                            <span>Uploading...</span>
+                                        </span>
+                                        <input 
+                                            type="file" 
+                                            class="hidden" 
+                                            accept="image/*"
+                                            :disabled="isUploadingFeatureImage"
+                                            @change="uploadFeatureImageDirect($event)"
+                                        >
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <input 
+                                    type="text" 
+                                    name="feature_image" 
+                                    x-model="featureImage" 
+                                    placeholder="Paste image URL (e.g. https://... or /storage/media/images/photo.png)" 
+                                    class="w-full px-3 py-2 text-xs font-mono rounded-lg border border-slate-300 focus:border-[#0052FF] focus:outline-none bg-white"
+                                >
+                                <button 
+                                    type="button" 
+                                    x-show="featureImage" 
+                                    @click="featureImage = ''" 
+                                    class="px-3 py-2 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 text-xs font-bold rounded-lg transition shrink-0 cursor-pointer"
+                                    title="Remove Image"
+                                >
+                                    ✕ Clear
+                                </button>
+                            </div>
+
+                            <!-- Live Featured Image Preview -->
+                            <template x-if="featureImage">
+                                <div class="mt-3 p-3 bg-white border border-slate-200 rounded-xl flex items-center gap-4">
+                                    <div class="w-24 h-20 sm:w-32 sm:h-24 rounded-lg overflow-hidden border border-slate-300 bg-white shrink-0 shadow-xs flex items-center justify-center">
+                                        <img :src="featureImage" alt="Feature Image Preview" class="w-full h-full object-cover">
+                                    </div>
+                                    <div class="flex-grow min-w-0">
+                                        <div class="flex items-center gap-1.5 mb-1">
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-100 text-emerald-800">
+                                                Active Cover Banner
+                                            </span>
+                                            <span class="text-slate-400 text-xs">•</span>
+                                            <span class="text-xs text-slate-600 font-bold truncate">Will be displayed above the lesson</span>
+                                        </div>
+                                        <p class="text-[11px] font-mono text-slate-500 truncate" x-text="featureImage"></p>
+                                        <button 
+                                            type="button" 
+                                            @click="featureImage = ''" 
+                                            class="mt-2 text-[11px] font-bold text-red-600 hover:text-red-800 hover:underline cursor-pointer"
+                                        >
+                                            ✕ Remove Image
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1276,6 +1409,9 @@ function adminSessionBuilder(initial) {
         codeTab: 'editor',
         featureImage: initial.featureImage || '',
         isUploadingFeatureImage: false,
+        featureVideo: initial.featureVideo || '',
+        isUploadingFeatureVideo: false,
+        featureMediaTab: (initial.featureVideo ? 'video' : 'image'),
 
         // Auto-sequencing & Mixed Practice Train state
         categoryId: initial.categoryId || '',
@@ -2902,6 +3038,8 @@ window.pscResetCapsule = function() {
         selectMediaItem(item) {
             if (this.activeMediaTargetBlockIndex === 'feature_image') {
                 this.featureImage = item.url;
+            } else if (this.activeMediaTargetBlockIndex === 'feature_video') {
+                this.featureVideo = item.url;
             } else if (this.activeMediaTargetBlockIndex !== null && this.contentBlocks[this.activeMediaTargetBlockIndex]) {
                 const block = this.contentBlocks[this.activeMediaTargetBlockIndex];
                 block.content_data.url = item.url;
@@ -2944,6 +3082,60 @@ window.pscResetCapsule = function() {
                 this.isUploadingFeatureImage = false;
                 event.target.value = '';
             }
+        },
+
+        async uploadFeatureVideoDirect(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+
+            const file = files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('title', file.name);
+
+            this.isUploadingFeatureVideo = true;
+            try {
+                const response = await fetch('{{ route("admin.media.store") }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                });
+                const data = await response.json();
+                if (data.success && data.media) {
+                    this.featureVideo = data.media.url;
+                } else {
+                    alert('Upload failed: ' + (data.message || 'Please check file size/type.'));
+                }
+            } catch (err) {
+                console.error('Direct feature video upload error:', err);
+                alert('Upload failed. Please try again.');
+            } finally {
+                this.isUploadingFeatureVideo = false;
+                event.target.value = '';
+            }
+        },
+
+        isFeatureVideoEmbed() {
+            if (!this.featureVideo) return false;
+            const u = this.featureVideo.toLowerCase();
+            return u.includes('youtube.com') || u.includes('youtu.be') || u.includes('vimeo.com');
+        },
+
+        getFeatureVideoEmbedUrl() {
+            if (!this.featureVideo) return '';
+            const u = this.featureVideo.trim();
+            const ytMatch = u.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i);
+            if (ytMatch && ytMatch[1]) {
+                return 'https://www.youtube.com/embed/' + ytMatch[1] + '?rel=0';
+            }
+            const vimeoMatch = u.match(/vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/([^\/]*)\/videos\/|album\/(\d+)\/video\/|video\/|)(\d+)/i);
+            if (vimeoMatch && vimeoMatch[1]) {
+                return 'https://player.vimeo.com/video/' + vimeoMatch[1];
+            }
+            return u;
         },
 
         async uploadDirectFromModal(event) {

@@ -504,6 +504,99 @@ test('feature image appears above the lesson in both custom code and manual mode
     $catalogResponse->assertDontSee('Unit Featured Cover Thumbnail');
 });
 
+test('admin can save and update a session with a feature_video', function () {
+    $admin = User::factory()->create(['email' => 'admin-video@pscranker.com']);
+    $category = Category::firstOrCreate(['slug' => 'geography'], ['name' => 'Geography', 'order' => 2]);
+
+    $this->actingAs($admin);
+
+    // 1. Create session with YouTube feature_video
+    $response = $this->post(route('admin.sessions.store'), [
+        'title' => 'Kerala Rivers and Dams Video Masterclass',
+        'title_malayalam' => 'കേരളത്തിലെ നദികളും അണക്കെട്ടുകളും',
+        'slug' => 'kerala-rivers-and-dams-video',
+        'feature_video' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        'feature_image' => 'https://example.com/rivers-poster.jpg',
+        'category_id' => $category->id,
+        'order' => 7,
+        'xp_reward' => 250,
+        'is_active' => 1,
+        'creation_mode' => 'manual',
+    ]);
+
+    $response->assertRedirect();
+    $session = Session::where('slug', 'kerala-rivers-and-dams-video')->first();
+    expect($session)->not->toBeNull();
+    expect($session->feature_video)->toBe('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+    expect($session->feature_image)->toBe('https://example.com/rivers-poster.jpg');
+    expect($session->isFeatureVideoEmbed())->toBeTrue();
+    expect($session->getFeatureVideoEmbedUrl())->toContain('youtube.com/embed/dQw4w9WgXcQ');
+
+    // 2. Update with a direct MP4 feature_video
+    $updateResponse = $this->put(route('admin.sessions.update', $session), [
+        'title' => 'Kerala Rivers and Dams Video Masterclass (Updated)',
+        'title_malayalam' => 'കേരളത്തിലെ നദികൾ',
+        'slug' => 'kerala-rivers-and-dams-video',
+        'feature_video' => '/storage/media/videos/rivers-documentary.mp4',
+        'category_id' => $category->id,
+        'order' => 7,
+        'xp_reward' => 300,
+        'is_active' => 1,
+        'creation_mode' => 'manual',
+    ]);
+
+    $updateResponse->assertRedirect();
+    $session->refresh();
+    expect($session->feature_video)->toBe('/storage/media/videos/rivers-documentary.mp4');
+    expect($session->isFeatureVideoEmbed())->toBeFalse();
+    expect($session->getFeatureVideoEmbedUrl())->toBe('/storage/media/videos/rivers-documentary.mp4');
+});
+
+test('feature video appears above the lesson in both custom code and manual modes', function () {
+    $category = Category::firstOrCreate(['slug' => 'polity'], ['name' => 'Polity', 'order' => 1]);
+
+    // 1. Manual Session with YouTube feature_video
+    $manualSession = Session::create([
+        'title' => 'Indian Constitution Preamble Video Lecture',
+        'title_malayalam' => 'ഭരണഘടനാ ആമുഖം',
+        'slug' => 'constitution-preamble-video',
+        'feature_video' => 'https://youtu.be/keralaPscVid123',
+        'feature_image' => 'https://example.com/preamble-poster.jpg',
+        'category_id' => $category->id,
+        'order' => 1,
+        'xp_reward' => 200,
+        'is_active' => true,
+        'creation_mode' => 'manual',
+    ]);
+
+    $manualResponse = $this->get(route('session.show', $manualSession->slug));
+    $manualResponse->assertStatus(200);
+    $manualResponse->assertSee('youtube.com/embed/keralaPscVid123');
+    $manualResponse->assertSee('iframe', false);
+
+    // 2. Custom Code Session with direct MP4 video
+    $codeSession = Session::create([
+        'title' => 'Fundamental Rights Interactive Capsule',
+        'title_malayalam' => 'മൗലികാവകാശങ്ങൾ',
+        'slug' => 'fundamental-rights-code',
+        'feature_video' => '/storage/media/videos/fundamental-rights.mp4',
+        'feature_image' => '/storage/media/images/rights-poster.png',
+        'category_id' => $category->id,
+        'order' => 2,
+        'xp_reward' => 250,
+        'is_active' => true,
+        'creation_mode' => 'code',
+        'custom_html' => '<div class="psc-screen-lesson"><div class="psc-card"><h2 class="psc-lesson-title">Lesson</h2><p>Content</p></div></div>',
+    ]);
+
+    $codeResponse = $this->get(route('session.show', $codeSession->slug));
+    $codeResponse->assertStatus(200);
+    $codeResponse->assertSee('/storage/media/videos/fundamental-rights.mp4');
+    $codeResponse->assertSee('<video', false);
+    $codeResponse->assertSee('controls', false);
+    $codeResponse->assertSee('psc-custom-feature-image-banner');
+});
+
 test('home page START COURSE UNITS button launches the first mixed session', function () {
     $first = Session::where('is_active', true)
         ->where('in_general_stream', true)

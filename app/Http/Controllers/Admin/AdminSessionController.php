@@ -172,6 +172,8 @@ class AdminSessionController extends Controller
             'title_malayalam' => 'nullable|string|max:255',
             'feature_image' => 'nullable|string|max:1000',
             'feature_image_file' => 'nullable|image|max:10240',
+            'feature_video' => 'nullable|string|max:1000',
+            'feature_video_file' => 'nullable|file|mimes:mp4,mov,ogg,webm,qt,avi,mkv|max:102400',
             'slug' => 'nullable|string|max:255|unique:learning_sessions,slug',
             'category_id' => 'nullable|exists:categories,id',
             'order' => 'nullable|integer',
@@ -216,6 +218,23 @@ class AdminSessionController extends Controller
             ]);
         }
 
+        $featureVideo = $validated['feature_video'] ?? null;
+        if ($request->hasFile('feature_video_file')) {
+            $file = $request->file('feature_video_file');
+            $path = $file->store('media/videos', 'public');
+            $featureVideo = '/storage/' . $path;
+
+            MediaFile::create([
+                'name' => $file->getClientOriginalName(),
+                'file_path' => $path,
+                'url' => $featureVideo,
+                'file_type' => 'video',
+                'mime_type' => $file->getMimeType(),
+                'file_size' => $file->getSize(),
+                'uploaded_by' => auth()->id(),
+            ]);
+        }
+
         // 1. Automatic Subject Sequence Assignment (keeps separate subjects intact)
         $categoryId = $validated['category_id'] ?? null;
         $order = ($request->filled('order') && (int)$request->input('order') > 0)
@@ -238,6 +257,7 @@ class AdminSessionController extends Controller
             'title' => $validated['title'],
             'title_malayalam' => $validated['title_malayalam'] ?? null,
             'feature_image' => $featureImage,
+            'feature_video' => $featureVideo,
             'slug' => $slug,
             'category_id' => $categoryId,
             'order' => $order,
@@ -312,6 +332,8 @@ class AdminSessionController extends Controller
             'title_malayalam' => 'nullable|string|max:255',
             'feature_image' => 'nullable|string|max:1000',
             'feature_image_file' => 'nullable|image|max:10240',
+            'feature_video' => 'nullable|string|max:1000',
+            'feature_video_file' => 'nullable|file|mimes:mp4,mov,ogg,webm,qt,avi,mkv|max:102400',
             'slug' => 'required|string|max:255|unique:learning_sessions,slug,' . $session->id,
             'category_id' => 'nullable|exists:categories,id',
             'order' => 'nullable|integer',
@@ -345,6 +367,23 @@ class AdminSessionController extends Controller
             ]);
         }
 
+        $featureVideo = $validated['feature_video'] ?? $session->feature_video;
+        if ($request->hasFile('feature_video_file')) {
+            $file = $request->file('feature_video_file');
+            $path = $file->store('media/videos', 'public');
+            $featureVideo = '/storage/' . $path;
+
+            MediaFile::create([
+                'name' => $file->getClientOriginalName(),
+                'file_path' => $path,
+                'url' => $featureVideo,
+                'file_type' => 'video',
+                'mime_type' => $file->getMimeType(),
+                'file_size' => $file->getSize(),
+                'uploaded_by' => auth()->id(),
+            ]);
+        }
+
         $categoryId = $validated['category_id'] ?? null;
         $order = ($request->filled('order') && (int)$request->input('order') > 0)
             ? (int)$request->input('order')
@@ -365,6 +404,7 @@ class AdminSessionController extends Controller
             'title' => $validated['title'],
             'title_malayalam' => $validated['title_malayalam'] ?? null,
             'feature_image' => $featureImage,
+            'feature_video' => $featureVideo,
             'slug' => Str::slug($validated['slug']),
             'category_id' => $categoryId,
             'order' => $order,

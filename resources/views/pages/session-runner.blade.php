@@ -413,15 +413,45 @@
             <!-- CUSTOM CODE SESSION CANVAS (Interactive Custom HTML)     -->
             <!-- ========================================================= -->
             <div class="custom-session-wrapper mb-10">
-                @if($session->feature_image)
-                    <!-- Feature Image for Custom Code Capsule (Docked strictly into the lesson screen via script) -->
-                    <div id="psc-custom-feature-image-banner" class="hidden mb-6 rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-white max-h-[460px] flex items-center justify-center relative">
-                        <img 
-                            src="{{ $session->feature_image }}" 
-                            alt="{{ $session->title }}"
-                            class="w-full h-auto max-h-[460px] object-cover sm:object-contain rounded-2xl"
-                            loading="eager"
-                        >
+                @if($session->feature_video || $session->feature_image)
+                    <!-- Feature Media for Custom Code Capsule (Docked strictly into the lesson screen via script) -->
+                    <div id="psc-custom-feature-image-banner" class="hidden mb-6 rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-white relative">
+                        @if($session->feature_video)
+                            @if($session->isFeatureVideoEmbed())
+                                <div class="w-full aspect-video">
+                                    <iframe 
+                                        src="{{ $session->getFeatureVideoEmbedUrl() }}" 
+                                        title="{{ $session->title }}"
+                                        class="w-full h-full rounded-2xl" 
+                                        frameborder="0" 
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                        allowfullscreen
+                                    ></iframe>
+                                </div>
+                            @else
+                                <div class="w-full aspect-video bg-black flex items-center justify-center">
+                                    <video 
+                                        controls 
+                                        playsinline 
+                                        preload="metadata"
+                                        poster="{{ $session->feature_image }}" 
+                                        class="w-full h-full max-h-[480px] rounded-2xl object-contain"
+                                    >
+                                        <source src="{{ $session->feature_video }}">
+                                        Your browser does not support the video tag.
+                                    </video>
+                                </div>
+                            @endif
+                        @elseif($session->feature_image)
+                            <div class="max-h-[460px] flex items-center justify-center">
+                                <img 
+                                    src="{{ $session->feature_image }}" 
+                                    alt="{{ $session->title }}"
+                                    class="w-full h-auto max-h-[460px] object-cover sm:object-contain rounded-2xl"
+                                    loading="eager"
+                                >
+                            </div>
+                        @endif
                     </div>
                 @endif
 
@@ -672,15 +702,45 @@
                     </span>
                 </div>
 
-                @if($session->feature_image)
-                    <!-- Featured Image Banner above Manual Lesson Capsule Blocks -->
-                    <div class="mb-6 rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-white max-h-[460px] flex items-center justify-center relative">
-                        <img 
-                            src="{{ $session->feature_image }}" 
-                            alt="{{ $session->title }}"
-                            class="w-full h-auto max-h-[460px] object-cover sm:object-contain rounded-2xl"
-                            loading="eager"
-                        >
+                @if($session->feature_video || $session->feature_image)
+                    <!-- Featured Media / Featured Image Banner above Manual Lesson Capsule Blocks -->
+                    <div class="mb-6 rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-white relative">
+                        @if($session->feature_video)
+                            @if($session->isFeatureVideoEmbed())
+                                <div class="w-full aspect-video">
+                                    <iframe 
+                                        src="{{ $session->getFeatureVideoEmbedUrl() }}" 
+                                        title="{{ $session->title }}"
+                                        class="w-full h-full rounded-2xl" 
+                                        frameborder="0" 
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                        allowfullscreen
+                                    ></iframe>
+                                </div>
+                            @else
+                                <div class="w-full aspect-video bg-black flex items-center justify-center">
+                                    <video 
+                                        controls 
+                                        playsinline 
+                                        preload="metadata"
+                                        poster="{{ $session->feature_image }}" 
+                                        class="w-full h-full max-h-[480px] rounded-2xl object-contain"
+                                    >
+                                        <source src="{{ $session->feature_video }}">
+                                        Your browser does not support the video tag.
+                                    </video>
+                                </div>
+                            @endif
+                        @elseif($session->feature_image)
+                            <div class="max-h-[460px] flex items-center justify-center">
+                                <img 
+                                    src="{{ $session->feature_image }}" 
+                                    alt="{{ $session->title }}"
+                                    class="w-full h-auto max-h-[460px] object-cover sm:object-contain rounded-2xl"
+                                    loading="eager"
+                                >
+                            </div>
+                        @endif
                     </div>
                 @endif
 

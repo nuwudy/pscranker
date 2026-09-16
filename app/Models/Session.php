@@ -18,6 +18,7 @@ class Session extends Model
         'title',
         'title_malayalam',
         'feature_image',
+        'feature_video',
         'slug',
         'category_id',
         'order',
@@ -52,6 +53,45 @@ class Session extends Model
     public function isManual(): bool
     {
         return !$this->isCustomCode();
+    }
+
+    public function hasFeatureMedia(): bool
+    {
+        return !empty($this->feature_video) || !empty($this->feature_image);
+    }
+
+    public function isFeatureVideoEmbed(): bool
+    {
+        if (empty($this->feature_video)) {
+            return false;
+        }
+
+        $url = strtolower($this->feature_video);
+        return str_contains($url, 'youtube.com') 
+            || str_contains($url, 'youtu.be') 
+            || str_contains($url, 'vimeo.com');
+    }
+
+    public function getFeatureVideoEmbedUrl(): string
+    {
+        if (empty($this->feature_video)) {
+            return '';
+        }
+
+        $url = trim($this->feature_video);
+
+        // YouTube matches (watch?v=, youtu.be/, embed/, shorts/)
+        if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]+)/i', $url, $matches)) {
+            return 'https://www.youtube.com/embed/' . $matches[1] . '?rel=0&modestbranding=1';
+        }
+
+        // Vimeo matches
+        if (preg_match('/vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/([^\/]*)\/videos\/|album\/(\d+)\/video\/|video\/|)(\d+)/i', $url, $matches)) {
+            $vimeoId = end($matches);
+            return 'https://player.vimeo.com/video/' . $vimeoId;
+        }
+
+        return $url;
     }
 
     public function isGuest(): bool
