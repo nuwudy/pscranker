@@ -439,6 +439,15 @@
                                 </td>
                                 <td class="p-4 text-right">
                                     <div class="flex items-center justify-end gap-1.5">
+                                        <!-- Edit User Button -->
+                                        <button 
+                                            type="button" 
+                                            onclick="openEditUserModal('{{ $u->id }}', '{{ addslashes($u->name) }}', '{{ $u->phone }}', '{{ $u->email }}', {{ $u->is_admin ? 'true' : 'false' }}, {{ $isSuper ? 'true' : 'false' }})"
+                                            class="px-2.5 py-1.5 rounded-lg text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 transition border border-blue-200 active:scale-95"
+                                            title="Edit candidate profile & reset password"
+                                        >
+                                            ✏️ Edit
+                                        </button>
                                         <button 
                                             type="button" 
                                             onclick="openGiftModal('{{ $u->id }}', '{{ addslashes($u->name) }}', '{{ $u->phone }}', '{{ $isPro ? 1 : 0 }}', '{{ $u->subscribed_until ? $u->subscribed_until->format('d M Y') : '' }}')"
@@ -1014,15 +1023,17 @@
                 </div>
             </div>
 
-            <!-- Password (Optional) -->
+            <!-- Password (Mandatory) -->
             <div>
                 <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Password <span class="text-slate-400 font-normal">(Optional — auto-generates if left blank)</span>
+                    Password <span class="text-rose-500">*</span> <span class="text-slate-400 font-normal">(Minimum 6 characters)</span>
                 </label>
                 <input 
                     type="text" 
                     name="password" 
-                    placeholder="Leave empty to auto-generate easy temporary password"
+                    required
+                    minlength="6"
+                    placeholder="Enter login password for candidate"
                     class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-[#0052FF] focus:outline-none"
                 >
             </div>
@@ -1237,6 +1248,114 @@
     </div>
 </div>
 
+<!-- ========================================== -->
+<!-- MODAL 3: Edit Candidate Account / Profile -->
+<!-- ========================================== -->
+<div id="editUserModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden flex flex-col">
+        
+        <!-- Modal Header -->
+        <div class="p-5 bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 text-white flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">✏️</span>
+                <div>
+                    <h3 class="text-base font-black text-white">Edit Candidate Profile</h3>
+                    <p class="text-xs text-slate-300">Update name, mobile, email, admin role, or reset password</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeEditUserModal()" class="text-slate-400 hover:text-white text-xl font-bold">✕</button>
+        </div>
+
+        <!-- Modal Form -->
+        <form id="editUserForm" method="POST" class="p-5 sm:p-6 space-y-4">
+            @csrf
+            @method('PUT')
+
+            <!-- Candidate Full Name -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Candidate Full Name <span class="text-rose-500">*</span></label>
+                <input 
+                    type="text" 
+                    id="edit_name"
+                    name="name" 
+                    required 
+                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-[#0052FF] focus:outline-none"
+                >
+            </div>
+
+            <!-- 10-Digit Mobile Phone & Email -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">10-Digit Mobile <span class="text-rose-500">*</span></label>
+                    <input 
+                        type="tel" 
+                        id="edit_phone"
+                        name="phone" 
+                        required 
+                        maxlength="10"
+                        pattern="[0-9]{10}"
+                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-[#0052FF] focus:outline-none"
+                    >
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Email Address <span class="text-rose-500">*</span></label>
+                    <input 
+                        type="email" 
+                        id="edit_email"
+                        name="email" 
+                        required 
+                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-[#0052FF] focus:outline-none"
+                    >
+                </div>
+            </div>
+
+            <!-- Reset Password -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    New Password <span class="text-slate-400 font-normal">(Leave blank to keep existing password)</span>
+                </label>
+                <input 
+                    type="text" 
+                    name="password" 
+                    minlength="6"
+                    placeholder="Enter new password to reset, or leave empty"
+                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-[#0052FF] focus:outline-none"
+                >
+            </div>
+
+            <!-- Admin Privilege Checkbox -->
+            <div id="edit_admin_wrapper" class="p-3.5 rounded-2xl bg-purple-50 border border-purple-200 flex items-center justify-between">
+                <div>
+                    <div class="text-xs font-black text-purple-950 flex items-center gap-1.5">
+                        <span>🛡️</span>
+                        <span>Administrator Access</span>
+                    </div>
+                    <div class="text-[11px] text-purple-800">Can access Admin Dashboard, Session Creator, and Question Banks.</div>
+                </div>
+                <input type="checkbox" id="edit_is_admin" name="is_admin" value="1" class="w-4 h-4 rounded text-purple-600 focus:ring-purple-500">
+            </div>
+
+            <!-- Modal Footer Buttons -->
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+                <button 
+                    type="button" 
+                    onclick="closeEditUserModal()" 
+                    class="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition"
+                >
+                    Cancel
+                </button>
+                <button 
+                    type="submit" 
+                    class="px-5 py-2.5 rounded-xl text-xs font-black text-white bg-[#0052FF] hover:bg-blue-700 transition shadow"
+                >
+                    Save Changes →
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 function openCreateUserModal() {
     document.getElementById('createUserModal').classList.remove('hidden');
@@ -1244,6 +1363,33 @@ function openCreateUserModal() {
 
 function closeCreateUserModal() {
     document.getElementById('createUserModal').classList.add('hidden');
+}
+
+function openEditUserModal(userId, name, phone, email, isAdmin, isSuperAdmin) {
+    const form = document.getElementById('editUserForm');
+    form.action = `/admin/users/${userId}`;
+
+    document.getElementById('edit_name').value = name;
+    document.getElementById('edit_phone').value = phone || '';
+    document.getElementById('edit_email').value = email || '';
+    
+    const adminCheckbox = document.getElementById('edit_is_admin');
+    const adminWrapper = document.getElementById('edit_admin_wrapper');
+    
+    adminCheckbox.checked = isAdmin;
+    if (isSuperAdmin) {
+        adminCheckbox.disabled = true;
+        adminWrapper.classList.add('opacity-60');
+    } else {
+        adminCheckbox.disabled = false;
+        adminWrapper.classList.remove('opacity-60');
+    }
+
+    document.getElementById('editUserModal').classList.remove('hidden');
+}
+
+function closeEditUserModal() {
+    document.getElementById('editUserModal').classList.add('hidden');
 }
 
 function toggleSubFields() {

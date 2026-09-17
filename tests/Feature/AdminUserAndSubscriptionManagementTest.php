@@ -23,7 +23,7 @@ test('admin can view user management directory', function () {
     $response->assertSee('9847123456');
 });
 
-test('admin can manually create candidate account with auto-generated password', function () {
+test('account creation strictly requires a password', function () {
     $admin = User::factory()->create([
         'email' => 'admin@pscranker.com',
         'is_admin' => true,
@@ -33,6 +33,23 @@ test('admin can manually create candidate account with auto-generated password',
         'name' => 'Fathima Beevi',
         'phone' => '9447112233',
         'email' => 'fathima@example.com',
+        // password omitted
+    ]);
+
+    $response->assertSessionHasErrors(['password']);
+});
+
+test('admin can manually create candidate account with mandatory password', function () {
+    $admin = User::factory()->create([
+        'email' => 'admin@pscranker.com',
+        'is_admin' => true,
+    ]);
+
+    $response = $this->actingAs($admin)->post(route('admin.users.store'), [
+        'name' => 'Fathima Beevi',
+        'phone' => '9447112233',
+        'email' => 'fathima@example.com',
+        'password' => 'SecretPass123',
     ]);
 
     $response->assertSessionHas('success');
@@ -44,6 +61,37 @@ test('admin can manually create candidate account with auto-generated password',
         'email' => 'fathima@example.com',
         'is_admin' => false,
     ]);
+
+    $user = User::where('email', 'fathima@example.com')->first();
+    expect(\Illuminate\Support\Facades\Hash::check('SecretPass123', $user->password))->toBeTrue();
+});
+
+test('admin can edit existing candidate details and reset password', function () {
+    $admin = User::factory()->create([
+        'email' => 'admin@pscranker.com',
+        'is_admin' => true,
+    ]);
+
+    $student = User::factory()->create([
+        'name' => 'Naseem Old',
+        'phone' => '9895920422',
+        'email' => 'naseem@example.com',
+        'password' => \Illuminate\Support\Facades\Hash::make('OldPassword1'),
+    ]);
+
+    $response = $this->actingAs($admin)->put(route('admin.users.update', $student), [
+        'name' => 'Naseem Ahmed',
+        'phone' => '9895920422',
+        'email' => 'naseem.updated@example.com',
+        'password' => 'NewStrongPass99',
+    ]);
+
+    $response->assertSessionHas('success');
+
+    $student->refresh();
+    expect($student->name)->toEqual('Naseem Ahmed');
+    expect($student->email)->toEqual('naseem.updated@example.com');
+    expect(\Illuminate\Support\Facades\Hash::check('NewStrongPass99', $student->password))->toBeTrue();
 });
 
 test('admin can create candidate account with instant offline PRO subscription', function () {

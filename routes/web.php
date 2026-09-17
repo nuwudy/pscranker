@@ -80,6 +80,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     // Candidate Accounts, Offline Payments & Admin Management
     Route::get('users', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');
     Route::post('users', [\App\Http\Controllers\Admin\UserController::class, 'store'])->name('users.store');
+    Route::put('users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'update'])->name('users.update');
     Route::post('users/{user}/gift-subscription', [\App\Http\Controllers\Admin\UserController::class, 'giftSubscription'])->name('users.gift-subscription');
     Route::post('users/{user}/toggle-admin', [\App\Http\Controllers\Admin\UserController::class, 'toggleAdmin'])->name('users.toggle-admin');
 });
