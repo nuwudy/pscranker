@@ -120,13 +120,16 @@
                     @auth
                         @php
                             $user = Auth::user();
-                            $isAdmin = ($user->email === 'admin@pscranker.com' || $user->phone === '9895940500' || ($user->is_admin ?? false));
+                            $isAdmin = $user->isAdmin();
                         @endphp
 
                         @if($isAdmin)
                             <div class="flex items-center gap-2">
                                 <a href="{{ route('admin.dashboard') }}" class="px-3 py-1.5 text-xs font-black text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg transition border border-slate-300">
                                     📊 Dashboard
+                                </a>
+                                <a href="{{ route('admin.users.index') }}" class="px-3 py-1.5 text-xs font-black text-emerald-800 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition border border-emerald-300">
+                                    👥 Users & Subs
                                 </a>
                                 <a href="{{ route('admin.sessions.index') }}" class="px-3 py-1.5 text-xs font-black text-[#0052FF] bg-blue-50 hover:bg-blue-100 rounded-lg transition border border-blue-200">
                                     ⚙️ Lessons Manager
@@ -213,12 +216,13 @@
                         @auth
                             @php
                                 $mobileUser = Auth::user();
-                                $isMobileAdmin = ($mobileUser->email === 'admin@pscranker.com' || $mobileUser->phone === '9895940500' || ($mobileUser->is_admin ?? false));
+                                $isMobileAdmin = $mobileUser->isAdmin();
                             @endphp
 
                             <div class="pt-2 border-t border-slate-100 flex flex-col gap-2">
                                 @if($isMobileAdmin)
                                     <a href="{{ route('admin.dashboard') }}" class="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-900 font-black">📊 Admin Dashboard</a>
+                                    <a href="{{ route('admin.users.index') }}" class="px-4 py-2.5 rounded-xl bg-emerald-50 text-emerald-800 font-black">👥 Users & Subscriptions</a>
                                     <a href="{{ route('admin.sessions.index') }}" class="px-4 py-2.5 rounded-xl bg-blue-50 text-[#0052FF] font-black">⚙️ Lessons Manager</a>
                                     <a href="{{ route('admin.media.index') }}" class="px-4 py-2.5 rounded-xl bg-purple-50 text-purple-700 font-black">📁 Media Library</a>
                                 @else

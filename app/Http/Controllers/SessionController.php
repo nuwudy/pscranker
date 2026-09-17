@@ -88,7 +88,7 @@ class SessionController extends Controller
         // Tier 2: 'registered' -> Free for all logged-in members.
         // Tier 3: 'premium' -> Exclusive to PRO subscribers / prepaid pass holders.
         $user = auth()->user();
-        $isAdmin = $user && ($user->email === 'admin@pscranker.com' || $user->phone === '9895940500' || ($user->is_admin ?? false));
+        $isAdmin = $user && $user->isAdmin();
         $isSubscribed = $user && $user->isSubscribed();
 
         $accessLevel = $session->access_level ?? ($session->is_premium ? 'premium' : 'guest');

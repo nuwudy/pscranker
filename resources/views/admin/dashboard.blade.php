@@ -30,6 +30,19 @@
 
             <!-- Quick Action CTA Buttons -->
             <div class="flex flex-wrap items-center gap-2.5 relative z-10">
+                <button 
+                    type="button" 
+                    onclick="openCreateUserModal()"
+                    class="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-xl shadow transition flex items-center gap-1.5 border border-emerald-300 active:scale-95"
+                >
+                    <span>➕ User / Offline Sub</span>
+                </button>
+                <a 
+                    href="{{ route('admin.users.index') }}" 
+                    class="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl transition flex items-center gap-1.5 border border-white/20"
+                >
+                    <span>👥 Candidates</span>
+                </a>
                 <a 
                     href="{{ route('admin.sessions.create') }}" 
                     class="px-4 py-2.5 bg-[#FFD200] hover:bg-yellow-400 text-slate-950 font-black text-xs rounded-xl shadow transition flex items-center gap-1.5 border border-yellow-300 active:scale-95"
@@ -60,6 +73,56 @@
                     <span>{{ session('success') }}</span>
                 </span>
                 <span class="text-[10px] text-emerald-700 uppercase tracking-wider font-mono">Updated</span>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-300 text-rose-900 text-xs font-bold flex items-center justify-between">
+                <span class="flex items-center gap-2">
+                    <span class="text-base">⚠️</span>
+                    <span>{{ session('error') }}</span>
+                </span>
+                <span class="text-[10px] text-rose-700 uppercase tracking-wider font-mono">Notice</span>
+            </div>
+        @endif
+
+        @if(session('new_user_credentials'))
+            @php $creds = session('new_user_credentials'); @endphp
+            <div class="mb-8 p-6 rounded-3xl bg-amber-50 border-2 border-amber-300 shadow-md">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">🎉</span>
+                        <div>
+                            <h3 class="text-sm sm:text-base font-black text-amber-950">New Account Created Successfully!</h3>
+                            <p class="text-xs text-amber-800 font-medium">Share these credentials with the candidate via WhatsApp or SMS so they can log in right away:</p>
+                        </div>
+                    </div>
+                    <button 
+                        type="button" 
+                        onclick="copyCredentialsText('{{ $creds['name'] }}', '{{ $creds['phone'] }}', '{{ $creds['password'] }}')"
+                        class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-black rounded-xl shadow transition flex items-center gap-1.5 shrink-0"
+                    >
+                        <span>📋 Copy Message</span>
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-white/90 p-4 rounded-2xl border border-amber-200 text-xs font-mono">
+                    <div>
+                        <span class="text-[10px] uppercase font-bold text-slate-400 block">Candidate Name</span>
+                        <span class="font-bold text-slate-900">{{ $creds['name'] }}</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] uppercase font-bold text-slate-400 block">Mobile Phone</span>
+                        <span class="font-bold text-slate-900">{{ $creds['phone'] }}</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] uppercase font-bold text-slate-400 block">Email</span>
+                        <span class="font-bold text-slate-900">{{ $creds['email'] }}</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] uppercase font-bold text-slate-400 block">Password</span>
+                        <span class="font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">{{ $creds['password'] }}</span>
+                    </div>
+                </div>
             </div>
         @endif
 
@@ -104,7 +167,7 @@
                     {{ $stats['active_subscribers'] }}
                 </div>
                 <div class="text-[10px] font-bold text-amber-700 mt-1">
-                    ⚡ Active Prepaid Passes
+                    {{ $stats['total_users'] }} candidates • {{ $stats['total_admins'] }} admins
                 </div>
             </div>
 
@@ -118,7 +181,11 @@
                     ₹{{ number_format($stats['total_revenue']) }}
                 </div>
                 <div class="text-[10px] font-bold text-slate-500 mt-1">
-                    Razorpay Collected
+                    @if($stats['offline_revenue'] > 0)
+                        Incl. ₹{{ number_format($stats['offline_revenue']) }} offline
+                    @else
+                        Razorpay &amp; Offline
+                    @endif
                 </div>
             </div>
 
@@ -268,6 +335,132 @@
                                 <td colspan="9" class="p-8 text-center text-slate-500">
                                     No sessions found. <a href="{{ route('admin.sessions.create') }}" class="text-[#0052FF] font-bold underline">Create one now</a>.
                                 </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ============================================================= -->
+        <!-- SECTION: CANDIDATE ACCOUNTS, OFFLINE PAYMENTS & ADMIN ROLES -->
+        <!-- ============================================================= -->
+        <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs mb-8">
+            <div class="p-5 sm:p-6 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-xl font-black">
+                        👥
+                    </div>
+                    <div>
+                        <h2 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
+                            <span>Candidates, Offline Subscriptions &amp; Admins</span>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-100 text-emerald-800">Direct Ops</span>
+                        </h2>
+                        <p class="text-xs text-slate-500 font-medium">Record offline UPI/Cash payments, gift PRO passes, onboard candidates manually, or appoint administrators.</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button 
+                        type="button" 
+                        onclick="openCreateUserModal()"
+                        class="px-3.5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-xl shadow transition flex items-center gap-1.5 active:scale-95"
+                    >
+                        <span>➕ Create Account / Offline Sub</span>
+                    </button>
+                    <a 
+                        href="{{ route('admin.users.index') }}" 
+                        class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl transition"
+                    >
+                        View Full Directory ({{ $stats['total_users'] }}) →
+                    </a>
+                </div>
+            </div>
+
+            <!-- Mini User Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead>
+                        <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider">
+                            <th class="p-4">Candidate</th>
+                            <th class="p-4">Mobile &amp; Email</th>
+                            <th class="p-4 text-center">Role</th>
+                            <th class="p-4">Subscription Status</th>
+                            <th class="p-4 text-right">Quick Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
+                        @forelse($recentUsers as $u)
+                            @php
+                                $isSuper = ($u->email === 'admin@pscranker.com' || $u->phone === '9895940500');
+                                $isAdmin = $u->isAdmin();
+                                $isPro = $u->isSubscribed();
+                                $days = $u->subscriptionDaysRemaining();
+                            @endphp
+                            <tr class="hover:bg-blue-50/20 transition">
+                                <td class="p-4">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 {{ $isAdmin ? 'bg-purple-100 text-purple-700 border border-purple-200' : ($isPro ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-700') }}">
+                                            {{ strtoupper(substr($u->name, 0, 1)) }}
+                                        </div>
+                                        <div>
+                                            <div class="font-bold text-slate-900">{{ $u->name }}</div>
+                                            <div class="text-[10px] text-slate-400 font-mono">#{{ $u->id }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="p-4">
+                                    <div class="font-bold text-slate-900 flex items-center gap-1.5">
+                                        <span>📱 {{ $u->phone ?? '—' }}</span>
+                                        @if($u->phone)
+                                            <a href="https://wa.me/91{{ $u->phone }}" target="_blank" class="text-emerald-600 hover:text-emerald-700 text-xs" title="WhatsApp candidate">💬</a>
+                                        @endif
+                                    </div>
+                                    <div class="text-[10px] text-slate-500">{{ $u->email }}</div>
+                                </td>
+                                <td class="p-4 text-center">
+                                    @if($isSuper)
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300">Super Admin</span>
+                                    @elseif($u->is_admin)
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-100 text-purple-900 border border-purple-200">Admin</span>
+                                    @else
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">Candidate</span>
+                                    @endif
+                                </td>
+                                <td class="p-4">
+                                    @if($isPro)
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-100 text-emerald-800">PRO ACTIVE</span>
+                                        @if($u->subscribed_until)
+                                            <span class="text-[10px] text-slate-500 block mt-0.5">Expires: {{ $u->subscribed_until->format('d M Y') }} ({{ $days }}d left)</span>
+                                        @endif
+                                    @else
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-500">Free Member</span>
+                                    @endif
+                                </td>
+                                <td class="p-4 text-right">
+                                    <div class="flex items-center justify-end gap-1.5">
+                                        <button 
+                                            type="button" 
+                                            onclick="openGiftModal('{{ $u->id }}', '{{ addslashes($u->name) }}', '{{ $u->phone }}', '{{ $isPro ? 1 : 0 }}', '{{ $u->subscribed_until ? $u->subscribed_until->format('d M Y') : '' }}')"
+                                            class="px-2.5 py-1.5 rounded-lg text-xs font-bold text-amber-900 bg-amber-100 hover:bg-amber-200 transition border border-amber-300 active:scale-95"
+                                            title="Record Offline Payment / Gift Sub"
+                                        >
+                                            🎁 Gift / Offline Sub
+                                        </button>
+                                        @if(!$isSuper && $u->id !== auth()->id())
+                                            <form action="{{ route('admin.users.toggle-admin', $u) }}" method="POST" onsubmit="return confirm('{{ $u->is_admin ? "Revoke administrator privileges from {$u->name}?" : "Grant administrator privileges to {$u->name}?" }}');">
+                                                @csrf
+                                                <button type="submit" class="px-2 py-1.5 rounded-lg text-xs font-bold {{ $u->is_admin ? 'text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200' : 'text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200' }} transition">
+                                                    {{ $u->is_admin ? 'Demote' : '🛡️ Admin' }}
+                                                </button>
+                                            </form>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="p-6 text-center text-slate-400">No candidates found in database.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -758,4 +951,349 @@
 
     </div>
 </div>
+
+<!-- ========================================== -->
+<!-- MODAL 1: Create Candidate Account Manually -->
+<!-- ========================================== -->
+<div id="createUserModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-xl overflow-hidden max-h-[90vh] flex flex-col">
+        
+        <!-- Modal Header -->
+        <div class="p-5 sm:p-6 bg-slate-900 text-white flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">➕</span>
+                <div>
+                    <h3 class="text-base font-black text-white">Create Candidate Account</h3>
+                    <p class="text-xs text-slate-300">Register candidate and optionally activate an offline or gifted subscription</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeCreateUserModal()" class="text-slate-400 hover:text-white text-xl font-bold">✕</button>
+        </div>
+
+        <!-- Modal Form -->
+        <form action="{{ route('admin.users.store') }}" method="POST" class="p-5 sm:p-6 overflow-y-auto space-y-4">
+            @csrf
+
+            <!-- Candidate Full Name -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Candidate Full Name <span class="text-rose-500">*</span></label>
+                <input 
+                    type="text" 
+                    name="name" 
+                    required 
+                    placeholder="e.g. Rahul Sharma"
+                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-[#0052FF] focus:outline-none"
+                >
+            </div>
+
+            <!-- 10-Digit Mobile Phone & Email -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">10-Digit Mobile Phone <span class="text-rose-500">*</span></label>
+                    <input 
+                        type="tel" 
+                        name="phone" 
+                        required 
+                        maxlength="10"
+                        pattern="[0-9]{10}"
+                        placeholder="e.g. 9876543210"
+                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-[#0052FF] focus:outline-none"
+                    >
+                    <span class="text-[10px] text-slate-400">Used for fast mobile login</span>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Email Address <span class="text-rose-500">*</span></label>
+                    <input 
+                        type="email" 
+                        name="email" 
+                        required 
+                        placeholder="e.g. rahul@example.com"
+                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-[#0052FF] focus:outline-none"
+                    >
+                </div>
+            </div>
+
+            <!-- Password (Optional) -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Password <span class="text-slate-400 font-normal">(Optional — auto-generates if left blank)</span>
+                </label>
+                <input 
+                    type="text" 
+                    name="password" 
+                    placeholder="Leave empty to auto-generate easy temporary password"
+                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-[#0052FF] focus:outline-none"
+                >
+            </div>
+
+            <!-- Admin Privilege Checkbox -->
+            <div class="p-3.5 rounded-2xl bg-purple-50 border border-purple-200 flex items-center justify-between">
+                <div>
+                    <div class="text-xs font-black text-purple-950 flex items-center gap-1.5">
+                        <span>🛡️</span>
+                        <span>Grant Administrator Access</span>
+                    </div>
+                    <div class="text-[11px] text-purple-800">Allows access to Admin Dashboard, Session Creator, and Question Banks.</div>
+                </div>
+                <input type="checkbox" name="is_admin" value="1" class="w-4 h-4 rounded text-purple-600 focus:ring-purple-500">
+            </div>
+
+            <!-- Subscription Checkbox & Toggle Box -->
+            <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200">
+                <div class="flex items-center justify-between cursor-pointer" onclick="toggleSubFields()">
+                    <div>
+                        <div class="text-xs font-black text-emerald-950 flex items-center gap-1.5">
+                            <span>👑</span>
+                            <span>Activate PRO Subscription Immediately</span>
+                        </div>
+                        <div class="text-[11px] text-emerald-800">Select if candidate paid offline via Cash, GPay, UPI, or is receiving a gifted pass.</div>
+                    </div>
+                    <input type="checkbox" id="activateSubCheckbox" name="activate_subscription" value="1" class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500">
+                </div>
+
+                <!-- Sub details conditional section -->
+                <div id="subFieldsContainer" class="hidden mt-4 pt-4 border-t border-emerald-200/80 space-y-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-bold text-emerald-900 mb-1">PRO Duration</label>
+                            <select name="duration_months" class="w-full px-3 py-2 rounded-xl border border-emerald-300 text-xs bg-white">
+                                <option value="1">1 Month Pass</option>
+                                <option value="2">2 Months Rapid Revision</option>
+                                <option value="3" selected>3 Months Exam Sprint (Recommended)</option>
+                                <option value="6">6 Months Semester Pass</option>
+                                <option value="12">12 Months (1 Year) Rank Pass</option>
+                                <option value="24">24 Months (2 Years) Super Pass</option>
+                                <option value="120">👑 Lifetime Pass</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-emerald-900 mb-1">Payment Method</label>
+                            <select name="payment_mode" class="w-full px-3 py-2 rounded-xl border border-emerald-300 text-xs bg-white">
+                                <option value="cash">Offline Cash</option>
+                                <option value="gpay_upi">GPay / PhonePe / UPI</option>
+                                <option value="bank_transfer">Bank Transfer / NEFT</option>
+                                <option value="gift">Promotional Gift / Referral</option>
+                                <option value="scholarship">Merit Scholarship</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-bold text-emerald-900 mb-1">Amount Collected (₹)</label>
+                            <input 
+                                type="number" 
+                                step="1" 
+                                name="amount" 
+                                placeholder="e.g. 762 (or 0 for Gift)" 
+                                class="w-full px-3 py-2 rounded-xl border border-emerald-300 text-xs bg-white font-mono"
+                            >
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-emerald-900 mb-1">Notes / UPI Reference</label>
+                            <input 
+                                type="text" 
+                                name="notes" 
+                                placeholder="e.g. UPI Ref / Cash receipt # / Referral note" 
+                                class="w-full px-3 py-2 rounded-xl border border-emerald-300 text-xs bg-white"
+                            >
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer Buttons -->
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+                <button 
+                    type="button" 
+                    onclick="closeCreateUserModal()" 
+                    class="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition"
+                >
+                    Cancel
+                </button>
+                <button 
+                    type="submit" 
+                    class="px-5 py-2.5 rounded-xl text-xs font-black text-slate-950 bg-emerald-400 hover:bg-emerald-300 transition shadow"
+                >
+                    Save &amp; Activate Account →
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ==================================================== -->
+<!-- MODAL 2: Gift or Record Offline Subscription Payment -->
+<!-- ==================================================== -->
+<div id="giftModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden flex flex-col">
+        
+        <!-- Header -->
+        <div class="p-5 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">🎁</span>
+                <div>
+                    <h3 class="text-base font-black text-slate-950">Activate / Gift PRO Subscription</h3>
+                    <p class="text-xs text-slate-900 font-medium">Add offline payment or scholarship pass for candidate</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeGiftModal()" class="text-slate-800 hover:text-black text-xl font-bold">✕</button>
+        </div>
+
+        <!-- Form -->
+        <form id="giftForm" method="POST" class="p-5 sm:p-6 space-y-4">
+            @csrf
+
+            <!-- Candidate info pill -->
+            <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
+                <div>
+                    <span class="text-[10px] uppercase font-bold text-slate-400 block">Candidate</span>
+                    <strong id="giftModalUserName" class="text-slate-900 text-sm font-black"></strong>
+                    <span id="giftModalUserPhone" class="text-slate-500 font-mono ml-1"></span>
+                </div>
+                <div id="giftModalSubStatus" class="text-right"></div>
+            </div>
+
+            <!-- Duration Selection -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Select Pass Duration <span class="text-rose-500">*</span>
+                </label>
+                <select name="duration_months" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs bg-white font-medium focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                    <option value="1">1 Month Pass</option>
+                    <option value="2">2 Months Pass</option>
+                    <option value="3" selected>3 Months Exam Sprint (🔥 Recommended)</option>
+                    <option value="6">6 Months Semester Pass</option>
+                    <option value="12">12 Months (1 Year) Full Pass</option>
+                    <option value="24">24 Months (2 Years) Pass</option>
+                    <option value="120">👑 Lifetime Access</option>
+                </select>
+            </div>
+
+            <!-- Payment Mode -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Payment Method / Reason <span class="text-rose-500">*</span>
+                </label>
+                <select name="payment_mode" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs bg-white font-medium focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                    <option value="gpay_upi">GPay / PhonePe / UPI (Offline)</option>
+                    <option value="cash">Direct Cash Payment</option>
+                    <option value="bank_transfer">Direct Bank Transfer / NEFT</option>
+                    <option value="gift">Promotional Gift / Free Complimentary</option>
+                    <option value="scholarship">Merit Scholarship</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+
+            <!-- Amount Collected -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                        Amount Collected (₹)
+                    </label>
+                    <input 
+                        type="number" 
+                        step="1" 
+                        name="amount" 
+                        placeholder="0.00 if gifted" 
+                        class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                    >
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                        Reference / Notes
+                    </label>
+                    <input 
+                        type="text" 
+                        name="notes" 
+                        placeholder="e.g. UPI Ref / Cash slip" 
+                        class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                    >
+                </div>
+            </div>
+
+            <div class="p-3 rounded-xl bg-amber-50 text-amber-900 text-[11px] font-medium border border-amber-200">
+                ⚡ <em>Note:</em> If the candidate already has an active subscription, this will seamlessly <strong>extend</strong> their expiry date from their current end date!
+            </div>
+
+            <!-- Footer -->
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+                <button 
+                    type="button" 
+                    onclick="closeGiftModal()" 
+                    class="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition"
+                >
+                    Cancel
+                </button>
+                <button 
+                    type="submit" 
+                    class="px-5 py-2.5 rounded-xl text-xs font-black text-slate-950 bg-amber-400 hover:bg-yellow-400 transition shadow"
+                >
+                    Grant Subscription ⚡
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openCreateUserModal() {
+    document.getElementById('createUserModal').classList.remove('hidden');
+}
+
+function closeCreateUserModal() {
+    document.getElementById('createUserModal').classList.add('hidden');
+}
+
+function toggleSubFields() {
+    const cb = document.getElementById('activateSubCheckbox');
+    const container = document.getElementById('subFieldsContainer');
+    if (cb.checked) {
+        container.classList.remove('hidden');
+    } else {
+        container.classList.add('hidden');
+    }
+}
+
+const actCb = document.getElementById('activateSubCheckbox');
+if (actCb) {
+    actCb.addEventListener('change', function() {
+        const container = document.getElementById('subFieldsContainer');
+        if (this.checked) {
+            container.classList.remove('hidden');
+        } else {
+            container.classList.add('hidden');
+        }
+    });
+}
+
+function openGiftModal(userId, userName, userPhone, isPro, validUntil) {
+    const form = document.getElementById('giftForm');
+    form.action = `/admin/users/${userId}/gift-subscription`;
+
+    document.getElementById('giftModalUserName').textContent = userName;
+    document.getElementById('giftModalUserPhone').textContent = userPhone ? `(${userPhone})` : '';
+
+    const statusEl = document.getElementById('giftModalSubStatus');
+    if (isPro == 1 && validUntil) {
+        statusEl.innerHTML = `<span class="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-100 text-emerald-800">Active until ${validUntil}</span>`;
+    } else {
+        statusEl.innerHTML = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600">Free Member</span>`;
+    }
+
+    document.getElementById('giftModal').classList.remove('hidden');
+}
+
+function closeGiftModal() {
+    document.getElementById('giftModal').classList.add('hidden');
+}
+
+function copyCredentialsText(name, phone, password) {
+    const text = `Hello ${name}! Welcome to PSCRanker. 🚀\n\nYour account has been created:\n📱 Mobile / Login: ${phone}\n🔑 Password: ${password}\n\nLog in here: ${window.location.origin}/login\nHappy learning & rank high!`;
+    navigator.clipboard.writeText(text).then(() => {
+        alert('Credentials message copied to clipboard! You can now paste and send to the candidate on WhatsApp.');
+    });
+}
+</script>
 @endsection

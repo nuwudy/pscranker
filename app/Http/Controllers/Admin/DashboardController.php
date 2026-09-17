@@ -31,13 +31,18 @@ class DashboardController extends Controller
             'media_storage_formatted' => $this->formatBytes(MediaFile::sum('file_size')),
             'total_users' => User::count(),
             'active_subscribers' => User::where('subscribed_until', '>', now())->count(),
+            'total_admins' => User::where('is_admin', true)->orWhere('email', 'admin@pscranker.com')->orWhere('phone', '9895940500')->count(),
             'total_revenue' => SubscriptionPayment::where('status', 'paid')->sum('amount'),
+            'offline_revenue' => SubscriptionPayment::where('status', 'paid')->where('razorpay_order_id', 'like', 'OFFLINE_%')->sum('amount'),
             'total_session_attempts' => UserSessionProgress::count(),
             'total_session_completions' => UserSessionProgress::whereNotNull('completed_at')->count(),
             'total_drill_attempts' => DrillAttempt::count(),
             'total_xp_awarded' => UserSessionProgress::sum('xp_earned'),
             'avg_omr_score' => round(UserSessionProgress::where('omr_score', '>', 0)->avg('omr_score') ?? 0, 2),
         ];
+
+        // Recent candidates and users
+        $recentUsers = User::latest('id')->take(6)->get();
 
         // Recent session progress
         $recentProgress = UserSessionProgress::with(['session', 'user'])
@@ -87,6 +92,7 @@ class DashboardController extends Controller
 
         return view('admin.dashboard', compact(
             'stats',
+            'recentUsers',
             'recentProgress',
             'recentDrills',
             'recentPayments',

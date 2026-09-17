@@ -76,6 +76,12 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::get('media/api-list', [MediaController::class, 'apiList'])->name('media.api-list');
     Route::post('media', [MediaController::class, 'store'])->name('media.store');
     Route::delete('media/{medium}', [MediaController::class, 'destroy'])->name('media.destroy');
+
+    // Candidate Accounts, Offline Payments & Admin Management
+    Route::get('users', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');
+    Route::post('users', [\App\Http\Controllers\Admin\UserController::class, 'store'])->name('users.store');
+    Route::post('users/{user}/gift-subscription', [\App\Http\Controllers\Admin\UserController::class, 'giftSubscription'])->name('users.gift-subscription');
+    Route::post('users/{user}/toggle-admin', [\App\Http\Controllers\Admin\UserController::class, 'toggleAdmin'])->name('users.toggle-admin');
 });
 
 // Quick Aliases for Navigation links

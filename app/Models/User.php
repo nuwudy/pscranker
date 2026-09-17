@@ -23,6 +23,7 @@ class User extends Authenticatable
         'email',
         'phone',
         'password',
+        'is_admin',
         'subscribed_until',
         'subscription_plan',
         'subscription_amount',
@@ -48,9 +49,18 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_admin' => 'boolean',
             'subscribed_until' => 'datetime',
             'subscription_amount' => 'decimal:2',
         ];
+    }
+
+    /**
+     * Check whether user has admin privileges.
+     */
+    public function isAdmin(): bool
+    {
+        return (bool) ($this->is_admin || $this->email === 'admin@pscranker.com' || $this->phone === '9895940500');
     }
 
     /**
@@ -58,7 +68,7 @@ class User extends Authenticatable
      */
      public function isSubscribed(): bool
     {
-        if ($this->email === 'admin@pscranker.com') {
+        if ($this->isAdmin()) {
             return true;
         }
 
@@ -86,8 +96,8 @@ class User extends Authenticatable
      */
     public function subscriptionDaysRemaining(): int
     {
-        if ($this->email === 'admin@pscranker.com') {
-            return 365;
+        if ($this->isAdmin()) {
+            return 999;
         }
 
         if (!$this->subscribed_until || $this->subscribed_until->isPast()) {

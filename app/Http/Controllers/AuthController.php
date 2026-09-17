@@ -16,7 +16,7 @@ class AuthController extends Controller
     {
         if (Auth::check()) {
             $user = Auth::user();
-            if ($user->email === 'admin@pscranker.com' || $user->phone === '9895940500') {
+            if ($user->isAdmin()) {
                 return redirect()->route('admin.dashboard');
             }
             return redirect()->route('sessions.index');
@@ -111,7 +111,7 @@ class AuthController extends Controller
             $request->session()->regenerate();
 
             $user = Auth::user();
-            $isAdmin = ($user->email === 'admin@pscranker.com' || $user->phone === '9895940500');
+            $isAdmin = $user->isAdmin();
             $targetUrl = $isAdmin ? route('admin.dashboard') : route('sessions.index');
 
             return redirect()->intended($targetUrl)
