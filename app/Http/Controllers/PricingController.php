@@ -166,6 +166,17 @@ class PricingController extends Controller
                 'subscription_plan' => "{$payment->duration_months} Months Plan",
                 'subscription_amount' => $payment->amount,
             ]);
+
+            // Automatically check and attribute affiliate commission by phone number
+            try {
+                app(\App\Services\AffiliateAttributionService::class)->recordConversion(
+                    student: $user,
+                    payment: $payment,
+                    courseAmount: (float) $payment->amount
+                );
+            } catch (\Throwable $e) {
+                Log::warning('Affiliate commission recording exception: ' . $e->getMessage());
+            }
         }
 
         return response()->json([

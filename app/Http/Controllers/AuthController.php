@@ -67,6 +67,13 @@ class AuthController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
+        // If this student was referred by an affiliate lead, link lead account
+        try {
+            app(\App\Services\AffiliateAttributionService::class)->linkRegisteredStudent($user);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Affiliate lead link exception: ' . $e->getMessage());
+        }
+
         Auth::login($user, true);
         $request->session()->regenerate();
 

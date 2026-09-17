@@ -83,6 +83,24 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::put('users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'update'])->name('users.update');
     Route::post('users/{user}/gift-subscription', [\App\Http\Controllers\Admin\UserController::class, 'giftSubscription'])->name('users.gift-subscription');
     Route::post('users/{user}/toggle-admin', [\App\Http\Controllers\Admin\UserController::class, 'toggleAdmin'])->name('users.toggle-admin');
+
+    // Affiliate Promoters & Monthly Commission Disbursement Hub
+    Route::get('affiliates', [\App\Http\Controllers\Admin\AdminAffiliateController::class, 'index'])->name('affiliates.index');
+    Route::post('affiliates/{affiliate}/status', [\App\Http\Controllers\Admin\AdminAffiliateController::class, 'updateStatus'])->name('affiliates.status');
+    Route::post('affiliates/{affiliate}/commission-rate', [\App\Http\Controllers\Admin\AdminAffiliateController::class, 'updateCommissionRate'])->name('affiliates.commission-rate');
+    Route::post('affiliates/{affiliate}/bonus', [\App\Http\Controllers\Admin\AdminAffiliateController::class, 'addBonus'])->name('affiliates.bonus');
+    Route::post('affiliates/{affiliate}/disburse', [\App\Http\Controllers\Admin\AdminAffiliateController::class, 'disburseMonthly'])->name('affiliates.disburse');
+});
+
+// Affiliate Partner Public Onboarding & Partner Portal
+Route::get('/affiliate/join', [\App\Http\Controllers\AffiliateController::class, 'showJoinForm'])->name('affiliate.join');
+Route::post('/affiliate/join', [\App\Http\Controllers\AffiliateController::class, 'submitJoin'])->name('affiliate.submit');
+
+Route::middleware('auth')->prefix('affiliate')->name('affiliate.')->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\AffiliateController::class, 'dashboard'])->name('dashboard');
+    Route::post('/leads', [\App\Http\Controllers\AffiliateController::class, 'storeLead'])->name('leads.store');
+    Route::post('/leads/{lead}/update', [\App\Http\Controllers\AffiliateController::class, 'updateLead'])->name('leads.update');
+    Route::post('/payout-settings', [\App\Http\Controllers\AffiliateController::class, 'updatePayoutSettings'])->name('payout.update');
 });
 
 // Quick Aliases for Navigation links

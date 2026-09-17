@@ -106,4 +106,21 @@ class User extends Authenticatable
 
         return (int) now()->diffInDays($this->subscribed_until, false);
     }
+
+    /**
+     * Get the affiliate profile associated with this user.
+     */
+    public function affiliate(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Affiliate::class);
+    }
+
+    /**
+     * Check if user is an approved active affiliate promoter.
+     */
+    public function isAffiliate(): bool
+    {
+        return $this->affiliate !== null && $this->affiliate->status === 'active';
+    }
 }
+

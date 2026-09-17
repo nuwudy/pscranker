@@ -38,6 +38,12 @@
                     <span>➕ User / Offline Sub</span>
                 </button>
                 <a 
+                    href="{{ route('admin.affiliates.index') }}" 
+                    class="px-4 py-2.5 bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-black text-xs rounded-xl shadow transition flex items-center gap-1.5 border border-yellow-300 active:scale-95"
+                >
+                    <span>🤝 Affiliates</span>
+                </a>
+                <a 
                     href="{{ route('admin.users.index') }}" 
                     class="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl transition flex items-center gap-1.5 border border-white/20"
                 >

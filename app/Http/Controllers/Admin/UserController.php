@@ -289,6 +289,20 @@ class UserController extends Controller
         $user->subscription_amount = $amount;
         $user->save();
 
+        // Check if student was referred by an affiliate and attribute conversion
+        if ($amount > 0) {
+            try {
+                app(\App\Services\AffiliateAttributionService::class)->recordConversion(
+                    student: $user,
+                    payment: $payment ?? null,
+                    courseAmount: $amount,
+                    adminNotes: "Offline payment/gift via Admin: {$paymentMode}"
+                );
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Affiliate attribution error on gift: ' . $e->getMessage());
+            }
+        }
+
         $modeHuman = match($paymentMode) {
             'gift' => 'Gifted Subscription',
             'scholarship' => 'Merit Scholarship',
