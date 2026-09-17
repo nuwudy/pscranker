@@ -94,23 +94,31 @@ class AuthController extends Controller
 
         // Check if input is email or phone number
         if (filter_var($loginInput, FILTER_VALIDATE_EMAIL)) {
-            $credentials = [
-                'email' => strtolower($loginInput),
-                'password' => $password,
-            ];
+            $user = User::where('email', strtolower($loginInput))->first();
         } else {
             // Strip any non-digit characters for phone number
             $cleanPhone = preg_replace('/\D/', '', $loginInput);
-            $credentials = [
-                'phone' => $cleanPhone,
-                'password' => $password,
-            ];
+
+            // Handle country code +91 (12 digits) -> strip 91
+            if (strlen($cleanPhone) === 12 && str_starts_with($cleanPhone, '91')) {
+                $cleanPhone = substr($cleanPhone, 2);
+            }
+            // Handle trunk prefix 0 (11 digits starting with 0) -> strip 0
+            elseif (strlen($cleanPhone) === 11 && str_starts_with($cleanPhone, '0')) {
+                $cleanPhone = substr($cleanPhone, 1);
+            }
+
+            // Find by exact phone, or if 11 digits (e.g. accidental extra digit), fallback to first 10 digits
+            $user = User::where('phone', $cleanPhone)->first();
+            if (!$user && strlen($cleanPhone) === 11) {
+                $user = User::where('phone', substr($cleanPhone, 0, 10))->first();
+            }
         }
 
-        if (Auth::attempt($credentials, $remember)) {
+        if ($user && Hash::check($password, $user->password)) {
+            Auth::login($user, $remember);
             $request->session()->regenerate();
 
-            $user = Auth::user();
             $isAdmin = $user->isAdmin();
             $targetUrl = $isAdmin ? route('admin.dashboard') : route('sessions.index');
 

@@ -94,6 +94,73 @@ test('admin can edit existing candidate details and reset password', function ()
     expect(\Illuminate\Support\Facades\Hash::check('NewStrongPass99', $student->password))->toBeTrue();
 });
 
+test('candidate can log in with updated password via both phone and email', function () {
+    $admin = User::factory()->create([
+        'email' => 'admin@pscranker.com',
+        'is_admin' => true,
+    ]);
+
+    $student = User::factory()->create([
+        'name' => 'Naseem',
+        'phone' => '9895920422',
+        'email' => 'nuwudy@gmail.com',
+        'password' => 'InitialPass123',
+    ]);
+
+    // Admin updates student password to Amter786
+    $updateResponse = $this->actingAs($admin)->put(route('admin.users.update', $student), [
+        'name' => 'Naseem',
+        'phone' => '9895920422',
+        'email' => 'nuwudy@gmail.com',
+        'password' => 'Amter786',
+    ]);
+    $updateResponse->assertSessionHas('success');
+
+    // Logout admin
+    auth()->logout();
+
+    // Student logs in with phone 9895920422 and Amter786
+    $loginPhoneResponse = $this->post('/login', [
+        'login' => '9895920422',
+        'password' => 'Amter786',
+    ]);
+    $loginPhoneResponse->assertSessionHasNoErrors();
+    $loginPhoneResponse->assertRedirect();
+
+    // Logout
+    auth()->logout();
+
+    // Student logs in with email nuwudy@gmail.com and Amter786
+    $loginEmailResponse = $this->post('/login', [
+        'login' => 'nuwudy@gmail.com',
+        'password' => 'Amter786',
+    ]);
+    $loginEmailResponse->assertSessionHasNoErrors();
+    $loginEmailResponse->assertRedirect();
+
+    // Logout
+    auth()->logout();
+
+    // Student logs in with +91 country code prefix
+    $loginPrefixResponse = $this->post('/login', [
+        'login' => '+919895920422',
+        'password' => 'Amter786',
+    ]);
+    $loginPrefixResponse->assertSessionHasNoErrors();
+    $loginPrefixResponse->assertRedirect();
+
+    // Logout
+    auth()->logout();
+
+    // Student logs in with 11-digit accidental extra digit (e.g. 98959204224)
+    $loginTypoResponse = $this->post('/login', [
+        'login' => '98959204224',
+        'password' => 'Amter786',
+    ]);
+    $loginTypoResponse->assertSessionHasNoErrors();
+    $loginTypoResponse->assertRedirect();
+});
+
 test('admin can create candidate account with instant offline PRO subscription', function () {
     $admin = User::factory()->create([
         'email' => 'admin@pscranker.com',
