@@ -91,6 +91,8 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::post('affiliates/{affiliate}/commission-rate', [\App\Http\Controllers\Admin\AdminAffiliateController::class, 'updateCommissionRate'])->name('affiliates.commission-rate');
     Route::post('affiliates/{affiliate}/bonus', [\App\Http\Controllers\Admin\AdminAffiliateController::class, 'addBonus'])->name('affiliates.bonus');
     Route::post('affiliates/{affiliate}/payout-details', [\App\Http\Controllers\Admin\AdminAffiliateController::class, 'updatePayoutDetails'])->name('affiliates.payout-details');
+    Route::post('affiliates/slabs', [\App\Http\Controllers\Admin\AdminAffiliateController::class, 'updateSlabs'])->name('affiliates.slabs.update');
+    Route::post('affiliates/slabs/recalculate', [\App\Http\Controllers\Admin\AdminAffiliateController::class, 'recalculateCommissions'])->name('affiliates.slabs.recalculate');
     Route::post('affiliates/{affiliate}/disburse', [\App\Http\Controllers\Admin\AdminAffiliateController::class, 'disburseMonthly'])->name('affiliates.disburse');
 });
 

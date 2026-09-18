@@ -94,6 +94,9 @@ class AdminAffiliateController extends Controller
             $availableMonths[$m] = $label;
         }
 
+        // Target vs Payout Slabs
+        $slabs = \App\Models\AffiliateSlab::ordered()->get();
+
         return view('admin.affiliates.index', compact(
             'tab',
             'totalAffiliates',
@@ -108,8 +111,79 @@ class AdminAffiliateController extends Controller
             'monthlyDisbursements',
             'leads',
             'availableMonths',
-            'defaultCommissionRate'
+            'defaultCommissionRate',
+            'slabs'
         ));
+    }
+
+    /**
+     * Update target vs payout slab tiers (Basic Payout % and Bonus % editable).
+     */
+    public function updateSlabs(Request $request)
+    {
+        $validated = $request->validate([
+            'slabs' => ['required', 'array'],
+            'slabs.*.id' => ['required', 'exists:affiliate_slabs,id'],
+            'slabs.*.min_target' => ['required', 'numeric', 'min:0'],
+            'slabs.*.max_target' => ['nullable', 'numeric'],
+            'slabs.*.basic_payout_percentage' => ['required', 'numeric', 'min:0', 'max:100'],
+            'slabs.*.bonus_percentage' => ['required', 'numeric', 'min:0', 'max:100'],
+            'new_slab.min_target' => ['nullable', 'numeric', 'min:0'],
+            'new_slab.max_target' => ['nullable', 'numeric'],
+            'new_slab.basic_payout_percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'new_slab.bonus_percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],
+        ]);
+
+        foreach ($validated['slabs'] as $slabData) {
+            $slab = \App\Models\AffiliateSlab::find($slabData['id']);
+            if ($slab) {
+                $maxTarget = !empty($slabData['max_target']) ? (float) $slabData['max_target'] : null;
+                $slab->update([
+                    'min_target' => (float) $slabData['min_target'],
+                    'max_target' => $maxTarget,
+                    'basic_payout_percentage' => (float) $slabData['basic_payout_percentage'],
+                    'bonus_percentage' => (float) $slabData['bonus_percentage'],
+                ]);
+            }
+        }
+
+        // Check if adding a new slab tier
+        if (!empty($validated['new_slab']['min_target']) && isset($validated['new_slab']['basic_payout_percentage'])) {
+            $newSlab = $validated['new_slab'];
+            $maxOrder = \App\Models\AffiliateSlab::max('order') ?? 0;
+            $order = $maxOrder + 1;
+            $code = \App\Models\AffiliateSlab::generateCode(null, $order);
+
+            \App\Models\AffiliateSlab::create([
+                'slab_code' => $code,
+                'order' => $order,
+                'min_target' => (float) $newSlab['min_target'],
+                'max_target' => !empty($newSlab['max_target']) ? (float) $newSlab['max_target'] : null,
+                'basic_payout_percentage' => (float) $newSlab['basic_payout_percentage'],
+                'bonus_percentage' => (float) ($newSlab['bonus_percentage'] ?? 0.00),
+                'is_active' => true,
+            ]);
+        }
+
+        // Automatically recalculate current month commissions
+        $slabService = app(\App\Services\AffiliateSlabService::class);
+        $recalc = $slabService->recalculateMonthlyCommissions(now()->format('Y-m'));
+
+        return redirect()->route('admin.affiliates.index', ['tab' => 'slabs'])
+            ->with('success', "Target vs Payout slabs saved successfully! Current month payouts updated ({$recalc['affiliates_updated']} promoters synced).");
+    }
+
+    /**
+     * Recalculate monthly commissions for a specific period.
+     */
+    public function recalculateCommissions(Request $request)
+    {
+        $month = $request->input('month', now()->format('Y-m'));
+        $slabService = app(\App\Services\AffiliateSlabService::class);
+        $result = $slabService->recalculateMonthlyCommissions($month);
+
+        return redirect()->back()
+            ->with('success', "Commissions for {$month} recalculated successfully! Updated {$result['affiliates_updated']} affiliates with total payable of ₹" . number_format($result['total_adjusted_payout'], 2));
     }
 
     /**

@@ -185,6 +185,196 @@
             </div>
         </div>
 
+        <!-- Target vs Payout Structure Card (Monthly Performance & Slab Breakdown) -->
+        @if(isset($performance))
+        <div class="bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 border border-yellow-500/30 rounded-3xl p-6 sm:p-8 mb-8 shadow-2xl relative overflow-hidden">
+            <div class="absolute -right-20 -top-20 w-64 h-64 bg-yellow-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <!-- Top Header & Current Slab Pill -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-800 relative z-10">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-yellow-400/20 text-yellow-300 border border-yellow-400/30">
+                            🎯 Progressive Commission Model
+                        </span>
+                        <span class="text-xs text-slate-400 font-mono">{{ $performance['month_name'] }}</span>
+                    </div>
+                    <h2 class="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
+                        <span>Target vs Payout Structure</span>
+                    </h2>
+                    <p class="text-xs text-slate-300 mt-1">
+                        Your commission scales automatically as your monthly sales grow. Reach higher slabs to unlock up to 31%+ in total payouts across all enrollments.
+                    </p>
+                </div>
+
+                <!-- Current Slab Badge -->
+                <div class="bg-slate-950/90 border-2 border-yellow-400/50 rounded-2xl p-4 shadow-lg flex items-center gap-3 shrink-0">
+                    <div class="w-10 h-10 rounded-xl bg-yellow-400/10 border border-yellow-400/30 flex items-center justify-center text-xl">
+                        🏆
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Slab You Are In</span>
+                        <span class="text-base sm:text-lg font-black text-yellow-400 font-mono">
+                            {{ $performance['current_slab']->slab_code ?? 'PRSL-2609-001' }}
+                        </span>
+                        <span class="text-[10px] text-slate-300 block">
+                            {{ $performance['current_slab']->slab_name ?? 'Slab 1' }} ({{ $performance['current_slab']->total_payout_percentage ?? 10 }}% Total)
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Sales & Earnings Key Highlights (Spreadsheet matching) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 my-6 relative z-10">
+                <!-- Sales Value -->
+                <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-4">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Sales Value</span>
+                    <div class="text-2xl sm:text-3xl font-black text-white font-mono mt-1">
+                        ₹{{ number_format($performance['sales_value']) }}
+                    </div>
+                    <span class="text-[11px] text-slate-400 mt-1 block">
+                        Base ({{ $performance['current_slab']->basic_payout_percentage ?? 10 }}%): ₹{{ number_format($performance['basic_payout_amount']) }}
+                    </span>
+                </div>
+
+                <!-- Earnings -->
+                <div class="bg-slate-950/70 border border-yellow-500/40 rounded-2xl p-4 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-yellow-400/10 rounded-bl-full pointer-events-none"></div>
+                    <span class="text-[10px] font-bold text-yellow-400 uppercase tracking-wider block">Earnings</span>
+                    <div class="text-2xl sm:text-3xl font-black text-yellow-400 font-mono mt-1">
+                        ₹{{ number_format($performance['total_earnings']) }}
+                    </div>
+                    <span class="text-[11px] text-yellow-300/80 mt-1 block">
+                        Includes Bonus: ₹{{ number_format($performance['bonus_amount']) }} (+{{ $performance['current_slab']->bonus_percentage ?? 0 }}%)
+                    </span>
+                </div>
+
+                <!-- Average Sales Per Day -->
+                <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-4">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Avg. Sales / Day</span>
+                    <div class="text-xl sm:text-2xl font-black text-emerald-400 font-mono mt-1">
+                        ₹{{ number_format($performance['average_sales_per_day'], 1) }}
+                    </div>
+                    <span class="text-[11px] text-slate-500 mt-1 block">
+                        Over {{ $performance['days_passed'] }} active day(s)
+                    </span>
+                </div>
+
+                <!-- Average Earnings Per Day & Countdown -->
+                <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-4">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Avg. Earnings / Day</span>
+                    <div class="text-xl sm:text-2xl font-black text-blue-400 font-mono mt-1">
+                        ₹{{ number_format($performance['average_earnings_per_day'], 1) }}
+                    </div>
+                    <span class="text-[11px] text-amber-300 font-bold mt-1 flex items-center gap-1">
+                        <span>⏳</span> {{ $performance['days_remaining'] }} day(s) left in {{ $performance['month_name'] }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Next Slab Milestone Tracker -->
+            @if($performance['next_slab'])
+                <div class="bg-gradient-to-r from-amber-500/15 via-yellow-500/10 to-emerald-500/10 border border-yellow-400/40 rounded-2xl p-4 sm:p-5 mb-6 relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-lg">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl sm:text-3xl">🚀</span>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-black uppercase text-yellow-400 tracking-wider">Next Slab Target:</span>
+                                <span class="font-mono text-white font-bold text-sm">{{ $performance['next_slab']->slab_name }} ({{ $performance['next_slab']->slab_code }})</span>
+                                <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-bold border border-emerald-500/30">
+                                    {{ $performance['next_slab']->total_payout_percentage }}% Commission
+                                </span>
+                            </div>
+                            <p class="text-xs text-slate-200 mt-1">
+                                Generate <strong class="text-yellow-300 font-mono">₹{{ number_format($performance['amount_needed_for_next_slab']) }}</strong> more in sales before month-end to jump from {{ $performance['current_slab']->total_payout_percentage ?? 10 }}% to <strong class="text-emerald-400">{{ $performance['next_slab']->total_payout_percentage }}%</strong>!
+                                Your payout will reach <strong class="text-white font-mono">₹{{ number_format($performance['projected_next_earnings']) }}</strong> (<span class="text-emerald-400 font-bold">+₹{{ number_format($performance['potential_additional_earnings']) }} boost</span> on your entire volume).
+                            </p>
+                        </div>
+                    </div>
+                    <div class="shrink-0 text-right md:min-w-[140px]">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Pacing Deadline</span>
+                        <span class="text-sm font-black text-yellow-400 font-mono">{{ $performance['days_remaining'] }} Days Left</span>
+                    </div>
+                </div>
+            @else
+                <div class="bg-gradient-to-r from-yellow-500/20 to-amber-500/10 border border-yellow-400/40 rounded-2xl p-4 mb-6 relative z-10 flex items-center gap-3">
+                    <span class="text-2xl">👑</span>
+                    <p class="text-xs text-yellow-200">
+                        <strong>Maximum Tier Achieved!</strong> You are in top tier <strong>{{ $performance['current_slab']->slab_name }}</strong> receiving the highest payout of <strong>{{ $performance['current_slab']->total_payout_percentage }}%</strong> on all sales!
+                    </p>
+                </div>
+            @endif
+
+            <!-- Slab Reference Table -->
+            <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/60 relative z-10">
+                <table class="min-w-full text-left text-xs divide-y divide-slate-800">
+                    <thead class="bg-slate-900/90 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                        <tr>
+                            <th class="py-3 px-4">Slab Code &amp; Tier</th>
+                            <th class="py-3 px-4">Monthly Target Range</th>
+                            <th class="py-3 px-4 text-center">Basic Payout %</th>
+                            <th class="py-3 px-4 text-center">Bonus %</th>
+                            <th class="py-3 px-4 text-center">Total Commission</th>
+                            <th class="py-3 px-4 text-right">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800/60">
+                        @foreach($performance['all_slabs'] as $slab)
+                            @php
+                                $isActive = $performance['current_slab'] && $performance['current_slab']->id === $slab->id;
+                            @endphp
+                            <tr class="{{ $isActive ? 'bg-yellow-500/10 border-l-4 border-yellow-400 font-bold' : 'hover:bg-slate-900/40 text-slate-300' }} transition">
+                                <td class="py-3 px-4">
+                                    <div class="font-mono text-white font-black flex items-center gap-1.5">
+                                        @if($isActive)
+                                            <span class="text-yellow-400">★</span>
+                                        @endif
+                                        <span>{{ $slab->slab_code }}</span>
+                                    </div>
+                                    <span class="text-[10px] text-slate-400 font-sans block">{{ $slab->slab_name }}</span>
+                                </td>
+                                <td class="py-3 px-4 font-mono">
+                                    ₹{{ number_format($slab->min_target) }} 
+                                    @if($slab->max_target)
+                                        — ₹{{ number_format($slab->max_target) }}
+                                    @else
+                                        &amp; above
+                                    @endif
+                                </td>
+                                <td class="py-3 px-4 text-center font-mono text-slate-200">
+                                    {{ rtrim(rtrim(number_format($slab->basic_payout_percentage, 2), '0'), '.') }}%
+                                </td>
+                                <td class="py-3 px-4 text-center font-mono text-emerald-400">
+                                    +{{ rtrim(rtrim(number_format($slab->bonus_percentage, 2), '0'), '.') }}%
+                                </td>
+                                <td class="py-3 px-4 text-center">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-black font-mono {{ $isActive ? 'bg-yellow-400 text-slate-950 shadow-sm' : 'bg-slate-800 text-yellow-300' }}">
+                                        {{ rtrim(rtrim(number_format($slab->total_payout_percentage, 2), '0'), '.') }}%
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4 text-right">
+                                    @if($isActive)
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-yellow-400 text-slate-950">
+                                            <span>⚡</span> Active Slab
+                                        </span>
+                                    @elseif($performance['sales_value'] >= ($slab->max_target ?? $slab->min_target))
+                                        <span class="text-[10px] text-emerald-400 font-bold uppercase">
+                                            ✓ Unlocked
+                                        </span>
+                                    @else
+                                        <span class="text-[10px] text-slate-500 font-bold uppercase">
+                                            Locked
+                                        </span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        @endif
+
         <!-- Section 1: Prospects Follow-up Pipeline -->
         <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 mb-8 shadow-xl">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">

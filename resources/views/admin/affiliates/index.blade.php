@@ -108,6 +108,12 @@
                 👥 Promoters Directory
             </a>
             <a 
+                href="{{ route('admin.affiliates.index', ['tab' => 'slabs']) }}" 
+                class="px-4 py-2 rounded-xl text-xs font-black transition {{ $tab === 'slabs' ? 'bg-slate-900 text-white shadow' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200' }}"
+            >
+                🎯 Target vs Payout Slabs
+            </a>
+            <a 
                 href="{{ route('admin.affiliates.index', ['tab' => 'disbursements', 'month' => $selectedMonth]) }}" 
                 class="px-4 py-2 rounded-xl text-xs font-black transition {{ $tab === 'disbursements' ? 'bg-slate-900 text-white shadow' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200' }}"
             >
@@ -587,6 +593,229 @@
                 <div class="mt-4">
                     {{ $leads->links() }}
                 </div>
+            </div>
+        @endif
+
+        <!-- ============================================================= -->
+        <!-- TAB 4: TARGET VS PAYOUT SLABS CONFIGURATION (EDITABLE)         -->
+        <!-- ============================================================= -->
+        @if($tab === 'slabs')
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 mb-8">
+                <!-- Top Header & Recalculate Action -->
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6 pb-6 border-b border-slate-100">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-yellow-100 text-yellow-800 border border-yellow-300">
+                                📊 Progressive Commission Engine
+                            </span>
+                            <span class="text-xs text-slate-400 font-mono">Formula: Sales × (Basic % + Bonus %)</span>
+                        </div>
+                        <h2 class="text-lg sm:text-xl font-black text-slate-900">Target vs Payout Slabs Configuration</h2>
+                        <p class="text-xs text-slate-500 mt-1 max-w-2xl">
+                            Configure the <strong>Basic Payout %</strong> and <strong>Bonus %</strong> for each monthly sales volume bracket. Slabs apply retroactively to all sales within that calendar month. Saving updates automatically resyncs pending commissions.
+                        </p>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-3">
+                        <form action="{{ route('admin.affiliates.slabs.recalculate') }}" method="POST" class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-2xl p-2">
+                            @csrf
+                            <input 
+                                type="month" 
+                                name="period_month" 
+                                value="{{ now()->format('Y-m') }}" 
+                                class="bg-white border border-slate-300 text-slate-900 font-mono text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:border-blue-600"
+                            >
+                            <button 
+                                type="submit" 
+                                class="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs rounded-xl shadow-sm transition active:scale-95 cursor-pointer flex items-center gap-1.5"
+                                title="Recalculate monthly commission amounts for all promoters based on active slabs"
+                            >
+                                <span>🔄 Recalculate Month</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Spreadsheet Example Card Callout -->
+                <div class="mb-6 p-4 rounded-2xl bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 text-slate-800 text-xs">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">💡</span>
+                            <div>
+                                <strong class="text-slate-900 font-bold block">Spreadsheet Payout Logic:</strong>
+                                <span class="text-slate-600">
+                                    Example: Sales Value <strong class="font-mono text-slate-900">₹32,456</strong> falls in Slab 4 (<strong class="font-mono text-slate-900">₹30,001 - ₹40,000</strong>) with Basic Payout 10% + Bonus 9% = <strong class="font-mono text-emerald-700 font-black">19% Total</strong>.
+                                    The promoter earns <strong class="font-mono text-emerald-800 font-black">₹6,166.64</strong> (<span class="font-mono">₹3,245.60 Base + ₹2,921.04 Bonus</span>).
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Editable Form for Slabs -->
+                <form action="{{ route('admin.affiliates.slabs.update') }}" method="POST">
+                    @csrf
+
+                    <div class="overflow-x-auto rounded-2xl border border-slate-200 mb-6">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase tracking-wider font-bold text-[10px]">
+                                    <th class="py-3 px-4">Slab Code &amp; Tier</th>
+                                    <th class="py-3 px-4">Min Target (₹)</th>
+                                    <th class="py-3 px-4">Max Target (₹)</th>
+                                    <th class="py-3 px-4 text-center">Basic Payout %</th>
+                                    <th class="py-3 px-4 text-center">Bonus %</th>
+                                    <th class="py-3 px-4 text-center">Total Payout %</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                @forelse($slabs as $index => $slab)
+                                    <tr class="hover:bg-slate-50/70 transition">
+                                        <td class="py-3.5 px-4">
+                                            <input type="hidden" name="slabs[{{ $index }}][id]" value="{{ $slab->id }}">
+                                            <div class="font-mono font-black text-slate-900">{{ $slab->slab_code }}</div>
+                                            <span class="text-[10px] text-slate-500">{{ $slab->slab_name }}</span>
+                                        </td>
+                                        <td class="py-3.5 px-4">
+                                            <div class="flex items-center gap-1">
+                                                <span class="text-slate-400 font-mono">₹</span>
+                                                <input 
+                                                    type="number" 
+                                                    step="1" 
+                                                    min="0"
+                                                    name="slabs[{{ $index }}][min_target]" 
+                                                    value="{{ (int) $slab->min_target }}" 
+                                                    required 
+                                                    class="w-28 bg-white border border-slate-300 font-mono text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                                                >
+                                            </div>
+                                        </td>
+                                        <td class="py-3.5 px-4">
+                                            <div class="flex items-center gap-1">
+                                                <span class="text-slate-400 font-mono">₹</span>
+                                                <input 
+                                                    type="number" 
+                                                    step="1" 
+                                                    min="0"
+                                                    name="slabs[{{ $index }}][max_target]" 
+                                                    value="{{ $slab->max_target ? (int) $slab->max_target : '' }}" 
+                                                    placeholder="No upper limit"
+                                                    class="w-28 bg-white border border-slate-300 font-mono text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                                                >
+                                            </div>
+                                        </td>
+                                        <td class="py-3.5 px-4 text-center">
+                                            <div class="inline-flex items-center gap-1">
+                                                <input 
+                                                    type="number" 
+                                                    step="0.01" 
+                                                    min="0" 
+                                                    max="100"
+                                                    name="slabs[{{ $index }}][basic_payout_percentage]" 
+                                                    value="{{ $slab->basic_payout_percentage }}" 
+                                                    required 
+                                                    class="w-20 text-center bg-white border border-slate-300 font-mono font-bold text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                                                >
+                                                <span class="font-mono text-slate-500 font-bold">%</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-3.5 px-4 text-center">
+                                            <div class="inline-flex items-center gap-1">
+                                                <input 
+                                                    type="number" 
+                                                    step="0.01" 
+                                                    min="0" 
+                                                    max="100"
+                                                    name="slabs[{{ $index }}][bonus_percentage]" 
+                                                    value="{{ $slab->bonus_percentage }}" 
+                                                    required 
+                                                    class="w-20 text-center bg-emerald-50 border border-emerald-300 text-emerald-800 font-mono font-black text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                                                >
+                                                <span class="font-mono text-emerald-700 font-bold">%</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-3.5 px-4 text-center font-mono font-black text-slate-900">
+                                            <span class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-800 text-xs">
+                                                {{ rtrim(rtrim(number_format($slab->total_payout_percentage, 2), '0'), '.') }}%
+                                            </span>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="6" class="py-8 text-center text-slate-500">
+                                            No target vs payout slabs configured yet.
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Add New Tier Section -->
+                    <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200 mb-6">
+                        <h3 class="text-xs font-black uppercase tracking-wider text-slate-700 mb-3 flex items-center gap-1.5">
+                            <span>➕</span> Add Next Higher Slab Tier (Optional)
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Min Target (₹)</label>
+                                <input 
+                                    type="number" 
+                                    step="1" 
+                                    min="0"
+                                    name="new_slab[min_target]" 
+                                    placeholder="e.g. 200001" 
+                                    class="w-full bg-white border border-slate-300 font-mono text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                                >
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Max Target (₹, empty for open end)</label>
+                                <input 
+                                    type="number" 
+                                    step="1" 
+                                    min="0"
+                                    name="new_slab[max_target]" 
+                                    placeholder="Leave empty for unlimited" 
+                                    class="w-full bg-white border border-slate-300 font-mono text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                                >
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Basic Payout %</label>
+                                <input 
+                                    type="number" 
+                                    step="0.01" 
+                                    min="0" 
+                                    max="100"
+                                    name="new_slab[basic_payout_percentage]" 
+                                    placeholder="e.g. 10.00" 
+                                    class="w-full bg-white border border-slate-300 font-mono text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                                >
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Bonus %</label>
+                                <input 
+                                    type="number" 
+                                    step="0.01" 
+                                    min="0" 
+                                    max="100"
+                                    name="new_slab[bonus_percentage]" 
+                                    placeholder="e.g. 25.00" 
+                                    class="w-full bg-white border border-slate-300 font-mono text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                                >
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Save Slabs Button -->
+                    <div class="flex items-center justify-end gap-3">
+                        <button 
+                            type="submit" 
+                            class="px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white font-black text-xs rounded-xl shadow-md transition active:scale-95 cursor-pointer flex items-center gap-2"
+                        >
+                            <span>💾 Save Target vs Payout Slabs</span>
+                        </button>
+                    </div>
+                </form>
             </div>
         @endif
 

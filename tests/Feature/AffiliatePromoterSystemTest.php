@@ -157,9 +157,9 @@ test('attribution engine automatically attributes conversion and calculates comm
     expect($commission)->not->toBeNull()
         ->and($commission->affiliate_id)->toBe($affiliate->id)
         ->and((float)$commission->course_amount)->toBe(1999.00)
-        ->and((float)$commission->commission_rate)->toBe(20.00)
-        ->and((float)$commission->commission_amount)->toBe(399.80) // 20% of 1999
-        ->and((float)$commission->total_amount)->toBe(399.80)
+        ->and((float)$commission->commission_rate)->toBe(10.00)
+        ->and((float)$commission->commission_amount)->toBe(199.90) // Slab 1: 10% of 1999
+        ->and((float)$commission->total_amount)->toBe(199.90)
         ->and($commission->status)->toBe('pending');
 
     $lead->refresh();
@@ -343,14 +343,14 @@ test('student signing up and purchasing via referral link earns affiliate commis
     $lead->refresh();
     expect($lead->status)->toBe('converted');
 
-    // Step 4: Affiliate should have received 15% of 2000 = ₹300
+    // Step 4: Affiliate should have received Slab 1 payout: 10% of 2000 = ₹200
     $commission = AffiliateCommission::where('affiliate_id', $affiliate->id)
         ->where('subscription_payment_id', $payment->id)
         ->first();
 
     expect($commission)->not->toBeNull()
-        ->and((float)$commission->commission_rate)->toBe(15.0)
-        ->and((float)$commission->commission_amount)->toBe(300.00)
+        ->and((float)$commission->commission_rate)->toBe(10.0)
+        ->and((float)$commission->commission_amount)->toBe(200.00)
         ->and($commission->status)->toBe('pending');
 });
 

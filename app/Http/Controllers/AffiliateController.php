@@ -170,8 +170,14 @@ class AffiliateController extends Controller
         $pendingPayout = $affiliate->pendingPayout();
         $totalDisbursed = $affiliate->totalDisbursed();
 
-        // Recent Commissions
-        $commissions = $affiliate->commissions()->with(['lead', 'student'])->latest('id')->take(10)->get();
+        // Target vs Payout Performance Slabs
+        $slabService = app(\App\Services\AffiliateSlabService::class);
+        $performance = $slabService->getAffiliateMonthlyPerformance($affiliate, now()->format('Y-m'));
+
+        $commissions = $affiliate->commissions()
+            ->with(['student', 'lead'])
+            ->latest('id')
+            ->paginate(15, ['*'], 'commissions_page');
 
         return view('affiliate.dashboard', compact(
             'affiliate',
@@ -181,7 +187,8 @@ class AffiliateController extends Controller
             'totalEarned',
             'pendingPayout',
             'totalDisbursed',
-            'commissions'
+            'commissions',
+            'performance'
         ));
     }
 

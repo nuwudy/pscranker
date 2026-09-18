@@ -159,10 +159,34 @@ class AffiliateAttributionService
             'converted_at' => $lead->converted_at ?: now(),
         ]);
 
-        $rate = (float) $affiliate->commission_rate;
-        $commissionAmount = round(($courseAmount * $rate) / 100, 2);
-        $totalAmount = round($commissionAmount + $bonus, 2);
         $periodMonth = now()->format('Y-m');
+
+        // Check if Slab System is active
+        $slabService = app(AffiliateSlabService::class);
+        $slabs = $slabService->getSlabsForMonth($periodMonth);
+
+        if ($slabs->isNotEmpty()) {
+            // Calculate total cumulative sales including this conversion
+            $currentMonthSales = (float) AffiliateCommission::where('affiliate_id', $affiliate->id)
+                ->where('period_month', $periodMonth)
+                ->sum('course_amount') + $courseAmount;
+
+            $matchedSlab = $slabService->getMatchingSlab($currentMonthSales, $periodMonth);
+
+            $basicRate = $matchedSlab ? (float) $matchedSlab->basic_payout_percentage : (float) $affiliate->commission_rate;
+            $bonusRate = $matchedSlab ? (float) $matchedSlab->bonus_percentage : 0.00;
+            $rate = round($basicRate + $bonusRate, 2);
+
+            $commissionAmount = round(($courseAmount * $basicRate) / 100, 2);
+            $slabBonusAmount = round(($courseAmount * $bonusRate) / 100, 2);
+            $totalBonus = round($slabBonusAmount + $bonus, 2);
+            $totalAmount = round($commissionAmount + $totalBonus, 2);
+        } else {
+            $rate = (float) $affiliate->commission_rate;
+            $commissionAmount = round(($courseAmount * $rate) / 100, 2);
+            $totalBonus = $bonus;
+            $totalAmount = round($commissionAmount + $totalBonus, 2);
+        }
 
         $commission = AffiliateCommission::create([
             'affiliate_id' => $affiliate->id,
@@ -172,12 +196,17 @@ class AffiliateAttributionService
             'course_amount' => $courseAmount,
             'commission_rate' => $rate,
             'commission_amount' => $commissionAmount,
-            'bonus_amount' => $bonus,
+            'bonus_amount' => $totalBonus,
             'total_amount' => $totalAmount,
             'period_month' => $periodMonth,
             'status' => 'pending',
             'admin_notes' => $adminNotes ?? ($lead->source === 'referral_link' ? 'Converted via Referral Link' : null),
         ]);
+
+        // Automatically sync all pending commissions in this month with the achieved slab rate
+        if ($slabs->isNotEmpty()) {
+            $slabService->recalculateMonthlyCommissions($periodMonth);
+        }
 
         Log::info("Affiliate conversion recorded: Lead #{$lead->id} -> Affiliate #{$affiliate->id} for Student #{$student->id}. Commission: ₹{$commissionAmount}");
 
@@ -224,5 +253,18 @@ class AffiliateAttributionService
         }
 
         return $lead;
+    }
+
+    /**
+     * Attribute a subscription payment directly.
+     */
+    public function attributePayment(SubscriptionPayment $payment): ?AffiliateCommission
+    {
+        $user = $payment->user ?? User::find($payment->user_id);
+        if (!$user) {
+            return null;
+        }
+
+        return $this->recordConversion($user, $payment, (float) $payment->amount);
     }
 }
