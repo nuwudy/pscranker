@@ -459,44 +459,43 @@
                     {!! $session->custom_html !!}
                 </div>
 
-                <!-- Custom Code Session Interactive Completion Bar -->
-                <div class="mt-8 bg-gradient-to-r from-blue-950 via-slate-900 to-indigo-950 rounded-2xl p-5 sm:p-6 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 border border-blue-800/40">
-                    <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-xl bg-amber-400 text-slate-950 font-black flex items-center justify-center text-2xl shadow-md shrink-0">
-                            ⚡
-                        </div>
-                        <div>
-                            <h4 class="font-black text-sm sm:text-base">Finished this Interactive Capsule?</h4>
-                            <p class="text-xs text-slate-300 mt-0.5">Click below to claim your unit XP reward and advance to the next unit.</p>
-                        </div>
+                <!-- Slim Unified Completion Action Bar -->
+                <div class="mt-4 bg-slate-900 border border-slate-800 rounded-2xl px-4 py-2.5 shadow-md flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div class="flex items-center gap-2 text-xs font-bold text-slate-300">
+                        <span class="text-amber-400 text-base">⚡</span>
+                        <span>Finished this lesson?</span>
+                        <span class="text-slate-500 font-normal text-[11px] hidden md:inline">• Claim your XP reward to advance</span>
                     </div>
 
-                    <div class="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+                    <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                        <!-- Retake button: hidden during the session, revealed only at the end -->
                         <button 
                             type="button" 
                             id="pscranker-retake-unit-btn"
                             onclick="window.PSCRanker?.retakeSession()"
-                            class="w-full sm:w-auto px-5 py-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-blue-500/25 transition active:scale-95 flex items-center justify-center gap-2 border border-blue-400 cursor-pointer"
-                            title="Reset all questions and restart from Screen 1"
+                            style="display: none;"
+                            class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-blue-400 hover:text-blue-300 font-bold text-xs rounded-xl border border-slate-700 transition active:scale-95 items-center gap-1.5 cursor-pointer"
+                            title="Reset all questions and restart from beginning"
                         >
-                            <span class="text-base">🔄</span>
-                            <span>Retake Capsule (വീണ്ടും ചെയ്യുക)</span>
+                            <span>🔄 Retake Unit</span>
                         </button>
 
                         <button 
                             type="button" 
                             id="pscranker-complete-unit-btn"
                             onclick="window.PSCRanker?.completeSession()"
-                            class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                            class="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
                         >
                             <span>Claim +{{ $session->xp_reward }} XP &amp; Complete 🚀</span>
                         </button>
+
                         @if($nextSession)
                             <a 
                                 href="{{ route('session.show', ['slug' => $nextSession->slug, 'stream' => $stream]) }}" 
-                                class="px-4 py-3 bg-white/10 hover:bg-white/20 text-white font-black text-xs rounded-xl transition border border-white/20 hidden sm:inline-flex items-center gap-1 shrink-0"
+                                class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl transition border border-slate-700 hidden sm:inline-flex items-center gap-1 shrink-0"
+                                title="Next Unit"
                             >
-                                <span>Next Unit →</span>
+                                <span>Next →</span>
                             </a>
                         @endif
                     </div>
@@ -2207,6 +2206,12 @@ window.PSCRanker = {
             console.error('Progress save error:', e);
         }
 
+        // Reveal Retake button at the end of the session
+        const retakeBtn = document.getElementById('pscranker-retake-unit-btn');
+        if (retakeBtn) {
+            retakeBtn.style.display = 'inline-flex';
+        }
+
         if (window.showPscModal) {
             window.showPscModal({
                 type: 'celebration',
@@ -2241,6 +2246,12 @@ window.PSCRanker = {
     },
 
     retakeSession: function() {
+        // Hide Retake button when restarting session
+        const retakeBtn = document.getElementById('pscranker-retake-unit-btn');
+        if (retakeBtn) {
+            retakeBtn.style.display = 'none';
+        }
+
         // 1. Reset Custom Code internal JavaScript state
         if (window.pscState) {
             window.pscState.xp = 0;
