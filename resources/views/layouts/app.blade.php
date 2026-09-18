@@ -405,18 +405,13 @@
                         <div>
                             <span class="block text-slate-300 font-bold">Phone / WhatsApp:</span>
                             <div class="flex flex-col gap-0.5 mt-0.5">
-                                <a href="tel:+918089612287" class="text-white hover:text-yellow-400 font-mono font-bold">+91 80896 12287</a>
-                                <a href="tel:+919895204224" class="text-slate-300 hover:text-yellow-400 font-mono text-[11px]">+91 9895 204 224</a>
-                                <a href="https://wa.me/918089612287" target="_blank" rel="noopener noreferrer" class="text-emerald-400 hover:underline text-[11px]">Chat on WhatsApp ➔</a>
+                                <a href="tel:+919495249224" class="text-white hover:text-yellow-400 font-mono font-bold">+91 9495 249 224</a>
+                                <a href="https://wa.me/919495249224" target="_blank" rel="noopener noreferrer" class="text-emerald-400 hover:underline text-[11px]">Chat on WhatsApp ➔</a>
                             </div>
                         </div>
                         <div>
                             <span class="block text-slate-300 font-bold">Operating Hours:</span>
                             <span>Mon – Sat: 9:00 AM – 7:00 PM IST</span>
-                        </div>
-                        <div>
-                            <span class="block text-slate-300 font-bold">Address:</span>
-                            <span class="text-[11px] leading-tight block">PSC Ranker, 3/109 Puthampurakkal, Nellukadavu, Fort Kochi, Kochi, Ernakulam, Kerala – 682001, India</span>
                         </div>
                         <div class="pt-1 text-[10px] text-slate-500">
                             PSCRanker.com is an independent learning portal and is not affiliated with the official Kerala PSC.

@@ -103,8 +103,7 @@
                 <div class="mt-2 text-xs bg-slate-50 p-4 rounded-xl border border-slate-200 text-slate-800 space-y-1">
                     <div><strong>Business Name:</strong> PSC Ranker (PSCRanker.com)</div>
                     <div><strong>Email:</strong> <a href="mailto:infopscranker@gmail.com" class="text-[#0052FF] font-bold font-mono">infopscranker@gmail.com</a></div>
-                    <div><strong>Phone / WhatsApp:</strong> <a href="tel:+918089612287" class="text-[#0052FF] font-bold font-mono">+91 80896 12287</a> / <a href="tel:+919895204224" class="text-[#0052FF] font-bold font-mono">+91 9895 204 224</a></div>
-                    <div><strong>Address:</strong> 3/109 Puthampurakkal, Nellukadavu, Fort Kochi, Kochi, Ernakulam, Kerala – 682001, India</div>
+                    <div><strong>Phone / WhatsApp:</strong> <a href="tel:+919495249224" class="text-[#0052FF] font-bold font-mono">+91 9495 249 224</a></div>
                 </div>
             </section>
 

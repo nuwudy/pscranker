@@ -124,41 +124,35 @@ test('all mandatory razorpay compliance legal pages load properly', function () 
     $this->get('/terms')
         ->assertStatus(200)
         ->assertSee('Terms and Conditions')
-        ->assertSee('Fort Kochi')
-        ->assertSee('682001');
+        ->assertSee('9495 249 224');
 
     $this->get('/privacy')
         ->assertStatus(200)
         ->assertSee('Privacy Policy')
-        ->assertSee('Fort Kochi')
-        ->assertSee('682001');
+        ->assertSee('9495 249 224');
 
     $this->get('/refund-policy')
         ->assertStatus(200)
         ->assertSee('Cancellation &amp; Refund Policy', false)
         ->assertSee('5 to 7 business days')
-        ->assertSee('Fort Kochi');
+        ->assertSee('9495 249 224');
 
     $this->get('/shipping-policy')
         ->assertStatus(200)
         ->assertSee('Shipping &amp; Delivery Policy', false)
         ->assertSee('instantaneously')
-        ->assertSee('Fort Kochi');
+        ->assertSee('9495 249 224');
 
     $this->get('/about')
         ->assertStatus(200)
         ->assertSee('About PSCRanker')
-        ->assertSee('Fort Kochi')
-        ->assertSee('682001');
+        ->assertSee('9495 249 224');
 
     $this->get('/contact')
         ->assertStatus(200)
         ->assertSee('Contact Us &amp; Student Support', false)
         ->assertSee('infopscranker@gmail.com')
-        ->assertSee('80896 12287')
-        ->assertSee('9895 204 224')
-        ->assertSee('Fort Kochi')
-        ->assertSee('682001');
+        ->assertSee('9495 249 224');
 });
 
 test('subscribed student can access premium sessions without lock', function () {

@@ -76,9 +76,8 @@
                 <div class="mt-2 text-xs bg-blue-50 p-4 rounded-xl border border-blue-200 text-blue-900 space-y-1.5 font-mono">
                     <div><strong>Business Name:</strong> PSC Ranker (PSCRanker.com)</div>
                     <div><strong>Grievance Email:</strong> <a href="mailto:infopscranker@gmail.com" class="text-[#0052FF] font-bold hover:underline">infopscranker@gmail.com</a></div>
-                    <div><strong>Phone / WhatsApp:</strong> <a href="tel:+918089612287" class="text-[#0052FF] font-bold hover:underline">+91 80896 12287</a> / <a href="tel:+919895204224" class="text-[#0052FF] font-bold hover:underline">+91 9895 204 224</a></div>
+                    <div><strong>Phone / WhatsApp:</strong> <a href="tel:+919495249224" class="text-[#0052FF] font-bold hover:underline">+91 9495 249 224</a></div>
                     <div><strong>Operating Hours:</strong> Monday – Saturday, 9:00 AM – 7:00 PM IST</div>
-                    <div><strong>Postal Address:</strong> 3/109 Puthampurakkal, Nellukadavu, Fort Kochi, Kochi, Ernakulam, Kerala – 682001, India</div>
                 </div>
             </section>
 

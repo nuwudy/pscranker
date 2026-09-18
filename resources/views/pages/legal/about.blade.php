@@ -94,19 +94,15 @@
                     <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200">
                         <span class="text-slate-400 block font-bold uppercase mb-1">Helpline / WhatsApp</span>
                         <div class="flex flex-col gap-0.5">
-                            <a href="tel:+918089612287" class="text-[#0052FF] font-black hover:underline font-mono text-sm">
-                                +91 80896 12287
+                            <a href="tel:+919495249224" class="text-[#0052FF] font-black hover:underline font-mono text-sm">
+                                +91 9495 249 224
                             </a>
-                            <a href="tel:+919895204224" class="text-slate-600 font-bold hover:underline font-mono text-xs">
-                                +91 9895 204 224
+                            <a href="https://wa.me/919495249224" target="_blank" rel="noopener noreferrer" class="text-emerald-600 font-bold hover:underline text-xs">
+                                Chat on WhatsApp ➔
                             </a>
                         </div>
                         <p class="text-[11px] text-slate-500 mt-1">Available Mon–Sat: 9:00 AM – 7:00 PM IST.</p>
                     </div>
-                </div>
-
-                <div class="mt-4 text-xs text-slate-500 p-4 rounded-2xl bg-slate-50 border border-slate-200">
-                    <strong class="text-slate-700">Operational Address:</strong> PSC Ranker, 3/109 Puthampurakkal, Nellukadavu, Fort Kochi, Kochi, Ernakulam, Kerala – 682001, India.
                 </div>
             </section>
 
