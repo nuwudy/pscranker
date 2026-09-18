@@ -249,6 +249,8 @@
                     @if($nextSession)
                         <a 
                             href="{{ route('session.show', ['slug' => $nextSession->slug, 'stream' => $stream]) }}" 
+                            id="headerNextUnitBtn"
+                            style="{{ ($isCompleted ?? false) ? '' : 'display: none;' }}"
                             class="px-2.5 py-1 bg-[#0052FF] hover:bg-blue-700 text-white rounded-lg text-xs font-black transition flex items-center gap-1 shadow-xs"
                             title="Go to next unit: {{ $nextSession->title }}"
                         >
@@ -260,6 +262,8 @@
                     @if($session->isCustomCode())
                         <button 
                             type="button" 
+                            id="headerRetakeBtn"
+                            style="{{ ($isCompleted ?? false) ? '' : 'display: none;' }}"
                             onclick="window.PSCRanker?.retakeSession()" 
                             class="px-2.5 py-1 bg-white hover:bg-blue-50 text-[#0052FF] hover:text-blue-800 rounded-lg text-xs font-black border border-blue-200 transition flex items-center gap-1 shadow-2xs active:scale-95 cursor-pointer"
                             title="Reset this session and start fresh from beginning"
@@ -270,6 +274,8 @@
                     @else
                         <button 
                             type="button" 
+                            id="headerRetakeBtn"
+                            style="{{ ($isCompleted ?? false) ? '' : 'display: none;' }}"
                             @click="restartSession()" 
                             class="px-2.5 py-1 bg-white hover:bg-blue-50 text-[#0052FF] hover:text-blue-800 rounded-lg text-xs font-black border border-blue-200 transition flex items-center gap-1 shadow-2xs active:scale-95 cursor-pointer"
                             title="Reset this session and start fresh from beginning"
@@ -459,21 +465,25 @@
                     {!! $session->custom_html !!}
                 </div>
 
-                <!-- Slim Unified Completion Action Bar -->
-                <div class="mt-4 bg-slate-900 border border-slate-800 rounded-2xl px-4 py-2.5 shadow-md flex flex-col sm:flex-row items-center justify-between gap-3">
+                <!-- Slim Unified Completion Action Bar: Revealed ONLY when session is completed -->
+                <div 
+                    id="pscranker-bottom-completion-bar" 
+                    style="{{ ($isCompleted ?? false) ? '' : 'display: none;' }}"
+                    class="mt-4 bg-slate-900 border border-slate-800 rounded-2xl px-4 py-2.5 shadow-md flex flex-col sm:flex-row items-center justify-between gap-3 transition-all duration-300"
+                >
                     <div class="flex items-center gap-2 text-xs font-bold text-slate-300">
-                        <span class="text-amber-400 text-base">⚡</span>
-                        <span>Finished this lesson?</span>
-                        <span class="text-slate-500 font-normal text-[11px] hidden md:inline">• Claim your XP reward to advance</span>
+                        <span class="text-amber-400 text-base">🎉</span>
+                        <span id="pscranker-completion-status-text">{{ ($isCompleted ?? false) ? 'Session Completed!' : 'Finished this lesson?' }}</span>
+                        <span class="text-slate-500 font-normal text-[11px] hidden md:inline">• Continue to the next unit or retake</span>
                     </div>
 
                     <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-                        <!-- Retake button: hidden during the session, revealed only at the end -->
+                        <!-- Retake button: revealed when session is completed -->
                         <button 
                             type="button" 
                             id="pscranker-retake-unit-btn"
                             onclick="window.PSCRanker?.retakeSession()"
-                            style="display: none;"
+                            style="{{ ($isCompleted ?? false) ? 'display: inline-flex;' : 'display: none;' }}"
                             class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-blue-400 hover:text-blue-300 font-bold text-xs rounded-xl border border-slate-700 transition active:scale-95 items-center gap-1.5 cursor-pointer"
                             title="Reset all questions and restart from beginning"
                         >
@@ -484,6 +494,7 @@
                             type="button" 
                             id="pscranker-complete-unit-btn"
                             onclick="window.PSCRanker?.completeSession()"
+                            style="display: none;"
                             class="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
                         >
                             <span>Claim +{{ $session->xp_reward }} XP &amp; Complete 🚀</span>
@@ -492,10 +503,18 @@
                         @if($nextSession)
                             <a 
                                 href="{{ route('session.show', ['slug' => $nextSession->slug, 'stream' => $stream]) }}" 
-                                class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl transition border border-slate-700 hidden sm:inline-flex items-center gap-1 shrink-0"
-                                title="Next Unit"
+                                id="pscranker-next-unit-btn"
+                                class="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-[#0052FF] via-blue-600 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
+                                title="Next Unit: {{ $nextSession->title }}"
                             >
-                                <span>Next →</span>
+                                <span>അടുത്ത യൂണിറ്റ് (Next Unit ➔)</span>
+                            </a>
+                        @else
+                            <a 
+                                href="{{ route('sessions.index', ['stream' => $stream]) }}" 
+                                class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition"
+                            >
+                                <span>🎉 All Units Completed!</span>
                             </a>
                         @endif
                     </div>
@@ -2064,6 +2083,10 @@ function sessionEngine(config) {
                     this.omrSummary = data.summary;
                     this.omrDetails = data.questions;
                     this.sessionCompleted = true;
+                    const headerNextBtn = document.getElementById('headerNextUnitBtn');
+                    if (headerNextBtn) headerNextBtn.style.display = 'inline-flex';
+                    const headerRetakeBtn = document.getElementById('headerRetakeBtn');
+                    if (headerRetakeBtn) headerRetakeBtn.style.display = 'inline-flex';
                     
                     // Add net marks points into total XP
                     const omrXp = Math.max(0, Math.round(data.summary.net_marks * 20));
@@ -2106,6 +2129,10 @@ function sessionEngine(config) {
                 omr: false,
             };
             this.sessionCompleted = false;
+            const headerNextBtn = document.getElementById('headerNextUnitBtn');
+            if (headerNextBtn) headerNextBtn.style.display = 'none';
+            const headerRetakeBtn = document.getElementById('headerRetakeBtn');
+            if (headerRetakeBtn) headerRetakeBtn.style.display = 'none';
             this.diagnosticState = { answered: false, selectedOption: null, isCorrect: false };
             this.blitzIndex = 0;
             this.blitzTimer = 20;
@@ -2179,8 +2206,10 @@ window.PSCRanker = {
     progressUrl: @js(route('api.session.progress', $session->id)),
     csrfToken: '{{ csrf_token() }}',
     nextSessionUrl: @js($nextSession ? route('session.show', ['slug' => $nextSession->slug, 'stream' => $stream]) : route('sessions.index')),
+    isCompleted: @js((bool) ($isCompleted ?? false)),
 
     completeSession: async function(customXp) {
+        this.isCompleted = true;
         const btn = document.getElementById('pscranker-complete-unit-btn');
         if (btn) {
             btn.disabled = true;
@@ -2206,10 +2235,30 @@ window.PSCRanker = {
             console.error('Progress save error:', e);
         }
 
-        // Reveal Retake button at the end of the session
+        // Reveal completion bar, Next Unit button and Retake button at the end of the session
+        const completionBar = document.getElementById('pscranker-bottom-completion-bar');
+        if (completionBar) {
+            completionBar.style.display = 'flex';
+        }
         const retakeBtn = document.getElementById('pscranker-retake-unit-btn');
         if (retakeBtn) {
             retakeBtn.style.display = 'inline-flex';
+        }
+        const nextUnitBtn = document.getElementById('pscranker-next-unit-btn');
+        if (nextUnitBtn) {
+            nextUnitBtn.style.display = 'inline-flex';
+        }
+        const statusText = document.getElementById('pscranker-completion-status-text');
+        if (statusText) {
+            statusText.innerText = 'Session Completed! 🎉';
+        }
+        const headerNextBtn = document.getElementById('headerNextUnitBtn');
+        if (headerNextBtn) {
+            headerNextBtn.style.display = 'inline-flex';
+        }
+        const headerRetakeBtn = document.getElementById('headerRetakeBtn');
+        if (headerRetakeBtn) {
+            headerRetakeBtn.style.display = 'inline-flex';
         }
 
         if (window.showPscModal) {
@@ -2246,10 +2295,24 @@ window.PSCRanker = {
     },
 
     retakeSession: function() {
-        // Hide Retake button when restarting session
+        this.isCompleted = false;
+
+        // Hide completion bar, Retake, and Next Unit button when restarting session
+        const completionBar = document.getElementById('pscranker-bottom-completion-bar');
+        if (completionBar) {
+            completionBar.style.display = 'none';
+        }
         const retakeBtn = document.getElementById('pscranker-retake-unit-btn');
         if (retakeBtn) {
             retakeBtn.style.display = 'none';
+        }
+        const headerNextBtn = document.getElementById('headerNextUnitBtn');
+        if (headerNextBtn) {
+            headerNextBtn.style.display = 'none';
+        }
+        const headerRetakeBtn = document.getElementById('headerRetakeBtn');
+        if (headerRetakeBtn) {
+            headerRetakeBtn.style.display = 'none';
         }
 
         // 1. Reset Custom Code internal JavaScript state
@@ -2416,6 +2479,19 @@ document.addEventListener('DOMContentLoaded', function() {
             card.prepend(banner);
             banner.classList.remove('hidden');
         }
+    }
+
+    // Intercept pscGoTo to ensure completion bar stays hidden during intermediate screens
+    if (typeof window.pscGoTo === 'function') {
+        const origPscGoTo = window.pscGoTo;
+        window.pscGoTo = function(step) {
+            origPscGoTo.apply(this, arguments);
+            const completionBar = document.getElementById('pscranker-bottom-completion-bar');
+            if (completionBar && !window.PSCRanker?.isCompleted) {
+                // On hook, lesson, mcqs, strictly keep completion bar hidden
+                completionBar.style.display = 'none';
+            }
+        };
     }
 });
 </script>

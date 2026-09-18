@@ -107,6 +107,28 @@ class SessionController extends Controller
             }
         }
 
+        $isCompleted = false;
+        if ($user) {
+            $isCompleted = UserSessionProgress::where('user_id', $user->id)
+                ->where('session_id', $session->id)
+                ->where(function ($q) {
+                    $q->whereNotNull('completed_at')
+                      ->orWhere('current_phase', 'summary');
+                })
+                ->exists();
+        } else {
+            $guestToken = request()->cookie('pscranker_guest_token');
+            if ($guestToken) {
+                $isCompleted = UserSessionProgress::where('guest_token', $guestToken)
+                    ->where('session_id', $session->id)
+                    ->where(function ($q) {
+                        $q->whereNotNull('completed_at')
+                          ->orWhere('current_phase', 'summary');
+                    })
+                    ->exists();
+            }
+        }
+
         return view('pages.session-runner', compact(
             'session',
             'previousSession',
@@ -117,7 +139,8 @@ class SessionController extends Controller
             'lockReason',
             'stream',
             'streamTitle',
-            'streamTitleMalayalam'
+            'streamTitleMalayalam',
+            'isCompleted'
         ));
     }
 

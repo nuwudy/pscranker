@@ -154,3 +154,61 @@ test('home page hero leads students to course units catalog', function () {
     $response->assertSee(route('sessions.index'));
     $response->assertSee('UNIT BY UNIT');
 });
+
+test('next unit button is hidden during learning and revealed upon session completion', function () {
+    $category = Category::create(['name' => 'General', 'slug' => 'general', 'order' => 1]);
+    $user = User::factory()->create();
+
+    $unit1 = Session::create([
+        'title' => 'Unit 1: Foundations',
+        'slug' => 'unit-1-foundations',
+        'category_id' => $category->id,
+        'order' => 1,
+        'xp_reward' => 100,
+        'is_active' => true,
+        'creation_mode' => 'code',
+        'custom_html' => '<div id="psc-screen-hook">Hook</div><div id="psc-screen-lesson" style="display:none">Lesson</div>',
+    ]);
+
+    $unit2 = Session::create([
+        'title' => 'Unit 2: Mastery',
+        'slug' => 'unit-2-mastery',
+        'category_id' => $category->id,
+        'order' => 2,
+        'xp_reward' => 100,
+        'is_active' => true,
+    ]);
+
+    // 1. When session is not yet completed, Next Unit buttons and bottom bar are hidden
+    $inProgressResponse = $this->actingAs($user)->get(route('session.show', $unit1->slug));
+    $inProgressResponse->assertStatus(200);
+    $inProgressContent = $inProgressResponse->getContent();
+    
+    // Header next unit button has display: none
+    expect($inProgressContent)->toContain('id="headerNextUnitBtn"');
+    expect($inProgressContent)->toMatch('/id="headerNextUnitBtn"[^>]*style="display: none;"/');
+
+    // Bottom completion bar has display: none
+    expect($inProgressContent)->toContain('id="pscranker-bottom-completion-bar"');
+    expect($inProgressContent)->toMatch('/id="pscranker-bottom-completion-bar"[^>]*style="display: none;"/');
+
+    // 2. When session is marked completed in progress records
+    \App\Models\UserSessionProgress::create([
+        'user_id' => $user->id,
+        'session_id' => $unit1->id,
+        'current_phase' => 'summary',
+        'completed_at' => now(),
+        'xp_earned' => 100,
+    ]);
+
+    $completedResponse = $this->actingAs($user)->get(route('session.show', $unit1->slug));
+    $completedResponse->assertStatus(200);
+    $completedContent = $completedResponse->getContent();
+
+    // In completed state, header next unit button does NOT have display: none
+    expect($completedContent)->toMatch('/id="headerNextUnitBtn"[^>]*style=""/');
+    expect($completedContent)->toMatch('/id="pscranker-bottom-completion-bar"[^>]*style=""/');
+    expect($completedContent)->toContain('Session Completed!');
+    expect($completedContent)->toContain('അടുത്ത യൂണിറ്റ് (Next Unit ➔)');
+});
+
