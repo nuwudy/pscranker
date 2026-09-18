@@ -207,7 +207,8 @@ test('next unit button is hidden during learning and revealed upon session compl
 
     // In completed state, header next unit button does NOT have display: none
     expect($completedContent)->toMatch('/id="headerNextUnitBtn"[^>]*style=""/');
-    expect($completedContent)->toMatch('/id="pscranker-bottom-completion-bar"[^>]*style=""/');
+    // Bottom bar starts hidden by default on Screen 1 to prevent double navigation
+    expect($completedContent)->toMatch('/id="pscranker-bottom-completion-bar"[^>]*style="display: none;"/');
     expect($completedContent)->toContain('Session Completed!');
     expect($completedContent)->toContain('അടുത്ത യൂണിറ്റ് (Next Unit ➔)');
 });

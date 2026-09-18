@@ -465,10 +465,10 @@
                     {!! $session->custom_html !!}
                 </div>
 
-                <!-- Slim Unified Completion Action Bar: Revealed ONLY when session is completed -->
+                <!-- Slim Unified Completion Action Bar: Revealed ONLY on Screen 4 when session is completed -->
                 <div 
                     id="pscranker-bottom-completion-bar" 
-                    style="{{ ($isCompleted ?? false) ? '' : 'display: none;' }}"
+                    style="display: none;"
                     class="mt-4 bg-slate-900 border border-slate-800 rounded-2xl px-4 py-2.5 shadow-md flex flex-col sm:flex-row items-center justify-between gap-3 transition-all duration-300"
                 >
                     <div class="flex items-center gap-2 text-xs font-bold text-slate-300">
@@ -2235,10 +2235,12 @@ window.PSCRanker = {
             console.error('Progress save error:', e);
         }
 
-        // Reveal completion bar, Next Unit button and Retake button at the end of the session
+        // Reveal completion bar ONLY IF currently on OMR screen (Screen 4)
+        const omrScreen = document.getElementById('psc-screen-omr');
+        const isOmrVisible = omrScreen && (omrScreen.style.display !== 'none');
         const completionBar = document.getElementById('pscranker-bottom-completion-bar');
         if (completionBar) {
-            completionBar.style.display = 'flex';
+            completionBar.style.display = isOmrVisible ? 'flex' : 'none';
         }
         const retakeBtn = document.getElementById('pscranker-retake-unit-btn');
         if (retakeBtn) {
@@ -2259,6 +2261,18 @@ window.PSCRanker = {
         const headerRetakeBtn = document.getElementById('headerRetakeBtn');
         if (headerRetakeBtn) {
             headerRetakeBtn.style.display = 'inline-flex';
+        }
+
+        // Also inject Next Unit CTA directly inside the internal complete card on Screen 4
+        const completeCard = document.querySelector('.psc-complete-card');
+        if (completeCard && !document.getElementById('psc-internal-next-unit-btn') && this.nextSessionUrl) {
+            const nextLink = document.createElement('a');
+            nextLink.id = 'psc-internal-next-unit-btn';
+            nextLink.href = this.nextSessionUrl;
+            nextLink.className = 'psc-btn-primary psc-pulse';
+            nextLink.style.cssText = 'display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 12px; padding: 14px 20px; font-size: 15px; font-weight: 900; background: linear-gradient(135deg, #0052FF, #4F46E5); color: white; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 14px rgba(0,82,255,0.4); text-transform: uppercase;';
+            nextLink.innerHTML = '<span>അടുത്ത യൂണിറ്റിലേക്ക് (Next Unit) ➔</span>';
+            completeCard.appendChild(nextLink);
         }
 
         if (window.showPscModal) {
@@ -2313,6 +2327,10 @@ window.PSCRanker = {
         const headerRetakeBtn = document.getElementById('headerRetakeBtn');
         if (headerRetakeBtn) {
             headerRetakeBtn.style.display = 'none';
+        }
+        const internalNextBtn = document.getElementById('psc-internal-next-unit-btn');
+        if (internalNextBtn) {
+            internalNextBtn.remove();
         }
 
         // 1. Reset Custom Code internal JavaScript state
@@ -2481,18 +2499,49 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Intercept pscGoTo to ensure completion bar stays hidden during intermediate screens
+    // Sync bottom completion bar visibility strictly with the active screen:
+    // On 'hook', 'lesson', and 'mcqs' screens, NEVER display the bottom completion bar!
+    function syncCompletionBarWithStep(step) {
+        const completionBar = document.getElementById('pscranker-bottom-completion-bar');
+        if (!completionBar) return;
+        
+        if (step === 'hook' || step === 'lesson' || step === 'mcqs') {
+            completionBar.style.display = 'none';
+        } else if (step === 'omr') {
+            if (window.PSCRanker && window.PSCRanker.isCompleted) {
+                completionBar.style.display = 'flex';
+                const nextBtn = document.getElementById('pscranker-next-unit-btn');
+                if (nextBtn) nextBtn.style.display = 'inline-flex';
+                const retakeBtn = document.getElementById('pscranker-retake-unit-btn');
+                if (retakeBtn) retakeBtn.style.display = 'inline-flex';
+            } else {
+                completionBar.style.display = 'none';
+            }
+        }
+    }
+
+    // Intercept pscGoTo to ensure completion bar stays strictly hidden during intermediate screens
     if (typeof window.pscGoTo === 'function') {
         const origPscGoTo = window.pscGoTo;
         window.pscGoTo = function(step) {
             origPscGoTo.apply(this, arguments);
-            const completionBar = document.getElementById('pscranker-bottom-completion-bar');
-            if (completionBar && !window.PSCRanker?.isCompleted) {
-                // On hook, lesson, mcqs, strictly keep completion bar hidden
-                completionBar.style.display = 'none';
-            }
+            syncCompletionBarWithStep(step);
         };
     }
+
+    // Hook stepper pills and screen switch clicks
+    document.querySelectorAll('.psc-step-pill, #psc-pill-hook, #psc-pill-lesson, #psc-pill-mcqs, #psc-pill-omr').forEach(pill => {
+        pill.addEventListener('click', function() {
+            const id = this.id || '';
+            if (id.includes('hook')) syncCompletionBarWithStep('hook');
+            else if (id.includes('lesson')) syncCompletionBarWithStep('lesson');
+            else if (id.includes('mcqs')) syncCompletionBarWithStep('mcqs');
+            else if (id.includes('omr')) syncCompletionBarWithStep('omr');
+        });
+    });
+
+    // Ensure strictly hidden on initial load
+    syncCompletionBarWithStep('hook');
 });
 </script>
 @endpush
