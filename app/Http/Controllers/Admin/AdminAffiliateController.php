@@ -94,8 +94,22 @@ class AdminAffiliateController extends Controller
             $availableMonths[$m] = $label;
         }
 
-        // Target vs Payout Slabs
-        $slabs = \App\Models\AffiliateSlab::ordered()->get();
+        // Target vs Payout Slabs (Safe self-healing for production environments)
+        try {
+            if (!\Illuminate\Support\Facades\Schema::hasTable('affiliate_slabs')) {
+                \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+            }
+
+            if (\Illuminate\Support\Facades\Schema::hasTable('affiliate_slabs')) {
+                app(\App\Services\AffiliateSlabService::class)->ensureDefaultSlabsExist();
+                $slabs = \App\Models\AffiliateSlab::ordered()->get();
+            } else {
+                $slabs = collect();
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('AffiliateSlab auto-migration/loading issue: ' . $e->getMessage());
+            $slabs = collect();
+        }
 
         return view('admin.affiliates.index', compact(
             'tab',

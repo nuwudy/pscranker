@@ -641,7 +641,7 @@
                     </div>
 
                     <div class="flex flex-wrap items-center gap-3">
-                        <form action="{{ route('admin.affiliates.slabs.recalculate') }}" method="POST" class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-2xl p-2">
+                        <form action="{{ \Illuminate\Support\Facades\Route::has('admin.affiliates.slabs.recalculate') ? route('admin.affiliates.slabs.recalculate') : url('/admin/affiliates/slabs/recalculate') }}" method="POST" class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-2xl p-2">
                             @csrf
                             <input 
                                 type="month" 
@@ -677,7 +677,7 @@
                 </div>
 
                 <!-- Editable Form for Slabs -->
-                <form action="{{ route('admin.affiliates.slabs.update') }}" method="POST">
+                <form action="{{ \Illuminate\Support\Facades\Route::has('admin.affiliates.slabs.update') ? route('admin.affiliates.slabs.update') : url('/admin/affiliates/slabs') }}" method="POST">
                     @csrf
 
                     <div class="overflow-x-auto rounded-2xl border border-slate-200 mb-6">
@@ -767,7 +767,11 @@
                                 @empty
                                     <tr>
                                         <td colspan="6" class="py-8 text-center text-slate-500">
-                                            No target vs payout slabs configured yet.
+                                            <div class="max-w-md mx-auto py-4">
+                                                <span class="text-3xl block mb-2">⚡</span>
+                                                <p class="font-bold text-slate-700 text-sm">No target vs payout slabs found.</p>
+                                                <p class="text-xs text-slate-500 mt-1">Default 10 tiers (10% to 31%) auto-seed on reload, or you can add your custom tiers below.</p>
+                                            </div>
                                         </td>
                                     </tr>
                                 @endforelse
