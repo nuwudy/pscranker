@@ -15,6 +15,8 @@ class AffiliateSlabService
      */
     public function getSlabsForMonth(?string $monthPeriod = null): Collection
     {
+        $this->ensureDefaultSlabsExist();
+
         $monthPeriod = $monthPeriod ?? now()->format('Y-m');
 
         // Check if there are month-specific customized slabs
@@ -32,6 +34,47 @@ class AffiliateSlabService
             ->active()
             ->ordered()
             ->get();
+    }
+
+    /**
+     * Ensure default 10 template slabs exist in database if empty.
+     */
+    public function ensureDefaultSlabsExist(): void
+    {
+        try {
+            if (AffiliateSlab::count() === 0) {
+                $defaultSlabs = [
+                    ['order' => 1, 'min_target' => 1.00, 'max_target' => 10000.00, 'basic' => 10.00, 'bonus' => 0.00],
+                    ['order' => 2, 'min_target' => 10001.00, 'max_target' => 20000.00, 'basic' => 10.00, 'bonus' => 5.00],
+                    ['order' => 3, 'min_target' => 20001.00, 'max_target' => 30000.00, 'basic' => 10.00, 'bonus' => 7.00],
+                    ['order' => 4, 'min_target' => 30001.00, 'max_target' => 40000.00, 'basic' => 10.00, 'bonus' => 9.00],
+                    ['order' => 5, 'min_target' => 40001.00, 'max_target' => 50000.00, 'basic' => 10.00, 'bonus' => 11.00],
+                    ['order' => 6, 'min_target' => 50001.00, 'max_target' => 75000.00, 'basic' => 10.00, 'bonus' => 13.00],
+                    ['order' => 7, 'min_target' => 75001.00, 'max_target' => 100000.00, 'basic' => 10.00, 'bonus' => 15.00],
+                    ['order' => 8, 'min_target' => 100001.00, 'max_target' => 125000.00, 'basic' => 10.00, 'bonus' => 17.00],
+                    ['order' => 9, 'min_target' => 125001.00, 'max_target' => 150000.00, 'basic' => 10.00, 'bonus' => 19.00],
+                    ['order' => 10, 'min_target' => 150001.00, 'max_target' => null, 'basic' => 10.00, 'bonus' => 21.00],
+                ];
+
+                $currentMonth = now()->format('ym');
+
+                foreach ($defaultSlabs as $slab) {
+                    $code = sprintf('PRSL-%s-%03d', $currentMonth, $slab['order']);
+                    AffiliateSlab::create([
+                        'slab_code' => $code,
+                        'month_period' => null,
+                        'order' => $slab['order'],
+                        'min_target' => $slab['min_target'],
+                        'max_target' => $slab['max_target'],
+                        'basic_payout_percentage' => $slab['basic'],
+                        'bonus_percentage' => $slab['bonus'],
+                        'is_active' => true,
+                    ]);
+                }
+            }
+        } catch (\Throwable $e) {
+            // Table might not exist yet before migration
+        }
     }
 
     /**

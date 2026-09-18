@@ -131,6 +131,30 @@
         <!-- TAB 1: PROMOTERS DIRECTORY                                    -->
         <!-- ============================================================= -->
         @if($tab === 'affiliates')
+            <!-- Quick Target vs Payout Slabs Summary Strip -->
+            <div class="mb-6 p-5 rounded-3xl bg-gradient-to-r from-amber-500/10 via-yellow-500/10 to-blue-500/10 border-2 border-yellow-400/40 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-11 h-11 rounded-2xl bg-yellow-400 text-slate-950 flex items-center justify-center text-xl font-bold shrink-0 shadow-md">
+                        🎯
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-black text-slate-900 text-sm sm:text-base">Target vs Payout Commission Slabs</span>
+                            <span class="text-[10px] font-black uppercase tracking-wider bg-yellow-400 text-slate-950 px-2.5 py-0.5 rounded-full font-mono shadow-2xs">{{ $slabs->count() }} Slabs Active</span>
+                        </div>
+                        <p class="text-xs text-slate-600 mt-0.5 max-w-2xl">
+                            Affiliates earn <strong>10% Base Payout</strong> + progressive performance bonuses up to <strong>31% Total</strong> based on monthly sales volume. Slabs apply retroactively to total monthly sales.
+                        </p>
+                    </div>
+                </div>
+                <a 
+                    href="{{ route('admin.affiliates.index', ['tab' => 'slabs']) }}" 
+                    class="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-black text-xs rounded-xl shadow transition flex items-center gap-1.5 shrink-0 active:scale-95 cursor-pointer"
+                >
+                    <span>View &amp; Edit Slabs (Basic &amp; Bonus %) ➔</span>
+                </a>
+            </div>
+
             <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 mb-8">
                 <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6 pb-6 border-b border-slate-100">
                     <div>
