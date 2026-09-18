@@ -163,20 +163,101 @@
                 </div>
                 @endguest
 
-                <!-- UPI ID for Monthly Settlements -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-300 mb-1.5">
-                        <span>UPI ID for Commission Payouts</span>
-                        <span class="text-[11px] text-slate-500 font-normal ml-1">(GPay / PhonePe / Paytm / BHIM)</span>
-                    </label>
-                    <input 
-                        type="text" 
-                        name="upi_id" 
-                        value="{{ old('upi_id') }}" 
-                        placeholder="e.g. anu@okaxis or 9895000000@paytm"
-                        class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-yellow-400 font-mono transition"
-                    >
-                    <p class="text-[11px] text-slate-500 mt-1">You can also provide full bank account details later inside your dashboard.</p>
+                <!-- Payout Details: UPI & Bank Account -->
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4">
+                    <div>
+                        <div class="flex items-center gap-1.5 text-xs font-black text-yellow-400 uppercase tracking-wider mb-1">
+                            <span>💳</span> Payout &amp; Commission Settlement Details
+                        </div>
+                        <p class="text-[11px] text-slate-400">
+                            Enter your UPI ID or Bank Account details below. Monthly commissions are directly credited on the 1st of each month.
+                        </p>
+                    </div>
+
+                    <!-- UPI ID Field -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">
+                            <span>UPI ID</span>
+                            <span class="text-[11px] text-slate-500 font-normal ml-1">(GPay / PhonePe / Paytm / BHIM)</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            name="upi_id" 
+                            value="{{ old('upi_id') }}" 
+                            placeholder="e.g. anu@okaxis or 9895000000@paytm"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-yellow-400 font-mono transition"
+                        >
+                        @error('upi_id')
+                            <p class="text-rose-400 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Divider -->
+                    <div class="relative flex items-center justify-center my-2">
+                        <div class="border-t border-slate-800 w-full"></div>
+                        <span class="bg-slate-900 px-2.5 text-[10px] uppercase tracking-wider font-bold text-slate-500">And / Or Bank Account</span>
+                        <div class="border-t border-slate-800 w-full"></div>
+                    </div>
+
+                    <!-- Bank Account Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-300 mb-1">Bank Name</label>
+                            <input 
+                                type="text" 
+                                name="bank_name" 
+                                value="{{ old('bank_name') }}" 
+                                placeholder="e.g. Federal Bank / SBI / Canara"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-yellow-400 transition"
+                            >
+                            @error('bank_name')
+                                <p class="text-rose-400 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-300 mb-1">Account Holder Name</label>
+                            <input 
+                                type="text" 
+                                name="account_holder" 
+                                value="{{ old('account_holder') }}" 
+                                placeholder="As per bank passbook"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-yellow-400 transition"
+                            >
+                            @error('account_holder')
+                                <p class="text-rose-400 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-300 mb-1">Bank Account Number</label>
+                            <input 
+                                type="text" 
+                                name="account_number" 
+                                value="{{ old('account_number') }}" 
+                                placeholder="Account Number"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-yellow-400 font-mono transition"
+                            >
+                            @error('account_number')
+                                <p class="text-rose-400 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-300 mb-1">IFSC Code</label>
+                            <input 
+                                type="text" 
+                                name="ifsc_code" 
+                                value="{{ old('ifsc_code') }}" 
+                                placeholder="e.g. FDRL0001234, SBIN0001234"
+                                maxlength="20"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-yellow-400 font-mono uppercase transition"
+                            >
+                            @error('ifsc_code')
+                                <p class="text-rose-400 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Notes / Context -->

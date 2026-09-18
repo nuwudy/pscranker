@@ -45,6 +45,10 @@ class AffiliateController extends Controller
             'phone' => ['required', 'string', 'regex:/^[0-9]{10}$/'],
             'email' => ['required', 'string', 'email', 'max:255'],
             'upi_id' => ['nullable', 'string', 'max:100'],
+            'bank_name' => ['nullable', 'string', 'max:100'],
+            'account_holder' => ['nullable', 'string', 'max:150'],
+            'account_number' => ['nullable', 'string', 'max:50'],
+            'ifsc_code' => ['nullable', 'string', 'max:20'],
             'notes' => ['nullable', 'string', 'max:500'],
         ];
 
@@ -83,6 +87,16 @@ class AffiliateController extends Controller
             Auth::login($user, true);
         }
 
+        // Payout details structure
+        $payoutDetails = [
+            'upi_id' => trim($validated['upi_id'] ?? ''),
+            'bank_name' => trim($validated['bank_name'] ?? ''),
+            'account_holder' => trim($validated['account_holder'] ?? ''),
+            'account_number' => trim($validated['account_number'] ?? ''),
+            'ifsc_code' => strtoupper(trim($validated['ifsc_code'] ?? '')),
+        ];
+        $preferredMethod = !empty($payoutDetails['account_number']) ? 'bank_transfer' : 'upi';
+
         // Check if affiliate record already exists
         $affiliate = $user->affiliate;
 
@@ -94,12 +108,19 @@ class AffiliateController extends Controller
                 'affiliate_code' => $affiliateCode,
                 'status' => 'active', // Instantly active to begin pitching immediately
                 'commission_rate' => 15.00, // 15% default commission
-                'payout_method' => 'upi',
-                'payout_details' => [
-                    'upi_id' => $validated['upi_id'] ?? '',
-                ],
+                'payout_method' => $preferredMethod,
+                'payout_details' => $payoutDetails,
                 'notes' => $validated['notes'] ?? 'Signed up via partner onboarding page',
             ]);
+        } else {
+            // Update payout details if provided
+            if (!empty($payoutDetails['upi_id']) || !empty($payoutDetails['account_number'])) {
+                $mergedDetails = array_merge($affiliate->payout_details, array_filter($payoutDetails));
+                $affiliate->update([
+                    'payout_details' => $mergedDetails,
+                    'payout_method' => $preferredMethod,
+                ]);
+            }
         }
 
         return redirect()->route('affiliate.dashboard')->with('success', '🎉 Welcome to the PSCRanker Partner Program! Your promoter account is active. Start adding your prospective candidates below.');

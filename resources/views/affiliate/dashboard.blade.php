@@ -62,6 +62,25 @@
             </div>
         @endif
 
+        @if(empty(data_get($affiliate->payout_details, 'upi_id')) && empty(data_get($affiliate->payout_details, 'account_number')))
+            <div class="mb-6 p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-amber-500/20 to-yellow-500/10 border-2 border-amber-400/40 text-amber-200 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl sm:text-3xl">⚠️</span>
+                    <div>
+                        <span class="font-black text-white text-sm block">Action Required: Add Your Payout Details</span>
+                        <span class="text-slate-300 text-xs mt-0.5 block">Please add your UPI ID or Bank Account &amp; IFSC code so admin can disburse your earned commissions on the 1st of every month.</span>
+                    </div>
+                </div>
+                <button 
+                    type="button" 
+                    onclick="openPayoutModal()" 
+                    class="px-4 py-2.5 bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-black text-xs rounded-xl shadow transition shrink-0 active:scale-95 cursor-pointer"
+                >
+                    Add Payout Details ➔
+                </button>
+            </div>
+        @endif
+
         <!-- Your Shareable Affiliate Referral Link Card -->
         <div class="bg-gradient-to-r from-yellow-500/10 via-amber-500/10 to-blue-500/10 border-2 border-yellow-500/30 rounded-3xl p-5 sm:p-6 mb-8 shadow-xl relative overflow-hidden backdrop-blur-sm">
             <div class="absolute -right-12 -top-12 w-40 h-40 bg-yellow-400/10 rounded-full blur-2xl pointer-events-none"></div>
@@ -305,10 +324,24 @@
                     </p>
                 </div>
                 <div class="text-right">
-                    <span class="text-xs text-slate-400 block">Payout Destination:</span>
-                    <span class="text-xs font-mono font-bold text-yellow-400">
-                        {{ data_get($affiliate->payout_details, 'upi_id') ?: (!empty(data_get($affiliate->payout_details, 'account_number')) ? 'Bank A/c: •••• ' . substr(data_get($affiliate->payout_details, 'account_number'), -4) : 'Not configured') }}
-                    </span>
+                    <span class="text-xs text-slate-400 block mb-0.5">Payout Destination:</span>
+                    <div class="text-xs font-mono font-bold text-yellow-400 space-y-0.5">
+                        @if(!empty(data_get($affiliate->payout_details, 'upi_id')))
+                            <div class="flex items-center justify-end gap-1">
+                                <span class="text-slate-400 font-sans text-[11px]">📱 UPI:</span>
+                                <span>{{ data_get($affiliate->payout_details, 'upi_id') }}</span>
+                            </div>
+                        @endif
+                        @if(!empty(data_get($affiliate->payout_details, 'account_number')))
+                            <div class="flex items-center justify-end gap-1 text-[11px] text-slate-300">
+                                <span>🏦 {{ data_get($affiliate->payout_details, 'bank_name', 'Bank') }}: •••• {{ substr(data_get($affiliate->payout_details, 'account_number'), -4) }}</span>
+                                <span class="text-yellow-400/80">({{ data_get($affiliate->payout_details, 'ifsc_code') }})</span>
+                            </div>
+                        @endif
+                        @if(empty(data_get($affiliate->payout_details, 'upi_id')) && empty(data_get($affiliate->payout_details, 'account_number')))
+                            <button type="button" onclick="openPayoutModal()" class="text-rose-400 hover:underline italic font-sans font-normal">Not configured (Click to set)</button>
+                        @endif
+                    </div>
                 </div>
             </div>
 

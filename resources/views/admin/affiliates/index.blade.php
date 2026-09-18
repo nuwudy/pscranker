@@ -211,19 +211,39 @@
                                         ₹{{ number_format($affiliate->pendingPayout(), 2) }}
                                     </td>
                                     <td class="py-3.5 px-4 text-slate-700">
-                                        @if(!empty($affiliate->payout_details['upi_id']))
-                                            <span class="font-mono text-xs font-semibold text-blue-700 flex items-center gap-1">
-                                                <span>📱</span> {{ $affiliate->payout_details['upi_id'] }}
-                                            </span>
-                                        @elseif(!empty($affiliate->payout_details['account_number']))
-                                            <span class="font-mono text-[11px] block">A/c: {{ $affiliate->payout_details['account_number'] }}</span>
-                                            <span class="text-[10px] text-slate-400 font-mono">IFSC: {{ $affiliate->payout_details['ifsc_code'] ?? '—' }}</span>
-                                        @else
-                                            <span class="text-slate-400 italic text-[11px]">Not provided</span>
-                                        @endif
+                                        <div class="space-y-1">
+                                            @if(!empty(data_get($affiliate->payout_details, 'upi_id')))
+                                                <div class="font-mono text-xs font-bold text-blue-700 flex items-center gap-1">
+                                                    <span>📱</span> <span>{{ data_get($affiliate->payout_details, 'upi_id') }}</span>
+                                                </div>
+                                            @endif
+                                            @if(!empty(data_get($affiliate->payout_details, 'account_number')))
+                                                <div class="text-[11px] bg-slate-100 p-2 rounded-xl border border-slate-200">
+                                                    <div class="font-bold text-slate-800">{{ data_get($affiliate->payout_details, 'bank_name', 'Bank') }}</div>
+                                                    <div class="font-mono font-bold text-slate-900">A/c: {{ data_get($affiliate->payout_details, 'account_number') }}</div>
+                                                    <div class="font-mono text-[10px] text-slate-500">IFSC: <span class="font-bold uppercase text-slate-700">{{ data_get($affiliate->payout_details, 'ifsc_code') }}</span></div>
+                                                    @if(!empty(data_get($affiliate->payout_details, 'account_holder')))
+                                                        <div class="text-[10px] text-slate-500 truncate">Holder: {{ data_get($affiliate->payout_details, 'account_holder') }}</div>
+                                                    @endif
+                                                </div>
+                                            @endif
+                                            @if(empty(data_get($affiliate->payout_details, 'upi_id')) && empty(data_get($affiliate->payout_details, 'account_number')))
+                                                <span class="text-rose-500 italic text-[11px] font-semibold">⚠️ Not provided</span>
+                                            @endif
+                                        </div>
                                     </td>
                                     <td class="py-3.5 px-4 text-right">
                                         <div class="flex items-center justify-end gap-1.5">
+                                            <!-- Edit Payout Info Button -->
+                                            <button 
+                                                type="button" 
+                                                onclick="openAdminPayoutModal({{ $affiliate->id }}, '{{ addslashes($affiliate->user->name) }}', '{{ addslashes(data_get($affiliate->payout_details, 'upi_id', '')) }}', '{{ addslashes(data_get($affiliate->payout_details, 'bank_name', '')) }}', '{{ addslashes(data_get($affiliate->payout_details, 'account_holder', '')) }}', '{{ addslashes(data_get($affiliate->payout_details, 'account_number', '')) }}', '{{ addslashes(data_get($affiliate->payout_details, 'ifsc_code', '')) }}')"
+                                                class="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-800 rounded-lg text-[11px] font-bold transition flex items-center gap-1"
+                                                title="Edit UPI / Bank Account / IFSC"
+                                            >
+                                                <span>💳</span> Payout
+                                            </button>
+
                                             <!-- Edit Commission Rate Button -->
                                             <button 
                                                 type="button" 
@@ -337,15 +357,28 @@
                                         <span class="text-[10px] text-slate-400 font-mono">{{ $aff->user->phone ?? '' }}</span>
                                     </td>
                                     <td class="py-3.5 px-4 font-mono text-slate-700">
-                                        @if(!empty($aff->payout_details['upi_id']))
-                                            <span class="text-blue-700 font-bold block">{{ $aff->payout_details['upi_id'] }}</span>
-                                            <span class="text-[10px] text-slate-400 font-sans">UPI VPA</span>
-                                        @elseif(!empty($aff->payout_details['account_number']))
-                                            <span class="font-bold block">{{ $aff->payout_details['bank_name'] ?? 'Bank' }}: {{ $aff->payout_details['account_number'] }}</span>
-                                            <span class="text-[10px] text-slate-400 font-mono">IFSC: {{ $aff->payout_details['ifsc_code'] }}</span>
-                                        @else
-                                            <span class="text-rose-500 italic">No account provided</span>
-                                        @endif
+                                        <div class="space-y-1">
+                                            @if(!empty(data_get($aff->payout_details, 'upi_id')))
+                                                <div class="text-blue-700 font-bold flex items-center gap-1">
+                                                    <span>📱</span> <span>{{ data_get($aff->payout_details, 'upi_id') }}</span>
+                                                </div>
+                                            @endif
+                                            @if(!empty(data_get($aff->payout_details, 'account_number')))
+                                                <div class="text-[11px]">
+                                                    <span class="font-bold text-slate-800">{{ data_get($aff->payout_details, 'bank_name', 'Bank') }}:</span>
+                                                    <span class="text-slate-900 font-bold">A/c {{ data_get($aff->payout_details, 'account_number') }}</span>
+                                                    <div class="text-[10px] text-slate-500 font-sans">
+                                                        IFSC: <span class="font-mono font-bold text-slate-800">{{ data_get($aff->payout_details, 'ifsc_code') }}</span>
+                                                        @if(!empty(data_get($aff->payout_details, 'account_holder')))
+                                                            • {{ data_get($aff->payout_details, 'account_holder') }}
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            @endif
+                                            @if(empty(data_get($aff->payout_details, 'upi_id')) && empty(data_get($aff->payout_details, 'account_number')))
+                                                <span class="text-rose-500 italic text-[11px] font-semibold">⚠️ No payout details provided</span>
+                                            @endif
+                                        </div>
                                     </td>
                                     <td class="py-3.5 px-4 font-mono font-bold text-slate-800">
                                         {{ $item->total_sales_count }} students
@@ -379,7 +412,7 @@
                                         @if($item->pending_amount > 0)
                                             <button 
                                                 type="button" 
-                                                onclick="openDisburseModal({{ $aff->id }}, '{{ addslashes($aff->user->name) }}', '{{ $selectedMonth }}', {{ $item->pending_amount }})"
+                                                onclick="openDisburseModal({{ $aff->id }}, '{{ addslashes($aff->user->name) }}', '{{ $selectedMonth }}', {{ $item->pending_amount }}, '{{ addslashes(data_get($aff->payout_details, 'upi_id', '')) }}', '{{ addslashes(data_get($aff->payout_details, 'bank_name', '')) }}', '{{ addslashes(data_get($aff->payout_details, 'account_holder', '')) }}', '{{ addslashes(data_get($aff->payout_details, 'account_number', '')) }}', '{{ addslashes(data_get($aff->payout_details, 'ifsc_code', '')) }}')"
                                                 class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow transition active:scale-95 flex items-center gap-1 ml-auto"
                                             >
                                                 <span>Disburse ₹{{ number_format($item->pending_amount, 2) }}</span>
@@ -559,6 +592,53 @@
                 <div id="disburse_amount_display" class="text-2xl font-black text-emerald-600 font-mono"></div>
             </div>
 
+            <!-- Payout Target Details (UPI / Bank Account & IFSC) -->
+            <div class="p-3.5 bg-blue-50/80 border border-blue-200 rounded-2xl">
+                <div class="text-[11px] font-bold text-blue-900 uppercase tracking-wider mb-2 flex items-center justify-between">
+                    <span>Payment Destination:</span>
+                    <span id="disburse_target_badge" class="text-[10px] px-2 py-0.5 rounded-md bg-blue-200 text-blue-900 font-bold">Transfer To</span>
+                </div>
+
+                <!-- UPI Block -->
+                <div id="disburse_upi_section" class="mb-2 hidden">
+                    <span class="text-[10px] text-slate-500 font-bold uppercase">UPI ID:</span>
+                    <div class="flex items-center justify-between bg-white px-3 py-1.5 rounded-xl border border-blue-200 mt-0.5">
+                        <span id="disburse_upi_val" class="font-mono font-bold text-blue-800 text-xs select-all"></span>
+                        <button type="button" onclick="copyTextValue(document.getElementById('disburse_upi_val').innerText, this)" class="px-2 py-0.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-[10px] font-bold rounded-lg border border-blue-200 transition">Copy</button>
+                    </div>
+                </div>
+
+                <!-- Bank Account Block -->
+                <div id="disburse_bank_section" class="space-y-1.5 hidden">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-slate-500 text-[11px]">Bank:</span>
+                        <span id="disburse_bank_val" class="font-bold text-slate-900"></span>
+                    </div>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-slate-500 text-[11px]">A/c Holder:</span>
+                        <span id="disburse_holder_val" class="font-semibold text-slate-800"></span>
+                    </div>
+                    <div class="flex items-center justify-between bg-white px-3 py-1.5 rounded-xl border border-blue-200">
+                        <div>
+                            <span class="text-[9px] text-slate-400 uppercase block font-bold">Account Number</span>
+                            <span id="disburse_acc_val" class="font-mono font-black text-slate-900 text-xs select-all"></span>
+                        </div>
+                        <button type="button" onclick="copyTextValue(document.getElementById('disburse_acc_val').innerText, this)" class="px-2 py-0.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-[10px] font-bold rounded-lg border border-blue-200 transition">Copy A/c</button>
+                    </div>
+                    <div class="flex items-center justify-between bg-white px-3 py-1.5 rounded-xl border border-blue-200">
+                        <div>
+                            <span class="text-[9px] text-slate-400 uppercase block font-bold">IFSC Code</span>
+                            <span id="disburse_ifsc_val" class="font-mono font-black text-slate-900 text-xs uppercase select-all"></span>
+                        </div>
+                        <button type="button" onclick="copyTextValue(document.getElementById('disburse_ifsc_val').innerText, this)" class="px-2 py-0.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-[10px] font-bold rounded-lg border border-blue-200 transition">Copy IFSC</button>
+                    </div>
+                </div>
+
+                <div id="disburse_no_payout_warning" class="text-rose-600 text-xs font-semibold hidden">
+                    ⚠️ This affiliate has not configured any UPI or Bank Account details.
+                </div>
+            </div>
+
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">
                     <span>Bank UTR / UPI Transaction Reference</span> <span class="text-rose-500">*</span>
@@ -731,16 +811,202 @@
     </div>
 </div>
 
+<!-- ============================================================= -->
+<!-- MODAL: ADMIN EDIT AFFILIATE PAYOUT DETAILS                    -->
+<!-- ============================================================= -->
+<div id="adminPayoutModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl relative">
+        <button 
+            type="button" 
+            onclick="closeAdminPayoutModal()"
+            class="absolute top-5 right-5 text-slate-400 hover:text-slate-600 text-lg font-bold"
+        >
+            ✕
+        </button>
+
+        <h3 class="text-lg font-black text-slate-900 mb-1 flex items-center gap-2">
+            <span>Edit Promoter Payout Details</span>
+            <span class="text-blue-600">💳</span>
+        </h3>
+        <p id="admin_payout_promoter_name" class="text-xs text-slate-500 mb-4 font-bold"></p>
+
+        <form id="adminPayoutForm" action="" method="POST" class="space-y-4">
+            @csrf
+
+            <!-- UPI ID -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">
+                    <span>UPI ID</span>
+                    <span class="text-[10px] text-slate-400 font-normal ml-1">(GPay / PhonePe / Paytm / BHIM)</span>
+                </label>
+                <input 
+                    type="text" 
+                    id="admin_payout_upi"
+                    name="upi_id" 
+                    placeholder="e.g. anu@okaxis or 9895000000@paytm"
+                    class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2 text-xs font-mono text-slate-900 focus:outline-none focus:border-blue-600 transition"
+                >
+            </div>
+
+            <!-- Divider -->
+            <div class="relative flex items-center justify-center my-1">
+                <div class="border-t border-slate-200 w-full"></div>
+                <span class="bg-white px-2.5 text-[10px] uppercase tracking-wider font-bold text-slate-400">Bank Account Transfer</span>
+                <div class="border-t border-slate-200 w-full"></div>
+            </div>
+
+            <!-- Bank Name -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Bank Name</label>
+                <input 
+                    type="text" 
+                    id="admin_payout_bank_name"
+                    name="bank_name" 
+                    placeholder="e.g. Federal Bank / SBI / Canara Bank"
+                    class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600 transition"
+                >
+            </div>
+
+            <!-- Account Holder Name -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Account Holder Name</label>
+                <input 
+                    type="text" 
+                    id="admin_payout_account_holder"
+                    name="account_holder" 
+                    placeholder="As per bank passbook"
+                    class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600 transition"
+                >
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <!-- Account Number -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Account Number</label>
+                    <input 
+                        type="text" 
+                        id="admin_payout_account_number"
+                        name="account_number" 
+                        placeholder="Bank Account Number"
+                        class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 focus:outline-none focus:border-blue-600 transition"
+                    >
+                </div>
+
+                <!-- IFSC Code -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">IFSC Code</label>
+                    <input 
+                        type="text" 
+                        id="admin_payout_ifsc_code"
+                        name="ifsc_code" 
+                        placeholder="e.g. FDRL0001234"
+                        maxlength="20"
+                        class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono uppercase text-slate-900 focus:outline-none focus:border-blue-600 transition"
+                    >
+                </div>
+            </div>
+
+            <div class="pt-2 flex items-center justify-end gap-2">
+                <button 
+                    type="button" 
+                    onclick="closeAdminPayoutModal()"
+                    class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition"
+                >
+                    Cancel
+                </button>
+                <button 
+                    type="submit" 
+                    class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-black rounded-xl transition shadow"
+                >
+                    Save Payout Details
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
-    function openDisburseModal(affiliateId, promoterName, month, amount) {
+    function copyTextValue(text, btn) {
+        if (!text) return;
+        const originalText = btn.innerText;
+
+        function showSuccess() {
+            btn.innerText = 'Copied!';
+            btn.classList.add('bg-emerald-100', 'text-emerald-800', 'border-emerald-300');
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.classList.remove('bg-emerald-100', 'text-emerald-800', 'border-emerald-300');
+            }, 2000);
+        }
+
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(showSuccess).catch(() => {
+                prompt('Copy this value:', text);
+            });
+        } else {
+            prompt('Copy this value:', text);
+        }
+    }
+
+    function openDisburseModal(affiliateId, promoterName, month, amount, upi, bankName, accountHolder, accountNum, ifsc) {
         document.getElementById('disburseForm').action = '/admin/affiliates/' + affiliateId + '/disburse';
         document.getElementById('disburse_period_month').value = month;
         document.getElementById('disburse_promoter_name').innerText = promoterName;
         document.getElementById('disburse_amount_display').innerText = '₹' + Number(amount).toLocaleString('en-IN', {minimumFractionDigits: 2});
+
+        const upiBox = document.getElementById('disburse_upi_section');
+        const bankBox = document.getElementById('disburse_bank_section');
+        const emptyBox = document.getElementById('disburse_no_payout_warning');
+        const badge = document.getElementById('disburse_target_badge');
+
+        let hasUpi = upi && upi.trim() !== '';
+        let hasBank = accountNum && accountNum.trim() !== '';
+
+        if (hasUpi) {
+            document.getElementById('disburse_upi_val').innerText = upi;
+            upiBox.classList.remove('hidden');
+        } else {
+            upiBox.classList.add('hidden');
+        }
+
+        if (hasBank) {
+            document.getElementById('disburse_bank_val').innerText = bankName || 'Bank';
+            document.getElementById('disburse_holder_val').innerText = accountHolder || '—';
+            document.getElementById('disburse_acc_val').innerText = accountNum;
+            document.getElementById('disburse_ifsc_val').innerText = ifsc || '—';
+            bankBox.classList.remove('hidden');
+        } else {
+            bankBox.classList.add('hidden');
+        }
+
+        if (!hasUpi && !hasBank) {
+            emptyBox.classList.remove('hidden');
+            badge.innerText = 'Not Provided';
+            badge.className = 'text-[10px] px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 font-bold';
+        } else {
+            emptyBox.classList.add('hidden');
+            badge.innerText = hasBank && hasUpi ? 'UPI & Bank Available' : (hasBank ? 'Bank Account' : 'UPI VPA');
+            badge.className = 'text-[10px] px-2 py-0.5 rounded-md bg-blue-200 text-blue-900 font-bold';
+        }
+
         document.getElementById('disburseModal').classList.remove('hidden');
     }
     function closeDisburseModal() {
         document.getElementById('disburseModal').classList.add('hidden');
+    }
+
+    function openAdminPayoutModal(affiliateId, promoterName, upi, bankName, accountHolder, accountNum, ifsc) {
+        document.getElementById('adminPayoutForm').action = '/admin/affiliates/' + affiliateId + '/payout-details';
+        document.getElementById('admin_payout_promoter_name').innerText = 'Promoter: ' + promoterName;
+        document.getElementById('admin_payout_upi').value = upi || '';
+        document.getElementById('admin_payout_bank_name').value = bankName || '';
+        document.getElementById('admin_payout_account_holder').value = accountHolder || '';
+        document.getElementById('admin_payout_account_number').value = accountNum || '';
+        document.getElementById('admin_payout_ifsc_code').value = ifsc || '';
+        document.getElementById('adminPayoutModal').classList.remove('hidden');
+    }
+    function closeAdminPayoutModal() {
+        document.getElementById('adminPayoutModal').classList.add('hidden');
     }
 
     function openCommissionModal(affiliateId, promoterName, currentRate) {

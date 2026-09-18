@@ -209,4 +209,33 @@ class AdminAffiliateController extends Controller
             "🎉 Successfully disbursed ₹" . number_format($totalDisbursed, 2) . " to {$affiliate->user->name} for {$periodMonth}. UTR: {$ref}"
         );
     }
+
+    /**
+     * Admin update affiliate's payout details (UPI / Bank Account & IFSC).
+     */
+    public function updatePayoutDetails(Request $request, Affiliate $affiliate)
+    {
+        $validated = $request->validate([
+            'upi_id' => ['nullable', 'string', 'max:100'],
+            'bank_name' => ['nullable', 'string', 'max:100'],
+            'account_holder' => ['nullable', 'string', 'max:150'],
+            'account_number' => ['nullable', 'string', 'max:50'],
+            'ifsc_code' => ['nullable', 'string', 'max:20'],
+        ]);
+
+        $details = [
+            'upi_id' => trim($validated['upi_id'] ?? ''),
+            'bank_name' => trim($validated['bank_name'] ?? ''),
+            'account_holder' => trim($validated['account_holder'] ?? ''),
+            'account_number' => trim($validated['account_number'] ?? ''),
+            'ifsc_code' => strtoupper(trim($validated['ifsc_code'] ?? '')),
+        ];
+
+        $affiliate->update([
+            'payout_method' => !empty($details['account_number']) ? 'bank_transfer' : 'upi',
+            'payout_details' => $details,
+        ]);
+
+        return redirect()->back()->with('success', "Payout details for {$affiliate->user->name} updated successfully.");
+    }
 }

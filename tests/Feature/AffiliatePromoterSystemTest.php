@@ -20,13 +20,17 @@ test('public affiliate partner onboarding page renders successfully', function (
     $response->assertSee('Apply to Become a Partner');
 });
 
-test('prospective affiliate can apply and gets activated immediately', function () {
+test('prospective affiliate can apply and gets activated immediately with upi and bank details', function () {
     $response = $this->post('/affiliate/join', [
         'name' => 'Anu Krishna',
         'phone' => '+91 98950 12345',
         'email' => 'anu@example.com',
         'password' => 'secret123',
         'upi_id' => 'anu@okaxis',
+        'bank_name' => 'Federal Bank',
+        'account_holder' => 'Anu Krishna',
+        'account_number' => '12340100056789',
+        'ifsc_code' => 'fdrl0001234',
         'notes' => 'Experienced PSC tele-promoter',
     ]);
 
@@ -41,7 +45,11 @@ test('prospective affiliate can apply and gets activated immediately', function 
     expect($affiliate)->not->toBeNull()
         ->and($affiliate->status)->toBe('active')
         ->and((float)$affiliate->commission_rate)->toBe(15.0)
-        ->and($affiliate->payout_details['upi_id'])->toBe('anu@okaxis');
+        ->and($affiliate->payout_details['upi_id'])->toBe('anu@okaxis')
+        ->and($affiliate->payout_details['bank_name'])->toBe('Federal Bank')
+        ->and($affiliate->payout_details['account_holder'])->toBe('Anu Krishna')
+        ->and($affiliate->payout_details['account_number'])->toBe('12340100056789')
+        ->and($affiliate->payout_details['ifsc_code'])->toBe('FDRL0001234');
 });
 
 test('affiliate can add prospect leads and phone is normalized to 10 digits', function () {
@@ -344,4 +352,63 @@ test('student signing up and purchasing via referral link earns affiliate commis
         ->and((float)$commission->commission_rate)->toBe(15.0)
         ->and((float)$commission->commission_amount)->toBe(300.00)
         ->and($commission->status)->toBe('pending');
+});
+
+test('admin can update affiliate payout details with upi, bank account, and ifsc code', function () {
+    $admin = User::factory()->create(['is_admin' => true]);
+    $promoterUser = User::factory()->create();
+    $affiliate = Affiliate::create([
+        'user_id' => $promoterUser->id,
+        'affiliate_code' => 'PSC-PAYTEST',
+        'status' => 'active',
+        'payout_details' => [],
+    ]);
+
+    $response = $this->actingAs($admin)->post("/admin/affiliates/{$affiliate->id}/payout-details", [
+        'upi_id' => 'promoter@okaxis',
+        'bank_name' => 'State Bank of India',
+        'account_holder' => 'Promoter Name',
+        'account_number' => '987654321012',
+        'ifsc_code' => 'sbin0001234',
+    ]);
+
+    $response->assertRedirect();
+    $response->assertSessionHas('success');
+
+    $affiliate->refresh();
+    expect($affiliate->payout_details['upi_id'])->toBe('promoter@okaxis')
+        ->and($affiliate->payout_details['bank_name'])->toBe('State Bank of India')
+        ->and($affiliate->payout_details['account_holder'])->toBe('Promoter Name')
+        ->and($affiliate->payout_details['account_number'])->toBe('987654321012')
+        ->and($affiliate->payout_details['ifsc_code'])->toBe('SBIN0001234')
+        ->and($affiliate->payout_method)->toBe('bank_transfer');
+});
+
+test('affiliate can update their own payout details from dashboard', function () {
+    $user = User::factory()->create();
+    $affiliate = Affiliate::create([
+        'user_id' => $user->id,
+        'affiliate_code' => 'PSC-SELFSET',
+        'status' => 'active',
+        'payout_details' => [],
+    ]);
+
+    $response = $this->actingAs($user)->post('/affiliate/payout-settings', [
+        'payout_method' => 'bank_transfer',
+        'upi_id' => 'myupi@paytm',
+        'bank_name' => 'Canara Bank',
+        'account_holder' => 'Self User',
+        'account_number' => '555544443333',
+        'ifsc_code' => 'cnrb0001122',
+    ]);
+
+    $response->assertRedirect();
+    $response->assertSessionHas('success');
+
+    $affiliate->refresh();
+    expect($affiliate->payout_details['upi_id'])->toBe('myupi@paytm')
+        ->and($affiliate->payout_details['bank_name'])->toBe('Canara Bank')
+        ->and($affiliate->payout_details['account_holder'])->toBe('Self User')
+        ->and($affiliate->payout_details['account_number'])->toBe('555544443333')
+        ->and($affiliate->payout_details['ifsc_code'])->toBe('CNRB0001122');
 });
