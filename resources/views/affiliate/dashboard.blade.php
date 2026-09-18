@@ -62,6 +62,79 @@
             </div>
         @endif
 
+        <!-- Your Shareable Affiliate Referral Link Card -->
+        <div class="bg-gradient-to-r from-yellow-500/10 via-amber-500/10 to-blue-500/10 border-2 border-yellow-500/30 rounded-3xl p-5 sm:p-6 mb-8 shadow-xl relative overflow-hidden backdrop-blur-sm">
+            <div class="absolute -right-12 -top-12 w-40 h-40 bg-yellow-400/10 rounded-full blur-2xl pointer-events-none"></div>
+
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
+                <div class="flex-1">
+                    <div class="flex flex-wrap items-center gap-2 mb-2">
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-black uppercase tracking-wider bg-yellow-400 text-slate-950 shadow-sm">
+                            <span>🔗</span> Your Personal Referral Link
+                        </span>
+                        <span class="text-xs text-yellow-300 font-bold flex items-center gap-1">
+                            <span>⚡</span> {{ $affiliate->commission_rate }}% Commission on Enrollments
+                        </span>
+                    </div>
+
+                    <h2 class="text-base sm:text-lg font-bold text-white">
+                        Share your unique link with candidates &amp; students
+                    </h2>
+                    <p class="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
+                        Anyone who visits PSCRanker via your link and signs up or purchases a subscription is automatically attributed to you. You earn a <span class="text-yellow-400 font-black">{{ $affiliate->commission_rate }}% commission</span> directly to your monthly payout!
+                    </p>
+
+                    <!-- Link Copy Bar -->
+                    <div class="mt-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                        <div class="relative flex-1">
+                            <input 
+                                type="text" 
+                                id="affiliateReferralInput"
+                                readonly 
+                                value="{{ $affiliate->referral_url }}" 
+                                class="w-full bg-slate-950/95 border border-yellow-500/40 text-yellow-300 font-mono text-xs sm:text-sm rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-yellow-400 select-all shadow-inner"
+                            >
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button 
+                                type="button" 
+                                onclick="copyAffiliateLink()"
+                                id="copyReferralBtn"
+                                class="flex-1 sm:flex-initial px-4 py-2.5 bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-black text-xs rounded-xl shadow-md transition flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
+                            >
+                                <span id="copyIcon">📋</span>
+                                <span id="copyText">Copy Link</span>
+                            </button>
+                            <a 
+                                href="https://api.whatsapp.com/send?text={{ rawurlencode('Join PSCRanker with my link and start your Kerala PSC preparation: ' . $affiliate->referral_url) }}" 
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="flex-1 sm:flex-initial px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center justify-center gap-1.5 active:scale-95"
+                            >
+                                <span>💬</span>
+                                <span>WhatsApp</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Traffic & Stats Pill -->
+                <div class="flex items-center gap-4 bg-slate-950/80 border border-slate-800 rounded-2xl p-4 lg:min-w-[190px] justify-between lg:justify-center lg:flex-col lg:items-start shadow-md">
+                    <div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Link Traffic</span>
+                        <div class="text-2xl sm:text-3xl font-black text-white font-mono flex items-baseline gap-1.5 mt-0.5">
+                            <span>{{ number_format($affiliate->referral_clicks) }}</span>
+                            <span class="text-xs text-yellow-400 font-normal">clicks</span>
+                        </div>
+                    </div>
+                    <div class="text-[11px] text-slate-400 flex items-center gap-1">
+                        <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span>60-Day Cookie Auto-Tracking</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- 4 Metric Cards -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <!-- 1. Total Leads -->
@@ -149,7 +222,18 @@
                         @forelse($leads as $lead)
                             <tr class="hover:bg-slate-800/30 transition">
                                 <td class="py-3.5 px-4 font-bold text-white">
-                                    {{ $lead->candidate_name }}
+                                    <div class="flex items-center gap-1.5">
+                                        <span>{{ $lead->candidate_name }}</span>
+                                        @if($lead->source === 'referral_link')
+                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30" title="Captured via personal affiliate link">
+                                                🔗 Link
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30" title="Direct Phone Follow-up lead">
+                                                📞 Pitch
+                                            </span>
+                                        @endif
+                                    </div>
                                 </td>
                                 <td class="py-3.5 px-4 font-mono font-semibold text-yellow-400">
                                     {{ $lead->candidate_phone }}
@@ -223,7 +307,7 @@
                 <div class="text-right">
                     <span class="text-xs text-slate-400 block">Payout Destination:</span>
                     <span class="text-xs font-mono font-bold text-yellow-400">
-                        {{ $affiliate->payout_details['upi_id'] ?? ($affiliate->payout_details['account_number'] ? 'Bank A/c: ' . substr($affiliate->payout_details['account_number'], -4) : 'Not configured') }}
+                        {{ data_get($affiliate->payout_details, 'upi_id') ?: (!empty(data_get($affiliate->payout_details, 'account_number')) ? 'Bank A/c: •••• ' . substr(data_get($affiliate->payout_details, 'account_number'), -4) : 'Not configured') }}
                     </span>
                 </div>
             </div>
@@ -506,7 +590,7 @@
                 <input 
                     type="text" 
                     name="upi_id" 
-                    value="{{ $affiliate->payout_details['upi_id'] ?? '' }}" 
+                    value="{{ data_get($affiliate->payout_details, 'upi_id', '') }}" 
                     placeholder="e.g. 9895000000@okaxis or anu@paytm"
                     class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-yellow-400 font-mono transition"
                 >
@@ -520,7 +604,7 @@
                         <input 
                             type="text" 
                             name="bank_name" 
-                            value="{{ $affiliate->payout_details['bank_name'] ?? '' }}" 
+                            value="{{ data_get($affiliate->payout_details, 'bank_name', '') }}" 
                             placeholder="e.g. Federal Bank / SBI"
                             class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-yellow-400"
                         >
@@ -530,7 +614,7 @@
                         <input 
                             type="text" 
                             name="account_holder" 
-                            value="{{ $affiliate->payout_details['account_holder'] ?? '' }}" 
+                            value="{{ data_get($affiliate->payout_details, 'account_holder', '') }}" 
                             placeholder="As per passbook"
                             class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-yellow-400"
                         >
@@ -540,7 +624,7 @@
                         <input 
                             type="text" 
                             name="account_number" 
-                            value="{{ $affiliate->payout_details['account_number'] ?? '' }}" 
+                            value="{{ data_get($affiliate->payout_details, 'account_number', '') }}" 
                             placeholder="Bank Account Number"
                             class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-yellow-400 font-mono"
                         >
@@ -550,7 +634,7 @@
                         <input 
                             type="text" 
                             name="ifsc_code" 
-                            value="{{ $affiliate->payout_details['ifsc_code'] ?? '' }}" 
+                            value="{{ data_get($affiliate->payout_details, 'ifsc_code', '') }}" 
                             placeholder="e.g. FDRL0001234"
                             class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-yellow-400 font-mono uppercase"
                         >
@@ -595,11 +679,52 @@
         document.getElementById('editLeadModal').classList.add('hidden');
     }
 
-    function openPayoutModal() {
-        document.getElementById('payoutModal').classList.remove('hidden');
-    }
-    function closePayoutModal() {
-        document.getElementById('payoutModal').classList.add('hidden');
+    function copyAffiliateLink() {
+        const input = document.getElementById('affiliateReferralInput');
+        const copyText = document.getElementById('copyText');
+        const copyIcon = document.getElementById('copyIcon');
+        const btn = document.getElementById('copyReferralBtn');
+        
+        if (!input) return;
+        input.select();
+        input.setSelectionRange(0, 99999);
+
+        const textToCopy = input.value;
+
+        function setCopiedState() {
+            if (copyText) copyText.textContent = 'Copied! ✅';
+            if (copyIcon) copyIcon.textContent = '✓';
+            if (btn) {
+                btn.classList.remove('bg-yellow-400', 'hover:bg-yellow-300');
+                btn.classList.add('bg-emerald-400', 'hover:bg-emerald-300');
+            }
+            setTimeout(() => {
+                if (copyText) copyText.textContent = 'Copy Link';
+                if (copyIcon) copyIcon.textContent = '📋';
+                if (btn) {
+                    btn.classList.remove('bg-emerald-400', 'hover:bg-emerald-300');
+                    btn.classList.add('bg-yellow-400', 'hover:bg-yellow-300');
+                }
+            }, 2500);
+        }
+
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(textToCopy).then(setCopiedState).catch(() => {
+                try {
+                    document.execCommand('copy');
+                    setCopiedState();
+                } catch (e) {
+                    alert('Please manually copy this link: ' + textToCopy);
+                }
+            });
+        } else {
+            try {
+                document.execCommand('copy');
+                setCopiedState();
+            } catch (e) {
+                alert('Please manually copy this link: ' + textToCopy);
+            }
+        }
     }
 </script>
 @endsection

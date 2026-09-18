@@ -227,3 +227,121 @@ test('admin can view affiliate hub, add bonus, and execute monthly disbursement 
     expect($disbursed->count())->toBe(2)
         ->and($disbursed->first()->payout_reference)->toBe('UTR998877665544');
 });
+
+test('visiting referral link increments clicks and stores session and cookie', function () {
+    $user = User::factory()->create();
+    $affiliate = Affiliate::create([
+        'user_id' => $user->id,
+        'affiliate_code' => 'PSC-TESTLINK',
+        'status' => 'active',
+        'referral_clicks' => 0,
+    ]);
+
+    // First visit
+    $response = $this->get('/?ref=PSC-TESTLINK');
+    $response->assertStatus(200);
+    $response->assertSessionHas('affiliate_ref', 'PSC-TESTLINK');
+    $response->assertCookie('affiliate_ref', 'PSC-TESTLINK');
+
+    $affiliate->refresh();
+    expect($affiliate->referral_clicks)->toBe(1);
+
+    // Same session browsing another page should not double count clicks
+    $this->get('/about');
+    $affiliate->refresh();
+    expect($affiliate->referral_clicks)->toBe(1);
+});
+
+test('clean /ref/{code} route redirects to home with query parameter', function () {
+    $user = User::factory()->create();
+    $affiliate = Affiliate::create([
+        'user_id' => $user->id,
+        'affiliate_code' => 'PSC-CLEANURL',
+        'status' => 'active',
+    ]);
+
+    $response = $this->get('/ref/PSC-CLEANURL');
+    $response->assertRedirect('/?ref=PSC-CLEANURL');
+});
+
+test('affiliate dashboard displays copyable referral link and clicks count', function () {
+    $user = User::factory()->create();
+    $affiliate = Affiliate::create([
+        'user_id' => $user->id,
+        'affiliate_code' => 'PSC-MYLINK99',
+        'status' => 'active',
+        'commission_rate' => 20.00,
+        'referral_clicks' => 42,
+    ]);
+
+    $response = $this->actingAs($user)->get(route('affiliate.dashboard'));
+    $response->assertStatus(200);
+    $response->assertSee('PSC-MYLINK99');
+    $response->assertSee('42');
+    $response->assertSee('Copy Link');
+    $response->assertSee('WhatsApp');
+    $response->assertSee('Commission');
+});
+
+test('student signing up and purchasing via referral link earns affiliate commission', function () {
+    $promoterUser = User::factory()->create(['phone' => '9895000099']);
+    $affiliate = Affiliate::create([
+        'user_id' => $promoterUser->id,
+        'affiliate_code' => 'PSC-VIPREF',
+        'status' => 'active',
+        'commission_rate' => 15.00,
+    ]);
+
+    // Step 1: Candidate clicks referral link
+    $this->get('/?ref=PSC-VIPREF');
+
+    // Step 2: Candidate registers an account (never entered via phone lead)
+    $studentUser = User::factory()->create([
+        'name' => 'Link Registered Student',
+        'phone' => '9988776655',
+        'email' => 'linkstudent@example.com',
+    ]);
+
+    // Attribution service links student
+    $service = app(AffiliateAttributionService::class);
+    $service->linkRegisteredStudent($studentUser);
+
+    // Lead should have been automatically generated with source = referral_link
+    $lead = AffiliateLead::where('candidate_phone', '9988776655')->first();
+    expect($lead)->not->toBeNull()
+        ->and($lead->affiliate_id)->toBe($affiliate->id)
+        ->and($lead->source)->toBe('referral_link')
+        ->and($lead->status)->toBe('lead')
+        ->and($lead->converted_user_id)->toBe($studentUser->id);
+
+    // Step 3: Student purchases course subscription of ₹2,000
+    $payment = SubscriptionPayment::create([
+        'user_id' => $studentUser->id,
+        'subscription_type' => 'super_ranker',
+        'amount' => 2000.00,
+        'currency' => 'INR',
+        'duration_months' => 6,
+        'razorpay_payment_id' => 'pay_link_test_123',
+        'razorpay_order_id' => 'order_link_test_123',
+        'status' => 'success',
+    ]);
+
+    $service->recordConversion(
+        student: $studentUser,
+        payment: $payment,
+        courseAmount: 2000.00
+    );
+
+    $lead->refresh();
+    expect($lead->status)->toBe('converted');
+
+    // Step 4: Affiliate should have received 15% of 2000 = ₹300
+    $commission = AffiliateCommission::where('affiliate_id', $affiliate->id)
+        ->where('subscription_payment_id', $payment->id)
+        ->first();
+
+    expect($commission)->not->toBeNull()
+        ->and((float)$commission->commission_rate)->toBe(15.0)
+        ->and((float)$commission->commission_amount)->toBe(300.00)
+        ->and($commission->status)->toBe('pending');
+});

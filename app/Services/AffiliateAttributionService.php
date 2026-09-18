@@ -112,6 +112,38 @@ class AffiliateAttributionService
         }
 
         if (!$lead) {
+            // Check if student was previously linked via referral link or earlier conversion
+            $lead = AffiliateLead::where('converted_user_id', $student->id)
+                ->whereHas('affiliate', fn($q) => $q->where('status', 'active'))
+                ->latest('id')
+                ->first();
+        }
+
+        // Check if referral link was stored in session or cookie
+        if (!$lead) {
+            $refCode = session('affiliate_ref') ?? request()->cookie('affiliate_ref');
+            if ($refCode) {
+                $refAffiliate = Affiliate::where('affiliate_code', strtoupper(trim($refCode)))
+                    ->where('status', 'active')
+                    ->first();
+
+                if ($refAffiliate) {
+                    $lead = AffiliateLead::create([
+                        'affiliate_id' => $refAffiliate->id,
+                        'candidate_name' => $student->name,
+                        'candidate_phone' => $student->phone ? AffiliateLead::normalizePhone($student->phone) : 'Referral Link',
+                        'status' => 'converted',
+                        'source' => 'referral_link',
+                        'notes' => 'Enrolled via Affiliate Referral Link',
+                        'converted_user_id' => $student->id,
+                        'converted_at' => now(),
+                        'valid_until' => now()->addDays(60),
+                    ]);
+                }
+            }
+        }
+
+        if (!$lead) {
             return null;
         }
 
@@ -144,28 +176,51 @@ class AffiliateAttributionService
             'total_amount' => $totalAmount,
             'period_month' => $periodMonth,
             'status' => 'pending',
-            'admin_notes' => $adminNotes,
+            'admin_notes' => $adminNotes ?? ($lead->source === 'referral_link' ? 'Converted via Referral Link' : null),
         ]);
 
-        Log::info("Affiliate conversion recorded: Lead #{$lead->id} -> Affiliate #{$affiliate->id} (Anu/Promoter) for Student #{$student->id}. Commission: ₹{$commissionAmount}");
+        Log::info("Affiliate conversion recorded: Lead #{$lead->id} -> Affiliate #{$affiliate->id} for Student #{$student->id}. Commission: ₹{$commissionAmount}");
 
         return $commission;
     }
 
     /**
-     * Link student account to lead upon registration if phone matches.
+     * Link student account to lead upon registration if phone matches or referral link used.
      */
     public function linkRegisteredStudent(User $student): ?AffiliateLead
     {
-        if (!$student->phone) {
-            return null;
+        $lead = null;
+
+        if ($student->phone) {
+            $lead = $this->findActiveLeadByPhone($student->phone);
         }
 
-        $lead = $this->findActiveLeadByPhone($student->phone);
         if ($lead) {
             $lead->update([
                 'converted_user_id' => $student->id,
             ]);
+            return $lead;
+        }
+
+        // Check if referral link was stored in session or cookie
+        $refCode = session('affiliate_ref') ?? request()->cookie('affiliate_ref');
+        if ($refCode) {
+            $affiliate = Affiliate::where('affiliate_code', strtoupper(trim($refCode)))
+                ->where('status', 'active')
+                ->first();
+
+            if ($affiliate) {
+                $lead = AffiliateLead::create([
+                    'affiliate_id' => $affiliate->id,
+                    'candidate_name' => $student->name,
+                    'candidate_phone' => $student->phone ? AffiliateLead::normalizePhone($student->phone) : 'Referral Link',
+                    'status' => 'lead',
+                    'source' => 'referral_link',
+                    'notes' => 'Registered via Affiliate Referral Link',
+                    'converted_user_id' => $student->id,
+                    'valid_until' => now()->addDays(60),
+                ]);
+            }
         }
 
         return $lead;

@@ -19,11 +19,13 @@ class Affiliate extends Model
         'payout_method',
         'payout_details',
         'notes',
+        'referral_clicks',
     ];
 
     protected $casts = [
         'commission_rate' => 'decimal:2',
         'payout_details' => 'array',
+        'referral_clicks' => 'integer',
     ];
 
     public function user(): BelongsTo
@@ -74,5 +76,21 @@ class Affiliate extends Model
     public function getUpiIdAttribute(): ?string
     {
         return $this->payout_details['upi_id'] ?? null;
+    }
+
+    public function getPayoutDetailsAttribute($value): array
+    {
+        if (is_array($value)) {
+            return $value;
+        }
+        if (is_string($value)) {
+            return json_decode($value, true) ?: [];
+        }
+        return [];
+    }
+
+    public function getReferralUrlAttribute(): string
+    {
+        return url('/?ref=' . $this->affiliate_code);
     }
 }

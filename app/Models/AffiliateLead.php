@@ -17,6 +17,7 @@ class AffiliateLead extends Model
         'candidate_phone',
         'alternate_phone',
         'status',
+        'source',
         'notes',
         'converted_user_id',
         'converted_at',

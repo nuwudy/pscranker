@@ -172,7 +172,10 @@
                                             </span>
                                             <div>
                                                 <span class="block">{{ $affiliate->user->name ?? 'Unknown' }}</span>
-                                                <span class="text-[10px] text-slate-400 font-mono">{{ $affiliate->affiliate_code }}</span>
+                                                <div class="flex items-center gap-1.5 mt-0.5">
+                                                    <span class="text-[10px] text-slate-500 font-mono bg-slate-100 px-1.5 py-0.5 rounded" title="Affiliate Code">🔗 {{ $affiliate->affiliate_code }}</span>
+                                                    <span class="text-[10px] text-indigo-600 font-mono font-bold" title="Referral Link Clicks">👆 {{ number_format($affiliate->referral_clicks) }} clicks</span>
+                                                </div>
                                             </div>
                                         </div>
                                     </td>
@@ -453,7 +456,18 @@
                             @forelse($leads as $lead)
                                 <tr class="hover:bg-slate-50/70 transition">
                                     <td class="py-3.5 px-4 font-bold text-slate-900">
-                                        {{ $lead->candidate_name }}
+                                        <div class="flex items-center gap-1.5">
+                                            <span>{{ $lead->candidate_name }}</span>
+                                            @if($lead->source === 'referral_link')
+                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200" title="Source: Affiliate Referral Link">
+                                                    🔗 Link
+                                                </span>
+                                            @else
+                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-200" title="Source: Direct Phone Follow-up">
+                                                    📞 Phone
+                                                </span>
+                                            @endif
+                                        </div>
                                     </td>
                                     <td class="py-3.5 px-4 font-mono font-bold text-blue-700">
                                         {{ $lead->candidate_phone }}

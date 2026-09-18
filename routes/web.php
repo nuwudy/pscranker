@@ -93,6 +93,10 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
 });
 
 // Affiliate Partner Public Onboarding & Partner Portal
+Route::get('/ref/{code}', function (string $code) {
+    return redirect()->route('home', ['ref' => strtoupper(trim($code))]);
+})->name('affiliate.ref-redirect');
+
 Route::get('/affiliate/join', [\App\Http\Controllers\AffiliateController::class, 'showJoinForm'])->name('affiliate.join');
 Route::post('/affiliate/join', [\App\Http\Controllers\AffiliateController::class, 'submitJoin'])->name('affiliate.submit');
 
