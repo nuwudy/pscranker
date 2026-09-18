@@ -103,11 +103,13 @@ class AffiliateController extends Controller
         if (!$affiliate) {
             $affiliateCode = 'PSC-' . strtoupper(Str::random(6));
 
+            $defaultCommission = (float) \App\Models\SiteSetting::get('default_affiliate_commission', 15.00);
+
             $affiliate = Affiliate::create([
                 'user_id' => $user->id,
                 'affiliate_code' => $affiliateCode,
                 'status' => 'active', // Instantly active to begin pitching immediately
-                'commission_rate' => 15.00, // 15% default commission
+                'commission_rate' => $defaultCommission,
                 'payout_method' => $preferredMethod,
                 'payout_details' => $payoutDetails,
                 'notes' => $validated['notes'] ?? 'Signed up via partner onboarding page',

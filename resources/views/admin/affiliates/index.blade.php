@@ -126,26 +126,55 @@
         <!-- ============================================================= -->
         @if($tab === 'affiliates')
             <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 mb-8">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6 pb-6 border-b border-slate-100">
                     <div>
                         <h2 class="text-lg font-black text-slate-900">Promoters &amp; Affiliates Directory</h2>
                         <p class="text-xs text-slate-500 mt-0.5">Manage promoter commission rates, assign performance bonuses, and view payout channels.</p>
                     </div>
 
-                    <!-- Search Form -->
-                    <form action="{{ route('admin.affiliates.index') }}" method="GET" class="flex items-center gap-2">
-                        <input type="hidden" name="tab" value="affiliates">
-                        <input 
-                            type="text" 
-                            name="q" 
-                            value="{{ request('q') }}" 
-                            placeholder="Search name, phone, code..."
-                            class="bg-slate-50 border border-slate-300 text-slate-900 text-xs rounded-xl px-3.5 py-2 focus:outline-none focus:border-blue-600 transition"
-                        >
-                        <button type="submit" class="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl transition">
-                            Search
-                        </button>
-                    </form>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <!-- Platform Default Commission Rate Widget -->
+                        <form action="{{ route('admin.affiliates.default-rate') }}" method="POST" class="flex items-center gap-2 bg-amber-50/80 border border-amber-300 rounded-xl px-3 py-1.5 shadow-2xs">
+                            @csrf
+                            <span class="text-[11px] font-bold text-amber-900 flex items-center gap-1">
+                                <span>⚡</span> Default Rate:
+                            </span>
+                            <div class="flex items-center gap-1">
+                                <input 
+                                    type="number" 
+                                    name="default_commission_rate" 
+                                    value="{{ $defaultCommissionRate }}" 
+                                    step="0.5" 
+                                    min="0" 
+                                    max="100"
+                                    class="w-14 bg-white border border-amber-300 text-amber-950 font-mono font-black text-xs rounded-lg px-2 py-1 text-center focus:outline-none focus:ring-1 focus:ring-amber-500"
+                                >
+                                <span class="text-xs font-bold text-amber-800 font-mono">%</span>
+                            </div>
+                            <button 
+                                type="submit" 
+                                class="px-2.5 py-1 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-[10px] rounded-lg shadow-2xs transition active:scale-95 cursor-pointer"
+                                title="Update default commission rate for all new promoters"
+                            >
+                                Save Default
+                            </button>
+                        </form>
+
+                        <!-- Search Form -->
+                        <form action="{{ route('admin.affiliates.index') }}" method="GET" class="flex items-center gap-2">
+                            <input type="hidden" name="tab" value="affiliates">
+                            <input 
+                                type="text" 
+                                name="q" 
+                                value="{{ request('q') }}" 
+                                placeholder="Search name, phone, code..."
+                                class="bg-slate-50 border border-slate-300 text-slate-900 text-xs rounded-xl px-3.5 py-2 focus:outline-none focus:border-blue-600 transition"
+                            >
+                            <button type="submit" class="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl transition cursor-pointer">
+                                Search
+                            </button>
+                        </form>
+                    </div>
                 </div>
 
                 <div class="overflow-x-auto">
@@ -199,9 +228,15 @@
                                         @endif
                                     </td>
                                     <td class="py-3.5 px-4 font-mono font-bold text-slate-900">
-                                        <span class="px-2 py-1 bg-yellow-100 text-yellow-900 rounded-lg text-xs">
-                                            {{ $affiliate->commission_rate }}%
-                                        </span>
+                                        <button 
+                                            type="button" 
+                                            onclick="openCommissionModal({{ $affiliate->id }}, '{{ addslashes($affiliate->user->name) }}', {{ $affiliate->commission_rate }})"
+                                            class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-yellow-100 hover:bg-yellow-200 text-yellow-900 border border-yellow-300 rounded-lg text-xs font-mono font-bold transition shadow-2xs group cursor-pointer"
+                                            title="Click to change commission percentage"
+                                        >
+                                            <span>{{ $affiliate->commission_rate }}%</span>
+                                            <span class="text-[10px] text-yellow-700 opacity-60 group-hover:opacity-100 transition">✏️</span>
+                                        </button>
                                     </td>
                                     <td class="py-3.5 px-4">
                                         <span class="font-bold text-slate-800">{{ $affiliate->leads_count }} leads</span>
@@ -248,10 +283,10 @@
                                             <button 
                                                 type="button" 
                                                 onclick="openCommissionModal({{ $affiliate->id }}, '{{ addslashes($affiliate->user->name) }}', {{ $affiliate->commission_rate }})"
-                                                class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[11px] font-bold transition"
+                                                class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-lg text-[11px] font-bold transition flex items-center gap-1 cursor-pointer"
                                                 title="Edit Commission %"
                                             >
-                                                Rate %
+                                                <span>⚡</span> Commission %
                                             </button>
 
                                             <!-- Add Bonus Button -->

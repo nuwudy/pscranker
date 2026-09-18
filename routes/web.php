@@ -86,6 +86,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
 
     // Affiliate Promoters & Monthly Commission Disbursement Hub
     Route::get('affiliates', [\App\Http\Controllers\Admin\AdminAffiliateController::class, 'index'])->name('affiliates.index');
+    Route::post('affiliates/default-rate', [\App\Http\Controllers\Admin\AdminAffiliateController::class, 'updateDefaultCommissionRate'])->name('affiliates.default-rate');
     Route::post('affiliates/{affiliate}/status', [\App\Http\Controllers\Admin\AdminAffiliateController::class, 'updateStatus'])->name('affiliates.status');
     Route::post('affiliates/{affiliate}/commission-rate', [\App\Http\Controllers\Admin\AdminAffiliateController::class, 'updateCommissionRate'])->name('affiliates.commission-rate');
     Route::post('affiliates/{affiliate}/bonus', [\App\Http\Controllers\Admin\AdminAffiliateController::class, 'addBonus'])->name('affiliates.bonus');

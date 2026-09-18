@@ -412,3 +412,34 @@ test('affiliate can update their own payout details from dashboard', function ()
         ->and($affiliate->payout_details['account_number'])->toBe('555544443333')
         ->and($affiliate->payout_details['ifsc_code'])->toBe('CNRB0001122');
 });
+
+test('admin can update platform default affiliate commission rate', function () {
+    $admin = User::factory()->create(['is_admin' => true]);
+
+    $response = $this->actingAs($admin)->post('/admin/affiliates/default-rate', [
+        'default_commission_rate' => 22.5,
+    ]);
+
+    $response->assertRedirect();
+    $response->assertSessionHas('success');
+
+    expect((float) \App\Models\SiteSetting::get('default_affiliate_commission'))->toBe(22.5);
+
+    // Log out admin so request simulates public visitor onboarding
+    auth()->logout();
+
+    // New affiliate registers and inherits 22.5% default rate
+    $this->post('/affiliate/join', [
+        'name' => 'New Default Rate Promoter',
+        'phone' => '9895099999',
+        'email' => 'newpromo@example.com',
+        'password' => 'secret123',
+    ]);
+
+    $user = \App\Models\User::where('email', 'newpromo@example.com')->first();
+    expect($user)->not->toBeNull();
+
+    $newAffiliate = $user->affiliate;
+    expect($newAffiliate)->not->toBeNull()
+        ->and((float) $newAffiliate->commission_rate)->toBe(22.5);
+});

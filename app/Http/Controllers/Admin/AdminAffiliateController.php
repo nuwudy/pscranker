@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Affiliate;
 use App\Models\AffiliateCommission;
 use App\Models\AffiliateLead;
+use App\Models\SiteSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -17,6 +18,8 @@ class AdminAffiliateController extends Controller
     public function index(Request $request)
     {
         $tab = $request->input('tab', 'affiliates'); // 'affiliates', 'disbursements', 'leads'
+
+        $defaultCommissionRate = (float) SiteSetting::get('default_affiliate_commission', 15.0);
 
         // 1. Core Summary Metrics
         $totalAffiliates = Affiliate::count();
@@ -104,8 +107,23 @@ class AdminAffiliateController extends Controller
             'selectedMonth',
             'monthlyDisbursements',
             'leads',
-            'availableMonths'
+            'availableMonths',
+            'defaultCommissionRate'
         ));
+    }
+
+    /**
+     * Update default platform-wide commission percentage for new affiliates.
+     */
+    public function updateDefaultCommissionRate(Request $request)
+    {
+        $validated = $request->validate([
+            'default_commission_rate' => ['required', 'numeric', 'min:0', 'max:100'],
+        ]);
+
+        SiteSetting::set('default_affiliate_commission', $validated['default_commission_rate']);
+
+        return redirect()->back()->with('success', "Default affiliate commission rate updated to {$validated['default_commission_rate']}%.");
     }
 
     /**
@@ -123,7 +141,7 @@ class AdminAffiliateController extends Controller
     }
 
     /**
-     * Update custom commission rate percentage.
+     * Update custom commission rate percentage for a specific affiliate.
      */
     public function updateCommissionRate(Request $request, Affiliate $affiliate)
     {
