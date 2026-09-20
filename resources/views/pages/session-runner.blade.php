@@ -420,12 +420,7 @@
                         <!-- 4. VIDEO BLOCK -->
                         <template x-if="block.type === 'video'">
                             <div class="space-y-2">
-                                <template x-if="block.content_data.title">
-                                    <h3 class="text-sm font-black text-slate-900 flex items-center gap-2">
-                                        <span>🎥</span>
-                                        <span x-text="block.content_data.title"></span>
-                                    </h3>
-                                </template>
+                                <!-- Removed video title rendering as requested -->
                                 <div class="aspect-video rounded-2xl overflow-hidden border border-slate-200 bg-slate-950 shadow-inner">
                                     <template x-if="getVideoEmbedUrl(block.content_data.url)">
                                         <iframe :src="getVideoEmbedUrl(block.content_data.url)" class="w-full h-full" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
