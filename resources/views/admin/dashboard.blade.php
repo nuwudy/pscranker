@@ -1,76 +1,52 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Admin Dashboard & Mission Control — PSCRanker')
+@section('page_title', 'Admin Dashboard')
+@section('page_subtitle', 'Kerala PSC Mission Control — Track candidates, learning tracks, and revenue')
 
 @section('content')
-<div class="py-8 bg-slate-50 min-h-[90vh]">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="space-y-8">
 
-        <!-- Dashboard Top Banner -->
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-800 relative overflow-hidden">
-            <!-- Decorative Glow -->
-            <div class="absolute -right-10 -top-10 w-48 h-48 bg-[#0052FF]/20 rounded-full blur-3xl pointer-events-none"></div>
-            <div class="absolute -left-10 -bottom-10 w-48 h-48 bg-yellow-400/10 rounded-full blur-3xl pointer-events-none"></div>
+    <!-- Dashboard Top Banner -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-800 relative overflow-hidden">
+        <!-- Decorative Glow -->
+        <div class="absolute -right-10 -top-10 w-48 h-48 bg-[#0052FF]/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -left-10 -bottom-10 w-48 h-48 bg-yellow-400/10 rounded-full blur-3xl pointer-events-none"></div>
 
-            <div class="relative z-10">
-                <div class="flex items-center gap-2 mb-2">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                        🟢 Engine Online
-                    </span>
-                    <span class="text-xs text-slate-400 font-bold">Kerala PSC Mission Control</span>
-                </div>
-                <h1 class="text-2xl sm:text-4xl font-black tracking-tight text-white flex items-center gap-3">
-                    <span>Admin Dashboard</span>
-                    <span class="text-yellow-400 text-2xl">⚡</span>
-                </h1>
-                <p class="text-xs sm:text-sm text-slate-300 font-medium mt-1">
-                    Manage 4-phase micro-learning sessions, question banks, media assets, and track live candidate performance.
-                </p>
+        <div class="relative z-10">
+            <div class="flex items-center gap-2 mb-2">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    🟢 Engine Online
+                </span>
+                <span class="text-xs text-slate-400 font-bold">Kerala PSC Mission Control</span>
             </div>
-
-            <!-- Quick Action CTA Buttons -->
-            <div class="flex flex-wrap items-center gap-2.5 relative z-10">
-                <button 
-                    type="button" 
-                    onclick="openCreateUserModal()"
-                    class="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-xl shadow transition flex items-center gap-1.5 border border-emerald-300 active:scale-95"
-                >
-                    <span>➕ User / Offline Sub</span>
-                </button>
-                <a 
-                    href="{{ route('admin.affiliates.index') }}" 
-                    class="px-4 py-2.5 bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-black text-xs rounded-xl shadow transition flex items-center gap-1.5 border border-yellow-300 active:scale-95"
-                >
-                    <span>🤝 Affiliates</span>
-                </a>
-                <a 
-                    href="{{ route('admin.users.index') }}" 
-                    class="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl transition flex items-center gap-1.5 border border-white/20"
-                >
-                    <span>👥 Candidates</span>
-                </a>
-                <a 
-                    href="{{ route('admin.sessions.create') }}" 
-                    class="px-4 py-2.5 bg-[#FFD200] hover:bg-yellow-400 text-slate-950 font-black text-xs rounded-xl shadow transition flex items-center gap-1.5 border border-yellow-300 active:scale-95"
-                >
-                    <span>+ New Session</span>
-                    <span>⚡</span>
-                </a>
-                <a 
-                    href="{{ route('admin.media.index') }}" 
-                    class="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl transition flex items-center gap-1.5 border border-white/20"
-                >
-                    <span>📁 Media Library</span>
-                </a>
-                <a 
-                    href="{{ route('sessions.index') }}" 
-                    target="_blank"
-                    class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition flex items-center gap-1.5"
-                >
-                    <span>View Portal ↗</span>
-                </a>
-            </div>
+            <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-white flex items-center gap-3">
+                <span>Admin Dashboard</span>
+                <span class="text-yellow-400 text-2xl">⚡</span>
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-300 font-medium mt-1">
+                Build modular learning tracks, sequential units, Lego blocks, and authentic Kerala PSC OMR bubble assessments.
+            </p>
         </div>
+
+        <!-- Quick Action CTA Buttons -->
+        <div class="flex flex-wrap items-center gap-2.5 relative z-10">
+            <button 
+                type="button" 
+                onclick="openCreateUserModal()"
+                class="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-xl shadow transition flex items-center gap-1.5 border border-emerald-300 active:scale-95 cursor-pointer"
+            >
+                <span>➕ User / Offline Sub</span>
+            </button>
+            <a 
+                href="{{ route('admin.sessions.create') }}" 
+                class="px-4 py-2.5 bg-[#FFD200] hover:bg-yellow-400 text-slate-950 font-black text-xs rounded-xl shadow transition flex items-center gap-1.5 border border-yellow-300 active:scale-95"
+            >
+                <span>+ New Session</span>
+                <span>⚡</span>
+            </a>
+        </div>
+    </div>
 
         @if(session('success'))
             <div class="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-bold flex items-center justify-between">
@@ -145,7 +121,7 @@
                     {{ $stats['active_sessions'] }} <span class="text-xs text-slate-400 font-normal">/ {{ $stats['total_sessions'] }}</span>
                 </div>
                 <div class="text-[10px] font-bold text-emerald-600 mt-1">
-                    ● Active Capsules
+                    ● Active Sessions
                 </div>
             </div>
 
@@ -225,14 +201,39 @@
 
         </div>
 
-        <!-- Section 1: Sessions Inventory & Content Completeness Table -->
+        <!-- Quick Start Card: How to Create a Newly Styled Modular Session -->
+        <div class="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 rounded-3xl border border-blue-200 p-5 sm:p-6 shadow-xs mb-8">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="space-y-1">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#0052FF] text-white">
+                        ✨ Modular Architecture Guide
+                    </span>
+                    <h3 class="text-base font-black text-slate-950">
+                        How to Create a Newly Styled Learning Track Session
+                    </h3>
+                    <p class="text-xs text-slate-600 max-w-2xl leading-relaxed">
+                        Build sequential units: <strong>Unit 1</strong> (Hook Concept Opener), <strong>Unit 2</strong> (Rich Notes + Malayalam callouts + Audio), <strong>Unit 3</strong> (Practice MCQs 1 per screen), and <strong>Final Unit</strong> (Auto-compiled Capstone OMR Exam Sheet with authentic bubble selection).
+                    </p>
+                </div>
+                <div class="shrink-0">
+                    <a 
+                        href="{{ route('admin.sessions.create') }}" 
+                        class="px-5 py-3 bg-[#0052FF] hover:bg-blue-700 text-white font-black text-xs rounded-xl shadow transition flex items-center gap-2"
+                    >
+                        <span>＋ Create New Session</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 1: Sessions Inventory & Modular Structure Table -->
         <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs mb-8">
             <div class="p-5 sm:p-6 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
                 <div>
                     <h2 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
-                        <span>Learning Sessions & 4-Phase Completeness</span>
+                        <span>Learning Sessions &amp; Sequential Units</span>
                     </h2>
-                    <p class="text-xs text-slate-500 font-medium">Verify that each session has a diagnostic hook, media blocks, speed blitz, and OMR challenge questions.</p>
+                    <p class="text-xs text-slate-500 font-medium">Modular unit breakdown, content blocks, and Capstone OMR assessment questions.</p>
                 </div>
 
                 <div class="flex items-center gap-2">
@@ -251,17 +252,20 @@
                         <tr class="bg-slate-50 border-b border-slate-200/80 text-slate-500 font-bold uppercase tracking-wider">
                             <th class="p-4"># Order</th>
                             <th class="p-4">Session Title</th>
-                            <th class="p-4">Category</th>
-                            <th class="p-4 text-center">Phase 1 (Hook)</th>
-                            <th class="p-4 text-center">Phase 2 (Capsule)</th>
-                            <th class="p-4 text-center">Phase 3 (Blitz)</th>
-                            <th class="p-4 text-center">Phase 4 (OMR)</th>
+                            <th class="p-4">Subject Track</th>
+                            <th class="p-4 text-center">Modular Units</th>
+                            <th class="p-4 text-center">OMR Exam Bank</th>
+                            <th class="p-4 text-center">Access Tier</th>
                             <th class="p-4 text-center">Status</th>
                             <th class="p-4 text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
                         @forelse($sessions as $sess)
+                            @php
+                                $units = $sess->structured_units;
+                                $omrQuestionsCount = $sess->effective_omr_questions->count();
+                            @endphp
                             <tr class="hover:bg-blue-50/20 transition">
                                 <td class="p-4 font-mono font-bold">{{ $sess->order }}</td>
                                 <td class="p-4">
@@ -271,43 +275,32 @@
                                     @endif
                                 </td>
                                 <td class="p-4">
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800">
-                                        {{ $sess->category ? $sess->category->name : 'Unassigned' }}
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800">
+                                        {{ $sess->category ? $sess->category->name : 'General Stream' }}
                                     </span>
                                 </td>
 
-                                <!-- Phase 1 Diagnostic Hook status -->
+                                <!-- Modular Units Count -->
                                 <td class="p-4 text-center">
-                                    @if($sess->diagnostic_count > 0)
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                                            ✅ Ready
-                                        </span>
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-blue-100 text-blue-900 border border-blue-200">
+                                        {{ count($units) }} Units
+                                    </span>
+                                </td>
+
+                                <!-- OMR Exam Bank -->
+                                <td class="p-4 text-center">
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-900 text-white font-mono">
+                                        {{ $omrQuestionsCount }} Bubbles 📝
+                                    </span>
+                                </td>
+
+                                <!-- Access Tier -->
+                                <td class="p-4 text-center">
+                                    @if($sess->isFree())
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">Free</span>
                                     @else
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
-                                            ⚠️ Missing
-                                        </span>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-900 font-mono">{{ $sess->formatted_price }}</span>
                                     @endif
-                                </td>
-
-                                <!-- Phase 2 Media Blocks -->
-                                <td class="p-4 text-center">
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 font-mono">
-                                        {{ $sess->contents_count }} blocks
-                                    </span>
-                                </td>
-
-                                <!-- Phase 3 Reinforcement Blitz Questions -->
-                                <td class="p-4 text-center">
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-yellow-100 text-yellow-900 font-mono">
-                                        {{ $sess->reinforcement_count }} MCQs
-                                    </span>
-                                </td>
-
-                                <!-- Phase 4 OMR Questions -->
-                                <td class="p-4 text-center">
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-900 text-white font-mono">
-                                        {{ $sess->omr_count }} Bubbles
-                                    </span>
                                 </td>
 
                                 <!-- Status -->
@@ -332,14 +325,14 @@
                                         href="{{ route('admin.sessions.edit', $sess) }}" 
                                         class="text-[#0052FF] hover:underline font-black"
                                     >
-                                        Edit
+                                        Edit ⚙️
                                     </a>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9" class="p-8 text-center text-slate-500">
-                                    No sessions found. <a href="{{ route('admin.sessions.create') }}" class="text-[#0052FF] font-bold underline">Create one now</a>.
+                                <td colspan="8" class="p-8 text-center text-slate-500">
+                                    No sessions created yet. Click "+ Create New Session" to start!
                                 </td>
                             </tr>
                         @endforelse
@@ -774,7 +767,7 @@
                         <h3 class="text-sm sm:text-base font-black text-slate-900">
                             Recent Session Activity
                         </h3>
-                        <p class="text-[11px] text-slate-500">Candidate progress across 4-phase micro loops</p>
+                        <p class="text-[11px] text-slate-500">Candidate unit progress and cumulative score ledger</p>
                     </div>
                     <span class="text-xs font-mono font-bold text-slate-400">Live</span>
                 </div>
@@ -878,7 +871,7 @@
                                     @endif
                                 </div>
                                 <div class="text-right font-mono text-[11px]">
-                                    <span class="font-bold text-purple-700">{{ $cat->sessions_count }} Capsules</span>
+                                    <span class="font-bold text-purple-700">{{ $cat->sessions_count }} Sessions</span>
                                     <span class="text-slate-400 block text-[10px]">{{ $cat->questions_count }} questions</span>
                                 </div>
                             </div>
@@ -965,7 +958,6 @@
         </div>
 
     </div>
-</div>
 
 <!-- ========================================== -->
 <!-- MODAL 1: Create Candidate Account Manually -->

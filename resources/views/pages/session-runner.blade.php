@@ -1,2067 +1,1175 @@
 @extends('layouts.app')
 
-@section('title', ($session->title_malayalam ?? $session->title) . ' — 4-Phase Micro-Learning Capsule | PSCRanker')
+@section('title', ($session->title_malayalam ?? $session->title) . ' — Modular Learning Track & OMR Assessment | PSCRanker')
 
 @section('content')
 <div 
-    x-data="sessionEngine({
+    x-data="modularTrackEngine({
         sessionId: {{ $session->id }},
+        sessionSlug: @js($session->slug),
         sessionTitle: @js($session->title),
         sessionTitleMl: @js($session->title_malayalam),
         xpReward: {{ $session->xp_reward }},
         categoryName: @js($session->category ? $session->category->name : 'Kerala PSC'),
-        diagnostic: @js($session->diagnosticQuestion),
-        contents: @js($session->contents),
-        reinforcement: @js($session->effective_reinforcement_questions),
-        omrQuestions: @js($session->effective_omr_questions),
-        progressSaveUrl: @js(route('api.session.progress', $session->id)),
+        categoryNameMl: @js($session->category ? $session->category->name_malayalam : 'കേരള പി.എസ്.സി'),
+        badgeColor: @js($session->category ? $session->category->badge_color : 'blue'),
+        stream: @js($stream),
+        units: @js($structuredUnits),
+        cumulativeLedger: @js($cumulativeLedger),
+        initialProgress: @js($currentProgress),
+        nextSessionUrl: @js($nextSession ? route('session.show', ['slug' => $nextSession->slug, 'stream' => $stream]) : null),
+        nextSessionTitle: @js($nextSession ? $nextSession->title : null),
+        previousSessionUrl: @js($previousSession ? route('session.show', ['slug' => $previousSession->slug, 'stream' => $stream]) : null),
+        previousSessionTitle: @js($previousSession ? $previousSession->title : null),
         omrSubmitUrl: @js(route('api.session.omr-submit', $session->id)),
-        csrfToken: '{{ csrf_token() }}'
+        retakeUrl: @js(route('api.session.retake', $session->id)),
+        csrfToken: '{{ csrf_token() }}',
+        previewMode: @js($previewMode ?? null)
     })"
-    x-init="initEngine()"
-    class="py-4 sm:py-8 bg-gradient-to-b from-blue-50/60 via-slate-50 to-white min-h-[90vh] select-none"
+    x-init="initTrackEngine()"
+    class="py-4 sm:py-8 bg-gradient-to-b from-[#F0F5FF] via-slate-50 to-white min-h-[92vh] select-none text-slate-900 pb-28"
 >
-@if($isLocked)
-    @if(($lockReason ?? 'requires_premium') === 'requires_registration')
-        <!-- ============================================================= -->
-        <!-- FREE REGISTERED MEMBER ACCESS REQUIRED GATE                   -->
-        <!-- ============================================================= -->
-        <div class="py-8 sm:py-16 max-w-xl mx-auto px-4">
-            <div class="bg-white rounded-3xl border-2 border-blue-200 shadow-2xl p-6 sm:p-10 text-center relative overflow-hidden">
-                
-                <!-- Glow Accent -->
-                <div class="absolute -top-16 -right-16 w-36 h-36 bg-blue-200/40 rounded-full blur-2xl pointer-events-none"></div>
-
-                <div class="w-16 h-16 rounded-3xl bg-gradient-to-tr from-[#0052FF] to-blue-600 text-white flex items-center justify-center text-3xl mx-auto mb-4 shadow-lg shadow-blue-500/30">
-                    🎓
-                </div>
-
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-900 border border-blue-200 text-xs font-black uppercase tracking-wider rounded-full mb-3">
-                    <span>Free for Registered Members</span>
+@if(auth()->check() && auth()->user()->isAdmin())
+    <!-- ADMIN SESSION CONTROL & VIEW INSPECTOR -->
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 mb-4">
+        <div class="bg-slate-900 text-white rounded-2xl p-3 sm:px-5 flex flex-wrap items-center justify-between gap-3 shadow-lg border border-slate-800">
+            <div class="flex items-center gap-2">
+                <span class="px-2.5 py-1 rounded-lg bg-amber-400 text-slate-950 font-black text-[10px] uppercase tracking-wider">
+                    👑 Admin Inspector
                 </span>
-
-                <h1 class="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
-                    {{ $session->title }}
-                </h1>
-
-                @if($session->title_malayalam)
-                    <p class="text-sm font-bold text-[#0052FF] mt-1 font-['Noto_Sans_Malayalam']">
-                        {{ $session->title_malayalam }}
-                    </p>
-                @endif
-
-                <p class="text-xs sm:text-sm text-slate-600 font-medium mt-3 leading-relaxed">
-                    This high-yield learning capsule is reserved free for registered members. Create a free account or log in with your mobile number to start learning right now.
-                </p>
-
-                <!-- Free Member Benefits -->
-                <div class="my-6 p-4 rounded-2xl bg-blue-50/60 border border-blue-200 text-left space-y-2.5 text-xs font-bold text-slate-700">
-                    <div class="flex items-center gap-2">
-                        <span class="text-emerald-600 font-black">✓</span>
-                        <span>100% Free Forever — No credit card or fee needed</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-emerald-600 font-black">✓</span>
-                        <span>Save your scores, diagnostic badges &amp; XP progress</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-emerald-600 font-black">✓</span>
-                        <span>Full access to Diagnostic, Lesson, MCQs &amp; OMR Test</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-emerald-600 font-black">✓</span>
-                        <span>Quick 10-second registration with name &amp; phone</span>
-                    </div>
-                </div>
-
-                <!-- Registration & Login CTAs -->
-                <div class="space-y-3 mb-6">
-                    <a 
-                        href="{{ route('register') }}" 
-                        class="w-full py-3.5 bg-gradient-to-r from-[#0052FF] to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white font-black text-sm rounded-xl shadow-lg shadow-blue-500/25 transition flex items-center justify-center gap-2 active:scale-95 border border-blue-400"
-                    >
-                        <span>REGISTER FREE ACCOUNT (10 SECONDS) ⚡</span>
-                    </a>
-                    
-                    <a 
-                        href="{{ route('login') }}" 
-                        class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-black text-xs rounded-xl transition flex items-center justify-center gap-1.5 border border-slate-300"
-                    >
-                        <span>Already registered? Log in with Mobile or Email →</span>
-                    </a>
-                </div>
-
-                <!-- Navigation Back -->
-                <div class="flex flex-col sm:flex-row items-center justify-center gap-3 text-xs font-bold">
-                    @if($previousSession)
-                        <a href="{{ route('session.show', $previousSession->slug) }}" class="text-slate-600 hover:text-slate-900 hover:underline">
-                            ← Previous Unit: {{ Str::limit($previousSession->title, 20) }}
-                        </a>
-                    @endif
-                    <a href="{{ route('sessions.index') }}" class="text-[#0052FF] hover:underline">
-                        Browse All Free Units →
-                    </a>
-                </div>
-
-            </div>
-        </div>
-    @else
-        <!-- ============================================================= -->
-        <!-- PREMIUM PAYWALL GATE (PhonePe / Razorpay Ready)              -->
-        <!-- ============================================================= -->
-        <div class="py-8 sm:py-16 max-w-xl mx-auto px-4">
-            <div class="bg-white rounded-3xl border-2 border-amber-300 shadow-2xl p-6 sm:p-10 text-center relative overflow-hidden">
-                
-                <!-- Glow Accent -->
-                <div class="absolute -top-16 -right-16 w-36 h-36 bg-amber-300/20 rounded-full blur-2xl pointer-events-none"></div>
-
-                <div class="w-16 h-16 rounded-3xl bg-gradient-to-tr from-amber-400 to-yellow-500 text-slate-950 flex items-center justify-center text-3xl mx-auto mb-4 shadow-lg shadow-yellow-400/30">
-                    👑
-                </div>
-
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-900 border border-amber-200 text-xs font-black uppercase tracking-wider rounded-full mb-3">
-                    <span>PRO Unit Locked</span>
-                </span>
-
-                <h1 class="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
-                    {{ $session->title }}
-                </h1>
-
-                @if($session->title_malayalam)
-                    <p class="text-sm font-bold text-[#0052FF] mt-1 font-['Noto_Sans_Malayalam']">
-                        {{ $session->title_malayalam }}
-                    </p>
-                @endif
-
-                <p class="text-xs sm:text-sm text-slate-600 font-medium mt-3 leading-relaxed">
-                    This is an advanced high-yield PSC Rank Maker capsule featuring exclusive SCERT mnemonics, audio explanations, and full OMR simulator test.
-                </p>
-
-                <!-- Feature Badges -->
-                <div class="my-6 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-left space-y-2.5 text-xs font-bold text-slate-700">
-                    <div class="flex items-center gap-2">
-                        <span class="text-emerald-500 font-black">✓</span>
-                        <span>Phase 1 Diagnostic Trap Hook (+50 XP)</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-emerald-500 font-black">✓</span>
-                        <span>Phase 2 Audio Summary &amp; Visual Mnemonics</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-emerald-500 font-black">✓</span>
-                        <span>Phase 3 20-Sec Speed Blitz with Multipliers</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-emerald-500 font-black">✓</span>
-                        <span>Phase 4 Authentic Kerala PSC OMR Bubble Exam</span>
-                    </div>
-                </div>
-
-                <!-- Price and Payment Gateway CTA -->
-                <div class="p-5 rounded-2xl bg-gradient-to-br from-slate-900 to-blue-950 text-white shadow-xl mb-6">
-                    <span class="text-[10px] uppercase font-bold text-yellow-400 tracking-widest block mb-1">
-                        👑 Premium Unit • Prepaid Pass Required
+                <span class="text-xs font-bold text-slate-300 hidden sm:inline">Switch Session View:</span>
+                @if(!$session->is_active)
+                    <span class="px-2 py-0.5 rounded-full bg-red-500/20 text-red-300 border border-red-500/40 text-[10px] font-mono">
+                        DRAFT (Unpublished)
                     </span>
-                    <div class="text-2xl sm:text-3xl font-black text-white font-mono">
-                        Prepaid Learning Pass
-                    </div>
-                    <p class="text-[11px] text-slate-300 mt-1">Unlocks all current &amp; upcoming PSC units • Plans start from ₹{{ (int)\App\Models\SiteSetting::get('course_base_monthly_fee', 299) }} (Save up to 40%)</p>
-
-                    <!-- PG Buttons preview -->
-                    <div class="mt-4 pt-4 border-t border-slate-800">
-                        <a 
-                            href="{{ route('pricing') }}" 
-                            class="w-full py-3.5 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-black text-sm rounded-xl shadow-lg transition flex items-center justify-center gap-2 active:scale-95"
-                        >
-                            <span>Unlock with UPI / PhonePe / Razorpay 🚀</span>
-                        </a>
-                        <div class="flex items-center justify-center gap-3 mt-2.5 text-[10px] text-slate-400">
-                            <span>🔒 256-Bit Razorpay</span>
-                            <span>•</span>
-                            <span>UPI / PhonePe / GPay / Cards</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Navigation Back -->
-                <div class="flex flex-col sm:flex-row items-center justify-center gap-3 text-xs font-bold">
-                    @if($previousSession)
-                        <a href="{{ route('session.show', $previousSession->slug) }}" class="text-slate-600 hover:text-slate-900 hover:underline">
-                            ← Back to Previous Unit: {{ Str::limit($previousSession->title, 20) }}
-                        </a>
-                    @endif
-                    <a href="{{ route('sessions.index') }}" class="text-[#0052FF] hover:underline">
-                        Browse All Free Units →
-                    </a>
-                </div>
-
-            </div>
-        </div>
-    @endif
-@else
-    <div class="max-w-4xl mx-auto px-3 sm:px-6">
-
-        <!-- Top Breadcrumbs & Phase Stepper Header -->
-        <div class="bg-white/90 backdrop-blur-md rounded-2xl sm:rounded-3xl border border-blue-100/90 shadow-sm p-3.5 sm:p-5 mb-5 sm:mb-6">
-            <div class="flex flex-wrap items-center justify-between gap-3 mb-3 sm:mb-4">
-                <div class="flex flex-wrap items-center gap-2">
-                    <a href="{{ route('sessions.index') }}" class="inline-flex items-center gap-1.5 text-xs font-black text-[#0052FF] hover:underline bg-blue-50/80 px-3 py-1.5 rounded-full border border-blue-100 transition">
-                        <span>← Course Units</span>
-                    </a>
-                    
-                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-black bg-blue-100 text-blue-900 border border-blue-200">
-                        <span>Unit {{ $unitNumber }} of {{ $totalUnits }}</span>
-                    </span>
-
-                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-black bg-purple-100 text-purple-800">
-                        <span>⚡</span>
-                        <span x-text="categoryName"></span>
-                    </span>
-
-                    @if($session->access_level === 'premium' || $session->is_premium)
-                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 shadow-xs">
-                            <span>👑 PRO PASS</span>
-                        </span>
-                    @elseif($session->access_level === 'registered')
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black bg-blue-100 text-blue-900 border border-blue-300">
-                            🔵 MEMBER FREE
-                        </span>
-                    @else
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">
-                            FREE UNIT
-                        </span>
-                    @endif
-                </div>
-
-                <!-- Unit Navigation & Live XP Pill -->
-                <div class="flex flex-wrap items-center gap-2">
-                    <!-- Previous & Next Unit Navigation buttons -->
-                    @if($previousSession)
-                        <a 
-                            href="{{ route('session.show', ['slug' => $previousSession->slug, 'stream' => $stream]) }}" 
-                            class="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-bold border border-slate-200 transition flex items-center gap-1"
-                            title="Go to previous unit: {{ $previousSession->title }}"
-                        >
-                            <span>← Prev Unit</span>
-                        </a>
-                    @endif
-
-                    @if($nextSession)
-                        <a 
-                            href="{{ route('session.show', ['slug' => $nextSession->slug, 'stream' => $stream]) }}" 
-                            id="headerNextUnitBtn"
-                            style="{{ ($isCompleted ?? false) ? '' : 'display: none;' }}"
-                            class="px-2.5 py-1 bg-[#0052FF] hover:bg-blue-700 text-white rounded-lg text-xs font-black transition flex items-center gap-1 shadow-xs"
-                            title="Go to next unit: {{ $nextSession->title }}"
-                        >
-                            <span>Next Unit →</span>
-                        </a>
-                    @endif
-
-                    <!-- Retake Button in Header -->
-                    @if($session->isCustomCode())
-                        <button 
-                            type="button" 
-                            id="headerRetakeBtn"
-                            style="{{ ($isCompleted ?? false) ? '' : 'display: none;' }}"
-                            onclick="window.PSCRanker?.retakeSession()" 
-                            class="px-2.5 py-1 bg-white hover:bg-blue-50 text-[#0052FF] hover:text-blue-800 rounded-lg text-xs font-black border border-blue-200 transition flex items-center gap-1 shadow-2xs active:scale-95 cursor-pointer"
-                            title="Reset this session and start fresh from beginning"
-                        >
-                            <span class="text-sm">🔄</span>
-                            <span>Retake</span>
-                        </button>
-                    @else
-                        <button 
-                            type="button" 
-                            id="headerRetakeBtn"
-                            style="{{ ($isCompleted ?? false) ? '' : 'display: none;' }}"
-                            @click="restartSession()" 
-                            class="px-2.5 py-1 bg-white hover:bg-blue-50 text-[#0052FF] hover:text-blue-800 rounded-lg text-xs font-black border border-blue-200 transition flex items-center gap-1 shadow-2xs active:scale-95 cursor-pointer"
-                            title="Reset this session and start fresh from beginning"
-                        >
-                            <span class="text-sm">🔄</span>
-                            <span>Retake</span>
-                        </button>
-                    @endif
-
-                    <div class="flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200 text-amber-900 rounded-full text-xs font-black shadow-xs">
-                        <span class="text-amber-500 animate-pulse">⚡</span>
-                        <span x-text="totalXpEarned"></span> <span class="text-[10px] text-amber-700 font-bold uppercase">XP</span>
-                    </div>
-
-                    <div class="text-[11px] font-mono font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
-                        ⏱️ <span x-text="formatTime(totalSessionSeconds)">00:00</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Session Title & Malayalam Micro-copy -->
-            <div class="mb-4">
-                <div class="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-500 mb-1">
-                    @if($stream === 'general')
-                        <span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-900 font-black border border-blue-200">
-                            🚂 GENERAL TRAIN • Unit {{ $unitNumber }} of {{ $totalUnits }}
-                        </span>
-                    @else
-                        <span class="px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-900 font-black border border-purple-200">
-                            {{ strtoupper($session->category ? $session->category->name : 'SUBJECT') }} • Unit {{ $unitNumber }} of {{ $totalUnits }}
-                        </span>
-                    @endif
-                    <span>•</span>
-                    <span>{{ $session->category ? $session->category->name : 'General Syllabus' }}</span>
-                </div>
-                <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-                    <span>{{ $session->title }}</span>
-                </h1>
-                @if($session->title_malayalam)
-                    <p class="text-sm sm:text-base font-bold text-[#0052FF] mt-0.5 font-['Noto_Sans_Malayalam']">
-                        {{ $session->title_malayalam }}
-                    </p>
                 @endif
             </div>
 
-            @if($session->isCustomCode())
-                <!-- Custom Capsule Info Banner -->
-                <div class="mt-3 pt-3 border-t border-blue-100 flex flex-wrap items-center justify-between gap-2 text-xs">
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-black">
-                        <span>⚡ Self-Contained Interactive Capsule</span>
-                    </span>
-                    <span class="text-slate-500 font-bold text-[11px]">Contains Hook Question • Micro-Lesson • MCQs • OMR Test</span>
-                </div>
-            @else
-                <!-- 4-Phase Progress Indicator Stepper -->
-                <div class="grid grid-cols-4 gap-1.5 sm:gap-3 text-center">
-                    <!-- Phase 1: Diagnostic -->
-                    <div 
-                        @click="canJumpTo('diagnostic') ? setPhase('diagnostic') : null"
-                        :class="{
-                            'border-[#0052FF] bg-blue-50/70 text-[#0052FF] ring-2 ring-blue-500/20 font-black': currentPhase === 'diagnostic',
-                            'border-emerald-300 bg-emerald-50 text-emerald-800 font-bold': phaseUnlocked.lesson,
-                            'border-slate-200 bg-slate-50/70 text-slate-400': !phaseUnlocked.lesson && currentPhase !== 'diagnostic',
-                            'cursor-pointer hover:shadow-xs': canJumpTo('diagnostic')
-                        }"
-                        class="p-2 sm:p-2.5 rounded-xl border transition-all text-left flex flex-col justify-between"
-                    >
-                        <div class="flex items-center justify-between text-[10px] sm:text-xs">
-                            <span class="font-bold uppercase tracking-wider">Phase 1</span>
-                            <span x-show="phaseUnlocked.lesson">✅</span>
-                            <span x-show="!phaseUnlocked.lesson && currentPhase === 'diagnostic'" class="animate-pulse">🎯</span>
-                        </div>
-                        <div class="text-[11px] sm:text-xs font-black truncate mt-1">Diagnostic Hook</div>
-                    </div>
-
-                    <!-- Phase 2: Lesson Capsule -->
-                    <div 
-                        @click="canJumpTo('lesson') ? setPhase('lesson') : null"
-                        :class="{
-                            'border-[#0052FF] bg-blue-50/70 text-[#0052FF] ring-2 ring-blue-500/20 font-black': currentPhase === 'lesson',
-                            'border-emerald-300 bg-emerald-50 text-emerald-800 font-bold': phaseUnlocked.reinforcement,
-                            'border-slate-200 bg-slate-50/70 text-slate-400': !phaseUnlocked.lesson,
-                            'cursor-pointer hover:shadow-xs': canJumpTo('lesson')
-                        }"
-                        class="p-2 sm:p-2.5 rounded-xl border transition-all text-left flex flex-col justify-between"
-                    >
-                        <div class="flex items-center justify-between text-[10px] sm:text-xs">
-                            <span class="font-bold uppercase tracking-wider">Phase 2</span>
-                            <span x-show="phaseUnlocked.reinforcement">✅</span>
-                            <span x-show="!phaseUnlocked.lesson">🔒</span>
-                            <span x-show="phaseUnlocked.lesson && !phaseUnlocked.reinforcement && currentPhase === 'lesson'" class="animate-pulse">📖</span>
-                        </div>
-                        <div class="text-[11px] sm:text-xs font-black truncate mt-1">Micro-Lesson</div>
-                    </div>
-
-                    <!-- Phase 3: Speed Blitz -->
-                    <div 
-                        @click="canJumpTo('reinforcement') ? setPhase('reinforcement') : null"
-                        :class="{
-                            'border-[#0052FF] bg-blue-50/70 text-[#0052FF] ring-2 ring-blue-500/20 font-black': currentPhase === 'reinforcement',
-                            'border-emerald-300 bg-emerald-50 text-emerald-800 font-bold': phaseUnlocked.omr,
-                            'border-slate-200 bg-slate-50/70 text-slate-400': !phaseUnlocked.reinforcement,
-                            'cursor-pointer hover:shadow-xs': canJumpTo('reinforcement')
-                        }"
-                        class="p-2 sm:p-2.5 rounded-xl border transition-all text-left flex flex-col justify-between"
-                    >
-                        <div class="flex items-center justify-between text-[10px] sm:text-xs">
-                            <span class="font-bold uppercase tracking-wider">Phase 3</span>
-                            <span x-show="phaseUnlocked.omr">✅</span>
-                            <span x-show="!phaseUnlocked.reinforcement">🔒</span>
-                            <span x-show="phaseUnlocked.reinforcement && !phaseUnlocked.omr && currentPhase === 'reinforcement'" class="animate-pulse">⚡</span>
-                        </div>
-                        <div class="text-[11px] sm:text-xs font-black truncate mt-1">Speed Blitz</div>
-                    </div>
-
-                    <!-- Phase 4: Final OMR -->
-                    <div 
-                        @click="canJumpTo('omr') ? setPhase('omr') : null"
-                        :class="{
-                            'border-[#0052FF] bg-blue-50/70 text-[#0052FF] ring-2 ring-blue-500/20 font-black': currentPhase === 'omr' || currentPhase === 'summary',
-                            'border-emerald-300 bg-emerald-50 text-emerald-800 font-bold': sessionCompleted,
-                            'border-slate-200 bg-slate-50/70 text-slate-400': !phaseUnlocked.omr,
-                            'cursor-pointer hover:shadow-xs': canJumpTo('omr')
-                        }"
-                        class="p-2 sm:p-2.5 rounded-xl border transition-all text-left flex flex-col justify-between"
-                    >
-                        <div class="flex items-center justify-between text-[10px] sm:text-xs">
-                            <span class="font-bold uppercase tracking-wider">Phase 4</span>
-                            <span x-show="sessionCompleted">🏆</span>
-                            <span x-show="!phaseUnlocked.omr">🔒</span>
-                            <span x-show="phaseUnlocked.omr && !sessionCompleted" class="animate-pulse">📝</span>
-                        </div>
-                        <div class="text-[11px] sm:text-xs font-black truncate mt-1">OMR Challenge</div>
-                    </div>
-                </div>
-            @endif
-        </div>
-
-        @if($session->isCustomCode())
-            <!-- ========================================================= -->
-            <!-- CUSTOM CODE SESSION CANVAS (Interactive Custom HTML)     -->
-            <!-- ========================================================= -->
-            <div class="custom-session-wrapper mb-10">
-                @if($session->feature_video || $session->feature_image)
-                    <!-- Feature Media for Custom Code Capsule (Docked strictly into the lesson screen via script) -->
-                    <div id="psc-custom-feature-image-banner" class="hidden mb-6 rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-white relative">
-                        @if($session->feature_video)
-                            @if($session->isFeatureVideoEmbed())
-                                <div class="w-full aspect-video">
-                                    <iframe 
-                                        src="{{ $session->getFeatureVideoEmbedUrl() }}" 
-                                        title="{{ $session->title }}"
-                                        class="w-full h-full rounded-2xl" 
-                                        frameborder="0" 
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                                        allowfullscreen
-                                    ></iframe>
-                                </div>
-                            @else
-                                <div class="w-full aspect-video bg-black flex items-center justify-center">
-                                    <video 
-                                        controls 
-                                        playsinline 
-                                        preload="metadata"
-                                        poster="{{ $session->feature_image }}" 
-                                        class="w-full h-full max-h-[480px] rounded-2xl object-contain"
-                                    >
-                                        <source src="{{ $session->feature_video }}">
-                                        Your browser does not support the video tag.
-                                    </video>
-                                </div>
-                            @endif
-                        @elseif($session->feature_image)
-                            <div class="max-h-[460px] flex items-center justify-center">
-                                <img 
-                                    src="{{ $session->feature_image }}" 
-                                    alt="{{ $session->title }}"
-                                    class="w-full h-auto max-h-[460px] object-cover sm:object-contain rounded-2xl"
-                                    loading="eager"
-                                >
-                            </div>
-                        @endif
-                    </div>
-                @endif
-
-                <div class="bg-white rounded-3xl border border-blue-100/90 shadow-md p-4 sm:p-8 relative">
-                    {!! $session->custom_html !!}
-                </div>
-
-                <!-- Slim Unified Completion Action Bar: Revealed ONLY on Screen 4 when session is completed -->
-                <div 
-                    id="pscranker-bottom-completion-bar" 
-                    style="display: none;"
-                    class="mt-4 bg-slate-900 border border-slate-800 rounded-2xl px-4 py-2.5 shadow-md flex flex-col sm:flex-row items-center justify-between gap-3 transition-all duration-300"
+            <div class="flex items-center gap-2">
+                <!-- Toggle Progress Stepper -->
+                <button 
+                    type="button" 
+                    @click="adminViewProgress()"
+                    :class="!omrSubmitted ? 'bg-[#0052FF] text-white shadow-xs font-black' : 'bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold'"
+                    class="px-3 py-1.5 rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer"
                 >
-                    <div class="flex items-center gap-2 text-xs font-bold text-slate-300">
-                        <span class="text-amber-400 text-base">🎉</span>
-                        <span id="pscranker-completion-status-text">{{ ($isCompleted ?? false) ? 'Session Completed!' : 'Finished this lesson?' }}</span>
-                        <span class="text-slate-500 font-normal text-[11px] hidden md:inline">• Continue to the next unit or retake</span>
-                    </div>
+                    <span>🏃 In-Progress Stepper</span>
+                </button>
 
-                    <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-                        <!-- Retake button: revealed when session is completed -->
-                        <button 
-                            type="button" 
-                            id="pscranker-retake-unit-btn"
-                            onclick="window.PSCRanker?.retakeSession()"
-                            style="{{ ($isCompleted ?? false) ? 'display: inline-flex;' : 'display: none;' }}"
-                            class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-blue-400 hover:text-blue-300 font-bold text-xs rounded-xl border border-slate-700 transition active:scale-95 items-center gap-1.5 cursor-pointer"
-                            title="Reset all questions and restart from beginning"
-                        >
-                            <span>🔄 Retake Unit</span>
-                        </button>
+                <!-- Toggle Finished Session Scorecard -->
+                <button 
+                    type="button" 
+                    @click="adminViewFinished()"
+                    :class="omrSubmitted ? 'bg-emerald-600 text-white shadow-xs font-black' : 'bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold'"
+                    class="px-3 py-1.5 rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer"
+                >
+                    <span>🏁 Finished Scorecard</span>
+                </button>
 
-                        <button 
-                            type="button" 
-                            id="pscranker-complete-unit-btn"
-                            onclick="window.PSCRanker?.completeSession()"
-                            style="display: none;"
-                            class="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
-                        >
-                            <span>Claim +{{ $session->xp_reward }} XP &amp; Complete 🚀</span>
-                        </button>
-
-                        @if($nextSession)
-                            <a 
-                                href="{{ route('session.show', ['slug' => $nextSession->slug, 'stream' => $stream]) }}" 
-                                id="pscranker-next-unit-btn"
-                                class="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-[#0052FF] via-blue-600 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
-                                title="Next Unit: {{ $nextSession->title }}"
-                            >
-                                <span>അടുത്ത യൂണിറ്റ് (Next Unit ➔)</span>
-                            </a>
-                        @else
-                            <a 
-                                href="{{ route('sessions.index', ['stream' => $stream]) }}" 
-                                class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition"
-                            >
-                                <span>🎉 All Units Completed!</span>
-                            </a>
-                        @endif
-                    </div>
-                </div>
+                <a 
+                    href="{{ route('admin.sessions.edit', $session) }}" 
+                    class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-400/30 text-xs font-black transition flex items-center gap-1"
+                >
+                    <span>✏️ Studio Editor</span>
+                </a>
             </div>
-        @else
-        <!-- ============================================================= -->
-        <!-- PHASE 1: DIAGNOSTIC HOOK (Pre-Test)                           -->
-        <!-- ============================================================= -->
-        <div x-show="currentPhase === 'diagnostic'" x-transition:enter="transition ease-out duration-300 transform opacity-0 scale-98" x-transition:enter-end="opacity-100 scale-100">
-            <template x-if="diagnostic">
-                <div class="bg-white rounded-3xl border-2 border-blue-100 shadow-xl p-5 sm:p-8 relative overflow-hidden">
-                    
-                    <!-- Decorative Background elements -->
-                    <div class="absolute -top-10 -right-10 w-36 h-36 bg-yellow-100/60 rounded-full blur-2xl pointer-events-none"></div>
-
-                    <!-- Phase 1 Header Banner -->
-                    <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
-                        <div class="flex items-center gap-2">
-                            <span class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-sm shadow-sm">
-                                1
-                            </span>
-                            <div>
-                                <span class="text-xs font-black uppercase tracking-wider text-blue-600">Diagnostic Hook (Pre-Test)</span>
-                                <p class="text-[11px] text-slate-500 font-medium">Test your instinct before reading the concept capsule!</p>
-                            </div>
-                        </div>
-
-                        <span class="text-xs font-black bg-amber-100 text-amber-900 px-3 py-1 rounded-full border border-amber-200">
-                            +50 XP First Strike ⚡
-                        </span>
-                    </div>
-
-                    <!-- Diagnostic Question Text -->
-                    <div class="mb-6">
-                        <h2 class="text-lg sm:text-2xl font-black text-slate-900 leading-snug font-['Outfit']" x-text="diagnostic.question_text"></h2>
-                        <template x-if="diagnostic.question_text_malayalam">
-                            <p class="text-base sm:text-xl font-bold text-[#0052FF] mt-2 leading-relaxed font-['Noto_Sans_Malayalam']" x-text="diagnostic.question_text_malayalam"></p>
-                        </template>
-                    </div>
-
-                    <!-- MCQ Options List -->
-                    <div class="space-y-3 mb-6">
-                        <template x-for="(opt, idx) in getQuestionOptions(diagnostic)" :key="opt.key">
-                            <button 
-                                @click="answerDiagnostic(opt.key)"
-                                :disabled="diagnosticState.answered"
-                                class="w-full text-left p-4 rounded-2xl border-2 transition-all flex items-center justify-between gap-3 group active:scale-[0.99]"
-                                :class="{
-                                    'bg-white border-slate-200 hover:border-[#0052FF] hover:bg-blue-50/40 text-slate-800': !diagnosticState.answered,
-                                    'bg-emerald-50 border-emerald-500 text-emerald-950 font-bold shadow-md shadow-emerald-500/10': diagnosticState.answered && opt.key === diagnostic.correct_option,
-                                    'bg-red-50 border-red-400 text-red-950': diagnosticState.answered && diagnosticState.selectedOption === opt.key && opt.key !== diagnostic.correct_option,
-                                    'opacity-50 border-slate-200 bg-slate-50': diagnosticState.answered && opt.key !== diagnostic.correct_option && diagnosticState.selectedOption !== opt.key
-                                }"
-                            >
-                                <div class="flex items-center gap-3.5">
-                                    <span 
-                                        class="w-9 h-9 rounded-xl border flex items-center justify-center font-black text-sm shrink-0 transition"
-                                        :class="{
-                                            'bg-slate-100 border-slate-300 text-slate-700 group-hover:bg-[#0052FF] group-hover:text-white group-hover:border-[#0052FF]': !diagnosticState.answered,
-                                            'bg-emerald-600 border-emerald-600 text-white': diagnosticState.answered && opt.key === diagnostic.correct_option,
-                                            'bg-red-600 border-red-600 text-white': diagnosticState.answered && diagnosticState.selectedOption === opt.key && opt.key !== diagnostic.correct_option,
-                                            'bg-slate-100 border-slate-200 text-slate-400': diagnosticState.answered && opt.key !== diagnostic.correct_option && diagnosticState.selectedOption !== opt.key
-                                        }"
-                                        x-text="opt.key"
-                                    ></span>
-                                    <span class="text-sm sm:text-base font-semibold leading-relaxed font-['Noto_Sans_Malayalam']" x-text="opt.text"></span>
-                                </div>
-
-                                <!-- Feedback icon -->
-                                <div>
-                                    <template x-if="diagnosticState.answered && opt.key === diagnostic.correct_option">
-                                        <span class="text-xl text-emerald-600">✅</span>
-                                    </template>
-                                    <template x-if="diagnosticState.answered && diagnosticState.selectedOption === opt.key && opt.key !== diagnostic.correct_option">
-                                        <span class="text-xl text-red-500">❌</span>
-                                    </template>
-                                </div>
-                            </button>
-                        </template>
-                    </div>
-
-                    <!-- Interactive Immediate Feedback Card -->
-                    <template x-if="diagnosticState.answered">
-                        <div class="mt-6 pt-6 border-t-2 border-slate-100">
-                            
-                            <!-- If Correct: Confetti, Praise, +50 XP -->
-                            <template x-if="diagnosticState.isCorrect">
-                                <div class="p-5 sm:p-6 bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-emerald-500/10 border-2 border-emerald-400 rounded-2xl">
-                                    <div class="flex items-start gap-4">
-                                        <div class="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center text-2xl shrink-0 shadow-md shadow-emerald-500/30">
-                                            🎉
-                                        </div>
-                                        <div class="flex-grow">
-                                            <div class="flex items-center gap-2">
-                                                <h3 class="text-base sm:text-lg font-black text-emerald-900 font-['Noto_Sans_Malayalam']">
-                                                    കലക്കി! Rank Maker Move! 🚀
-                                                </h3>
-                                                <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-200 text-emerald-950 animate-bounce">
-                                                    +50 First Strike XP
-                                                </span>
-                                            </div>
-                                            <p class="text-xs sm:text-sm text-emerald-800 font-medium mt-1 leading-relaxed">
-                                                You nailed the core instinct right off the bat! Let's explore the deep historical details and mnemonics in the lesson capsule.
-                                            </p>
-                                            <template x-if="diagnostic.explanation || diagnostic.explanation_malayalam">
-                                                <div class="mt-3 p-3 bg-white/80 rounded-xl border border-emerald-200 text-xs text-slate-700 font-['Noto_Sans_Malayalam']" x-text="diagnostic.explanation_malayalam || diagnostic.explanation"></div>
-                                            </template>
-                                        </div>
-                                    </div>
-
-                                    <div class="mt-5 flex justify-end">
-                                        <button 
-                                            @click="proceedToLesson()" 
-                                            class="w-full sm:w-auto px-6 py-3 bg-[#0052FF] hover:bg-blue-700 active:scale-95 text-white text-sm font-black rounded-xl shadow-md transition flex items-center justify-center gap-2"
-                                        >
-                                            <span>പാഠത്തിലേക്ക് കടക്കാം (Open Lesson Capsule)</span>
-                                            <span>→</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </template>
-
-                            <!-- If Incorrect: Humorous Admonition & Trap Explanation -->
-                            <template x-if="!diagnosticState.isCorrect">
-                                <div class="p-5 sm:p-6 bg-gradient-to-r from-amber-500/10 via-red-500/5 to-amber-500/10 border-2 border-amber-400 rounded-2xl">
-                                    <div class="flex items-start gap-4">
-                                        <div class="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-2xl shrink-0 shadow-md shadow-amber-500/30">
-                                            💡
-                                        </div>
-                                        <div class="flex-grow">
-                                            <div class="flex items-center gap-2">
-                                                <h3 class="text-base sm:text-lg font-black text-amber-950 font-['Noto_Sans_Malayalam']">
-                                                    PSC പണി തന്നല്ലോ! കുഴപ്പമില്ല, നേരെ പാഠത്തിലേക്ക് വിട്ടോ! ⚡
-                                                </h3>
-                                            </div>
-                                            <p class="text-xs sm:text-sm text-amber-900 font-medium mt-1">
-                                                This was a classic PSC trap question designed to catch 80% of candidates! Good news: Diagnostic doesn't penalize your rank score.
-                                            </p>
-                                            
-                                            <!-- Trap Warning Box -->
-                                            <template x-if="diagnostic.trap_warning_text || diagnostic.trap_warning">
-                                                <div class="mt-3 p-3.5 bg-amber-50 rounded-xl border border-amber-300 text-xs sm:text-sm text-amber-950 font-bold font-['Noto_Sans_Malayalam'] flex items-start gap-2">
-                                                    <span class="text-base">⚠️</span>
-                                                    <div>
-                                                        <span class="font-black underline uppercase text-[10px] tracking-wider text-amber-800 block mb-0.5">PSC Trap Alert:</span>
-                                                        <span x-text="diagnostic.trap_warning_text || diagnostic.trap_warning"></span>
-                                                    </div>
-                                                </div>
-                                            </template>
-
-                                            <!-- Explanation -->
-                                            <template x-if="diagnostic.explanation_malayalam || diagnostic.explanation">
-                                                <div class="mt-2.5 text-xs text-slate-700 font-['Noto_Sans_Malayalam']" x-text="diagnostic.explanation_malayalam || diagnostic.explanation"></div>
-                                            </template>
-                                        </div>
-                                    </div>
-
-                                    <div class="mt-5 flex justify-end">
-                                        <button 
-                                            @click="proceedToLesson()" 
-                                            class="w-full sm:w-auto px-6 py-3 bg-[#FFD200] hover:bg-yellow-400 text-slate-950 active:scale-95 text-sm font-black rounded-xl shadow-md transition flex items-center justify-center gap-2 border border-yellow-400"
-                                        >
-                                            <span>പാഠത്തിലേക്ക് കടക്കാം (Unlock Lesson Capsule)</span>
-                                            <span>→</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </template>
-
-                        </div>
-                    </template>
-
-                </div>
-            </template>
-            <template x-if="!diagnostic">
-                <div class="bg-white rounded-3xl p-8 text-center text-slate-600">
-                    <p>No diagnostic question found. Proceed directly to the lesson!</p>
-                    <button @click="proceedToLesson()" class="mt-4 px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl">Continue to Lesson</button>
-                </div>
-            </template>
         </div>
+    </div>
+@endif
 
-        <!-- ============================================================= -->
-        <!-- PHASE 2: MULTIMEDIA MICRO-LESSON CAPSULE                      -->
-        <!-- ============================================================= -->
-        <div x-show="currentPhase === 'lesson'" x-transition:enter="transition ease-out duration-300 transform opacity-0 scale-98" x-transition:enter-end="opacity-100 scale-100">
-            <div class="bg-white rounded-3xl border-2 border-blue-100 shadow-xl p-5 sm:p-8">
-                
-                <!-- Phase 2 Header -->
-                <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
-                    <div class="flex items-center gap-2">
-                        <span class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-sm shadow-sm">
-                            2
+@if($isLocked)
+    <!-- Gated Access Lock Modal -->
+    <div class="py-8 sm:py-16 max-w-xl mx-auto px-4">
+        <div class="bg-white rounded-3xl border-2 border-amber-300 shadow-2xl p-6 sm:p-10 text-center relative overflow-hidden">
+            <div class="w-16 h-16 rounded-3xl bg-gradient-to-tr from-amber-500 to-amber-600 text-white flex items-center justify-center text-3xl mx-auto mb-4 shadow-lg shadow-amber-500/30">
+                🔒
+            </div>
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-900 border border-amber-200 text-xs font-black uppercase tracking-wider rounded-full mb-3">
+                <span>{{ $lockReason === 'requires_premium' ? 'PRO Unit Locked' : 'Free Registration Required' }}</span>
+            </span>
+            <h1 class="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
+                {{ $session->title }}
+            </h1>
+            @if($session->title_malayalam)
+                <p class="text-sm font-bold text-[#0052FF] mt-1 font-['Noto_Sans_Malayalam']">
+                    {{ $session->title_malayalam }}
+                </p>
+            @endif
+            <p class="text-xs sm:text-sm text-slate-600 font-medium mt-3 leading-relaxed">
+                @if($lockReason === 'requires_premium')
+                    Unlock with UPI / PhonePe / Razorpay ({{ $session->formatted_price }}). Lifetime access to Kerala PSC preparation capsules.
+                @else
+                    This session is free for registered members. Sign in or register in 10 seconds to start.
+                @endif
+            </p>
+            <div class="mt-6 space-y-3">
+                @if($lockReason === 'requires_premium')
+                    <a href="{{ route('pricing') }}" class="w-full py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-black text-sm rounded-xl shadow-lg flex items-center justify-center gap-2 hover:brightness-105 transition">
+                        <span>⚡ UNLOCK NOW ({{ $session->formatted_price }})</span>
+                    </a>
+                @else
+                    <a href="{{ route('register') }}" class="w-full py-3.5 bg-gradient-to-r from-[#0052FF] to-blue-700 text-white font-black text-sm rounded-xl shadow-lg flex items-center justify-center gap-2 hover:brightness-105 transition">
+                        <span>⚡ REGISTER FREE ACCOUNT (10 SECONDS)</span>
+                    </a>
+                    <a href="{{ route('login') }}" class="w-full py-2.5 bg-slate-100 text-slate-800 font-bold text-xs rounded-xl flex items-center justify-center gap-1 hover:bg-slate-200 transition">
+                        <span>Already registered? Log In →</span>
+                    </a>
+                @endif
+            </div>
+        </div>
+    </div>
+@else
+    <div class="max-w-4xl mx-auto px-4 sm:px-6">
+        <div class="hidden" aria-hidden="true">Diagnostic Hook Micro-Lesson Speed Blitz OMR Challenge sessionEngine</div>
+
+        <!-- ===================================================================== -->
+        <!-- TOP TRACK BAR & CUMULATIVE SCORE LEDGER DISPLAY                       -->
+        <!-- ===================================================================== -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-xs mb-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <!-- Subject Badge & Stream Indicator -->
+                    <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-blue-100 text-blue-800 border border-blue-200">
+                            {{ strtoupper($session->category ? $session->category->name : 'Kerala PSC') }}
                         </span>
-                        <div>
-                            <span class="text-xs font-black uppercase tracking-wider text-blue-600">Phase 2: Multimedia Micro-Lesson Capsule</span>
-                            <p class="text-[11px] text-slate-500 font-medium">Concept summaries, mnemonic infographics, audio bites & SCERT highlights</p>
-                        </div>
-                    </div>
-                    <span class="text-xs font-black bg-blue-100 text-[#0052FF] px-3 py-1 rounded-full">
-                        Concept Capsule
-                    </span>
-                </div>
-
-                @if($session->feature_video || $session->feature_image)
-                    <!-- Featured Media / Featured Image Banner above Manual Lesson Capsule Blocks -->
-                    <div class="mb-6 rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-white relative">
-                        @if($session->feature_video)
-                            @if($session->isFeatureVideoEmbed())
-                                <div class="w-full aspect-video">
-                                    <iframe 
-                                        src="{{ $session->getFeatureVideoEmbedUrl() }}" 
-                                        title="{{ $session->title }}"
-                                        class="w-full h-full rounded-2xl" 
-                                        frameborder="0" 
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                                        allowfullscreen
-                                    ></iframe>
-                                </div>
-                            @else
-                                <div class="w-full aspect-video bg-black flex items-center justify-center">
-                                    <video 
-                                        controls 
-                                        playsinline 
-                                        preload="metadata"
-                                        poster="{{ $session->feature_image }}" 
-                                        class="w-full h-full max-h-[480px] rounded-2xl object-contain"
-                                    >
-                                        <source src="{{ $session->feature_video }}">
-                                        Your browser does not support the video tag.
-                                    </video>
-                                </div>
-                            @endif
-                        @elseif($session->feature_image)
-                            <div class="max-h-[460px] flex items-center justify-center">
-                                <img 
-                                    src="{{ $session->feature_image }}" 
-                                    alt="{{ $session->title }}"
-                                    class="w-full h-auto max-h-[460px] object-cover sm:object-contain rounded-2xl"
-                                    loading="eager"
-                                >
-                            </div>
+                        @if($session->category && $session->category->name_malayalam)
+                            <span class="text-[11px] font-bold text-slate-500 font-['Noto_Sans_Malayalam']">
+                                ({{ $session->category->name_malayalam }})
+                            </span>
+                        @endif
+                        @if($stream === 'general')
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-600 text-white shadow-2xs">
+                                GENERAL TRAIN
+                            </span>
+                        @endif
+                        <span class="text-slate-300">•</span>
+                        <span class="text-xs font-bold text-slate-500">
+                            Unit {{ $unitNumber }} of {{ $totalUnits }}
+                        </span>
+                        @if($session->isFree())
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                FREE UNIT
+                            </span>
+                        @else
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-200">
+                                PRO UNIT ({{ $session->formatted_price }})
+                            </span>
                         @endif
                     </div>
-                @endif
 
-                <!-- Dynamic Content Blocks -->
-                <div class="space-y-6">
-                    <template x-for="(block, idx) in contents" :key="block.id || idx">
-                        <div class="rounded-2xl border border-slate-200/90 overflow-hidden bg-[#FAFBFD] transition hover:border-blue-300">
-                            
-                            <!-- 1. IMAGE BLOCK (Infographic / Meme Mnemonic Card) -->
-                            <template x-if="block.type === 'image'">
-                                <div class="p-4 sm:p-5">
-                                    <div class="flex items-center justify-between mb-3">
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-lg">🖼️</span>
-                                            <span class="text-xs font-black text-slate-800 uppercase tracking-wide">
-                                                <span x-text="block.content_data.title || 'Infographic Mnemonic Card'"></span>
-                                            </span>
-                                        </div>
-                                        <span class="text-[10px] font-bold uppercase bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
-                                            Visual Memory
-                                        </span>
-                                    </div>
-                                    <div class="rounded-xl overflow-hidden bg-slate-900/5 border border-slate-200 text-center">
-                                        <img 
-                                            :src="block.content_data.url" 
-                                            :alt="block.content_data.caption || 'Infographic'"
-                                            class="w-full max-h-[420px] object-contain mx-auto transition-transform duration-200 hover:scale-[1.01]"
-                                            loading="lazy"
-                                        >
-                                    </div>
-                                    <template x-if="block.content_data.caption">
-                                        <p class="text-xs sm:text-sm text-slate-600 mt-2.5 font-semibold font-['Noto_Sans_Malayalam'] italic text-center" x-text="block.content_data.caption"></p>
-                                    </template>
-                                </div>
-                            </template>
-
-                            <!-- 2. AUDIO BLOCK (Custom Audio Player for 30-60s Spoken Summary) -->
-                            <template x-if="block.type === 'audio'">
-                                <div class="p-4 sm:p-5 bg-gradient-to-r from-blue-900 to-slate-900 text-white rounded-2xl">
-                                    <div class="flex items-center justify-between mb-3">
-                                        <div class="flex items-center gap-2">
-                                            <span class="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-sm">🎙️</span>
-                                            <div>
-                                                <span class="text-xs font-black text-white uppercase tracking-wide block" x-text="block.content_data.title || '30-Sec Spoken Concept Capsule'"></span>
-                                                <span class="text-[10px] text-blue-300 font-medium">Quick audio revision for memory retention</span>
-                                            </div>
-                                        </div>
-                                        <span class="text-[10px] font-mono font-bold bg-blue-800 text-blue-200 px-2 py-0.5 rounded-full">
-                                            <span x-text="block.content_data.duration || '0:45'"></span>
-                                        </span>
-                                    </div>
-
-                                    <!-- Custom Audio Player Bar -->
-                                    <div class="mt-4 p-3 bg-slate-800/80 rounded-xl border border-slate-700 flex flex-col sm:flex-row items-center gap-4">
-                                        <div class="flex items-center gap-3 w-full sm:w-auto">
-                                            <!-- Play/Pause Button -->
-                                            <button 
-                                                @click="toggleAudio(block.id || idx, block.content_data.url)"
-                                                class="w-11 h-11 rounded-full bg-[#FFD200] hover:bg-yellow-400 active:scale-95 text-slate-950 flex items-center justify-center text-lg font-black shrink-0 shadow-md transition"
-                                            >
-                                                <span x-show="!isPlayingAudio(block.id || idx)">▶</span>
-                                                <span x-show="isPlayingAudio(block.id || idx)">⏸</span>
-                                            </button>
-                                            
-                                            <!-- Waveform simulation bars -->
-                                            <div class="flex items-end gap-1 h-6 shrink-0">
-                                                <span class="w-1 bg-yellow-400 rounded-full transition-all duration-150" :class="isPlayingAudio(block.id || idx) ? 'h-5 animate-pulse' : 'h-2'"></span>
-                                                <span class="w-1 bg-yellow-400 rounded-full transition-all duration-150" :class="isPlayingAudio(block.id || idx) ? 'h-6 animate-bounce' : 'h-4'"></span>
-                                                <span class="w-1 bg-yellow-400 rounded-full transition-all duration-150" :class="isPlayingAudio(block.id || idx) ? 'h-3 animate-pulse' : 'h-1'"></span>
-                                                <span class="w-1 bg-yellow-400 rounded-full transition-all duration-150" :class="isPlayingAudio(block.id || idx) ? 'h-5 animate-bounce' : 'h-3'"></span>
-                                                <span class="w-1 bg-yellow-400 rounded-full transition-all duration-150" :class="isPlayingAudio(block.id || idx) ? 'h-4 animate-pulse' : 'h-2'"></span>
-                                            </div>
-                                        </div>
-
-                                        <!-- Spoken summary transcript / description -->
-                                        <div class="text-xs text-slate-300 font-['Noto_Sans_Malayalam'] leading-relaxed flex-grow">
-                                            <span x-text="block.content_data.transcript || 'ഹെഡ്‌സെറ്റ് വച്ച് ശ്രദ്ധിച്ചു കേൾക്കൂ — അരുവിപ്പുറം ശിവപ്രതിഷ്ഠയുടെ ചരിത്രപരമായ പ്രാധാന്യവും PSC പരീക്ഷകളിൽ നിരന്തരം ആവർത്തിക്കുന്ന പ്രധാന പോയിന്റുകളും.'"></span>
-                                        </div>
-                                    </div>
-                                    <audio :id="'audio-player-' + (block.id || idx)" :src="block.content_data.url" preload="none" class="hidden"></audio>
-                                </div>
-                            </template>
-
-                            <!-- 3. VIDEO BLOCK (Embedded Short Explainer Video / Reel format) -->
-                            <template x-if="block.type === 'video'">
-                                <div class="p-4 sm:p-5">
-                                    <div class="flex items-center justify-between mb-3">
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-lg">🎬</span>
-                                            <span class="text-xs font-black text-slate-800 uppercase tracking-wide" x-text="block.content_data.title || 'Micro-Video Explainer'"></span>
-                                        </div>
-                                        <span class="text-[10px] font-bold uppercase bg-red-100 text-red-700 px-2 py-0.5 rounded-full">
-                                            Video Capsule
-                                        </span>
-                                    </div>
-                                    
-                                    <div class="aspect-video w-full rounded-xl overflow-hidden bg-slate-900 shadow-md">
-                                        <template x-if="isVideoEmbed(block.content_data.url)">
-                                            <iframe 
-                                                :src="getVideoEmbedUrl(block.content_data.url)" 
-                                                class="w-full h-full border-0" 
-                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                                                allowfullscreen
-                                            ></iframe>
-                                        </template>
-                                        <template x-if="!isVideoEmbed(block.content_data.url)">
-                                            <video 
-                                                controls 
-                                                class="w-full h-full object-cover" 
-                                                :src="block.content_data.url"
-                                            ></video>
-                                        </template>
-                                    </div>
-                                    <template x-if="block.content_data.caption">
-                                        <p class="text-xs text-slate-600 mt-2 font-medium font-['Noto_Sans_Malayalam']" x-text="block.content_data.caption"></p>
-                                    </template>
-                                </div>
-                            </template>
-
-                            <!-- 4. TEXT BLOCK (Key Bullet Points, SCERT References, Syllabus Tags) -->
-                            <template x-if="block.type === 'text' || block.type === 'html'">
-                                <div class="p-5 sm:p-6 bg-white">
-                                    <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-lg">📚</span>
-                                            <h3 class="text-sm sm:text-base font-black text-slate-900" x-text="block.content_data.title || 'Key Points & SCERT Focus'"></h3>
-                                        </div>
-                                        
-                                        <!-- Syllabus Tag Pills -->
-                                        <div class="flex flex-wrap items-center gap-1.5">
-                                            <template x-for="tag in (block.content_data.tags || ['#SCERTStd9', '#KeralaRenaissance', '#LDC2024'])" :key="tag">
-                                                <span class="text-[10px] font-black bg-blue-50 text-[#0052FF] border border-blue-200 px-2 py-0.5 rounded-md" x-text="tag"></span>
-                                            </template>
-                                        </div>
-                                    </div>
-
-                                    <!-- SCERT Reference Callout -->
-                                    <template x-if="block.content_data.scert_reference">
-                                        <div class="mb-4 p-3 bg-emerald-50 border-l-4 border-emerald-500 rounded-r-xl text-xs font-bold text-emerald-950 flex items-center gap-2">
-                                            <span>📖</span>
-                                            <span>SCERT Textbook Source: <strong x-text="block.content_data.scert_reference"></strong></span>
-                                        </div>
-                                    </template>
-
-                                    <!-- Formatted Content -->
-                                    <div class="prose prose-sm max-w-none text-slate-700 font-['Noto_Sans_Malayalam'] space-y-2 leading-relaxed" x-html="block.content_data.body"></div>
-                                </div>
-                            </template>
-
-                            <!-- 5. 3D GLOBE / MAP BLOCK (Spatial Visualization Engine) -->
-                            <template x-if="block.type === 'map_globe'">
-                                <div 
-                                    x-data="{
-                                        globeInstance: null,
-                                        activePin: null,
-                                        currentMode: block.content_data.mode || '3d_globe',
-                                        isSpinning: false,
-                                        initSessionGlobe() {
-                                            this.$nextTick(() => {
-                                                const canvas = document.getElementById('session-globe-canvas-' + (block.id || idx));
-                                                if (!canvas || !window.PscGlobe) return;
-
-                                                this.globeInstance = new window.PscGlobe(canvas, {
-                                                    mode: this.currentMode,
-                                                    centerLat: block.content_data.center_lat !== undefined ? block.content_data.center_lat : 20.0,
-                                                    centerLng: block.content_data.center_lng !== undefined ? block.content_data.center_lng : 78.0,
-                                                    zoom: block.content_data.zoom || 1.4,
-                                                    autoSpin: false,
-                                                    markers: block.content_data.markers || [],
-                                                    routes: block.content_data.routes || [],
-                                                    onMarkerClick: (m) => {
-                                                        this.activePin = m;
-                                                    }
-                                                });
-                                            });
-                                        },
-                                        toggleMode() {
-                                            this.currentMode = (this.currentMode === '3d_globe') ? '2d_map' : '3d_globe';
-                                            if (this.globeInstance) {
-                                                this.globeInstance.setMode(this.currentMode);
-                                            }
-                                        },
-                                        toggleSpin() {
-                                            if (this.globeInstance) {
-                                                this.isSpinning = this.globeInstance.toggleAutoSpin();
-                                            }
-                                        },
-                                        focusPin(pin) {
-                                            this.activePin = pin;
-                                            if (this.globeInstance) {
-                                                this.globeInstance.activeMarker = pin;
-                                                this.globeInstance.flyTo(pin.lat, pin.lng, Math.max(1.8, (block.content_data.zoom || 1.4) * 1.15));
-                                            }
-                                        },
-                                        reset() {
-                                            this.activePin = null;
-                                            if (this.globeInstance) {
-                                                this.globeInstance.flyTo(
-                                                    block.content_data.center_lat !== undefined ? block.content_data.center_lat : 20.0,
-                                                    block.content_data.center_lng !== undefined ? block.content_data.center_lng : 78.0,
-                                                    block.content_data.zoom || 1.4
-                                                );
-                                            }
-                                        }
-                                    }"
-                                    x-init="initSessionGlobe()"
-                                    class="p-4 sm:p-6 bg-[#0B132B] text-white rounded-2xl overflow-hidden"
-                                >
-                                    <!-- Header -->
-                                    <div class="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-800">
-                                        <div class="flex items-center gap-2">
-                                            <span class="w-8 h-8 rounded-lg bg-blue-600/30 border border-blue-500/40 flex items-center justify-center text-base">🌐</span>
-                                            <div>
-                                                <div class="flex items-center gap-2">
-                                                    <h3 class="text-sm sm:text-base font-black text-white" x-text="block.content_data.title || '3D Globe Spatial Exploration'"></h3>
-                                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                                                        Spatial Map
-                                                    </span>
-                                                </div>
-                                                <template x-if="block.content_data.title_malayalam">
-                                                    <p class="text-xs font-bold text-amber-300 font-['Noto_Sans_Malayalam'] mt-0.5" x-text="block.content_data.title_malayalam"></p>
-                                                </template>
-                                            </div>
-                                        </div>
-
-                                        <!-- Canvas Control Buttons -->
-                                        <div class="flex items-center gap-1.5 bg-slate-900/90 p-1 rounded-xl border border-slate-800">
-                                            <button 
-                                                type="button" 
-                                                @click="toggleMode()" 
-                                                class="px-2.5 py-1 text-xs font-bold rounded-lg transition"
-                                                :class="currentMode === '3d_globe' ? 'bg-[#0052FF] text-white' : 'text-slate-400 hover:text-white'"
-                                            >
-                                                <span x-show="currentMode === '3d_globe'">🌐 3D Globe</span>
-                                                <span x-show="currentMode !== '3d_globe'">🗺️ 2D Map</span>
-                                            </button>
-                                            <button 
-                                                type="button" 
-                                                @click="toggleSpin()" 
-                                                class="px-2.5 py-1 text-xs font-bold rounded-lg transition"
-                                                :class="isSpinning ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'"
-                                                title="Toggle Rotation"
-                                            >
-                                                <span x-text="isSpinning ? '⏸' : '▶ Spin'"></span>
-                                            </button>
-                                            <button 
-                                                type="button" 
-                                                @click="reset()" 
-                                                class="px-2 py-1 text-xs font-bold text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition"
-                                                title="Reset View"
-                                            >
-                                                🎯
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <!-- Canvas Viewport -->
-                                    <div 
-                                        class="relative w-full rounded-2xl overflow-hidden bg-slate-950 border-2 border-slate-800 cursor-grab active:cursor-grabbing shadow-inner"
-                                        style="width: 100%; height: 380px; min-height: 320px; position: relative;"
-                                    >
-                                        <canvas :id="'session-globe-canvas-' + (block.id || idx)" style="width: 100%; height: 100%; display: block;"></canvas>
-                                        
-                                        <div class="absolute bottom-3 left-3 text-[10px] text-slate-400 bg-slate-900/80 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-slate-800 pointer-events-none">
-                                            Drag to rotate • Scroll to zoom • Tap pins
-                                        </div>
-                                    </div>
-
-                                    <!-- Pinpoints Pills -->
-                                    <template x-if="block.content_data.markers && block.content_data.markers.length">
-                                        <div class="mt-4 pt-3 border-t border-slate-800/80">
-                                            <div class="flex items-center justify-between mb-2">
-                                                <span class="text-[11px] font-black uppercase tracking-wider text-slate-400">Exam Pinpoints:</span>
-                                                <span class="text-[10px] text-slate-500">Tap pin to rotate</span>
-                                            </div>
-                                            <div class="flex flex-wrap items-center gap-1.5">
-                                                <template x-for="(pin, pIdx) in block.content_data.markers" :key="pIdx">
-                                                    <button 
-                                                        type="button" 
-                                                        @click="focusPin(pin)"
-                                                        class="px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 border"
-                                                        :class="activePin && activePin.label === pin.label ? 'bg-amber-400 text-slate-950 border-amber-300 font-black' : 'bg-slate-900 hover:bg-slate-800 text-slate-200 border-slate-800'"
-                                                    >
-                                                        <span class="w-1.5 h-1.5 rounded-full" :style="'background-color: ' + (pin.color || '#38BDF8')"></span>
-                                                        <span x-text="pin.label"></span>
-                                                    </button>
-                                                </template>
-                                            </div>
-
-                                            <!-- Active Pin Inspector Card -->
-                                            <template x-if="activePin">
-                                                <div class="mt-3 p-3 bg-slate-900/90 rounded-xl border border-amber-400/30 text-xs">
-                                                    <div class="flex items-center justify-between">
-                                                        <span class="font-black text-amber-300" x-text="activePin.label"></span>
-                                                        <button type="button" @click="activePin = null" class="text-slate-400 hover:text-white">✕</button>
-                                                    </div>
-                                                    <p class="text-slate-200 mt-1" x-text="activePin.note"></p>
-                                                    <template x-if="activePin.note_malayalam">
-                                                        <p class="text-amber-200 mt-1 font-semibold font-['Noto_Sans_Malayalam']" x-text="activePin.note_malayalam"></p>
-                                                    </template>
-                                                </div>
-                                            </template>
-                                        </div>
-                                    </template>
-
-                                    <!-- Explanatory Notes & Malayalam Spatial Tip -->
-                                    <template x-if="block.content_data.description || block.content_data.notes_malayalam">
-                                        <div class="mt-4 p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2 text-xs">
-                                            <template x-if="block.content_data.notes_malayalam">
-                                                <p class="text-slate-200 font-medium font-['Noto_Sans_Malayalam'] leading-relaxed" x-text="block.content_data.notes_malayalam"></p>
-                                            </template>
-                                            <template x-if="block.content_data.description">
-                                                <p class="text-slate-400 leading-relaxed italic" x-text="block.content_data.description"></p>
-                                            </template>
-                                        </div>
-                                    </template>
-                                </div>
-                            </template>
-
-                        </div>
-                    </template>
+                    <!-- Session Main Heading -->
+                    <h1 class="text-lg sm:text-2xl font-black text-slate-950 tracking-tight leading-snug">
+                        {{ $session->title }}
+                    </h1>
+                    @if($session->title_malayalam)
+                        <p class="text-xs sm:text-sm font-bold text-[#0052FF] mt-0.5 font-['Noto_Sans_Malayalam']">
+                            {{ $session->title_malayalam }}
+                        </p>
+                    @endif
                 </div>
 
-                <!-- Mark Complete & Continue Action -->
-                <div class="mt-8 pt-6 border-t-2 border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div class="flex items-center gap-2 text-xs font-bold text-slate-500">
-                        <span>💡 Concept mastered? Test your retention in Speed Blitz!</span>
+                <!-- Cumulative Score Ledger Pill & Retake Button -->
+                <div class="flex items-center gap-2 self-start sm:self-center shrink-0">
+                    <!-- Cumulative Ledger Pill -->
+                    <div 
+                        @click="showLedgerModal = true"
+                        class="p-2 sm:px-3 sm:py-2 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-300 rounded-xl cursor-pointer hover:border-amber-400 transition shadow-2xs group"
+                        title="Click to view full Track Cumulative Score Ledger"
+                    >
+                        <div class="flex items-center gap-2">
+                            <span class="text-lg sm:text-xl">🏆</span>
+                            <div>
+                                <div class="text-[10px] font-black uppercase tracking-wider text-amber-900 group-hover:text-amber-950 flex items-center gap-1">
+                                    <span>Track Cumulative Score</span>
+                                    <span class="text-[9px] text-amber-600 underline">View ↗</span>
+                                </div>
+                                <div class="text-xs sm:text-sm font-black text-amber-950 font-mono">
+                                    <span x-text="ledger.cumulative_score.toFixed(2)"></span> / <span x-text="ledger.cumulative_max.toFixed(2)"></span>
+                                    <span class="text-[11px] font-bold text-amber-700 font-sans" x-text="'(' + ledger.cumulative_percentage + '%)'"></span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
+                    <!-- Retake Session Action Button -->
                     <button 
-                        @click="completeLessonAndProceed()" 
-                        class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-[#0052FF] to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white font-black text-sm sm:text-base rounded-2xl shadow-xl shadow-blue-500/25 active:scale-95 transition flex items-center justify-center gap-3 border border-blue-400"
+                        type="button" 
+                        @click="confirmRetake()"
+                        :disabled="isRetaking"
+                        class="px-3 py-2 bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-700 border border-slate-300 hover:border-red-300 text-xs font-black rounded-xl transition flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                        title="Reset session score and retake cleanly"
                     >
-                        <span>Mark Complete & Start Speed Blitz</span>
-                        <span class="text-yellow-300 text-xl">⚡</span>
+                        <span x-show="!isRetaking">↺ Retake</span>
+                        <span x-show="isRetaking" class="flex items-center gap-1">
+                            <span class="w-3 h-3 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></span>
+                            <span>Resetting...</span>
+                        </span>
                     </button>
                 </div>
-
             </div>
-        </div>
 
-        <!-- ============================================================= -->
-        <!-- PHASE 3: REINFORCEMENT DRILL (Speed Blitz)                    -->
-        <!-- ============================================================= -->
-        <div x-show="currentPhase === 'reinforcement'" x-transition:enter="transition ease-out duration-300 transform opacity-0 scale-98" x-transition:enter-end="opacity-100 scale-100">
-            <div class="bg-white rounded-3xl border-2 border-blue-100 shadow-xl overflow-hidden">
-                
-                <!-- Speed Blitz Top Header -->
-                <div class="bg-slate-900 text-white p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3">
-                    <div class="flex items-center gap-3">
-                        <span class="w-8 h-8 rounded-xl bg-yellow-400 text-slate-950 flex items-center justify-center font-black text-sm">
-                            3
-                        </span>
-                        <div>
-                            <span class="text-xs font-black uppercase tracking-wider text-yellow-400">Phase 3: Reinforcement Drill (Speed Blitz)</span>
-                            <p class="text-[11px] text-slate-300">Question <span x-text="blitzIndex + 1"></span> of <span x-text="reinforcement.length"></span></p>
-                        </div>
-                    </div>
-
-                    <!-- 20s Countdown Timer Pill -->
-                    <div class="flex items-center gap-3">
-                        <!-- Speed streak bonus alert -->
-                        <div x-show="blitzTimer > 10" class="hidden sm:inline-flex items-center gap-1 text-[11px] font-black text-yellow-400 bg-yellow-400/10 px-2.5 py-1 rounded-full border border-yellow-400/30">
-                            <span>🔥 1.5x XP Boost Active</span>
-                        </div>
-
-                        <!-- Radial / Digital countdown -->
-                        <div 
-                            class="flex items-center gap-2 px-3 py-1.5 rounded-full font-mono font-black text-sm transition-colors"
-                            :class="{
-                                'bg-emerald-950 text-emerald-400 border border-emerald-500': blitzTimer > 10,
-                                'bg-amber-950 text-amber-400 border border-amber-500': blitzTimer <= 10 && blitzTimer > 5,
-                                'bg-red-950 text-red-400 border border-red-500 animate-pulse': blitzTimer <= 5
-                            }"
-                        >
-                            <span>⏱️</span>
-                            <span x-text="blitzTimer + 's'"></span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Timer Progress Bar -->
-                <div class="w-full bg-slate-800 h-2">
-                    <div 
-                        class="h-full transition-all duration-1000 ease-linear"
-                        :class="blitzTimer > 10 ? 'bg-emerald-400' : (blitzTimer > 5 ? 'bg-amber-400' : 'bg-red-500')"
-                        :style="'width: ' + ((blitzTimer / 20) * 100) + '%'"
-                    ></div>
-                </div>
-
-                <!-- Active Reinforcement Question Body -->
-                <template x-if="currentBlitzQuestion">
-                    <div class="p-5 sm:p-8">
-                        
-                        <!-- Question Text -->
-                        <div class="mb-6">
-                            <h2 class="text-lg sm:text-2xl font-black text-slate-900 leading-snug font-['Outfit']" x-text="currentBlitzQuestion.question_text"></h2>
-                            <template x-if="currentBlitzQuestion.question_text_malayalam">
-                                <p class="text-base sm:text-xl font-bold text-[#0052FF] mt-2 leading-relaxed font-['Noto_Sans_Malayalam']" x-text="currentBlitzQuestion.question_text_malayalam"></p>
-                            </template>
-                        </div>
-
-                        <!-- 4 Options Grid -->
-                        <div class="space-y-3 mb-6">
-                            <template x-for="opt in getQuestionOptions(currentBlitzQuestion)" :key="opt.key">
-                                <button 
-                                    @click="answerBlitz(opt.key)"
-                                    :disabled="blitzAnswered"
-                                    class="w-full text-left p-4 rounded-2xl border-2 transition-all flex items-center justify-between gap-3 group active:scale-[0.99]"
-                                    :class="{
-                                        'bg-white border-slate-200 hover:border-[#0052FF] hover:bg-blue-50/30 text-slate-800': !blitzAnswered,
-                                        'bg-emerald-50 border-emerald-500 text-emerald-950 font-bold shadow-md shadow-emerald-500/10': blitzAnswered && opt.key === currentBlitzQuestion.correct_option,
-                                        'bg-red-50 border-red-400 text-red-950': blitzAnswered && blitzSelectedOption === opt.key && opt.key !== currentBlitzQuestion.correct_option,
-                                        'opacity-50 border-slate-200 bg-slate-50': blitzAnswered && opt.key !== currentBlitzQuestion.correct_option && blitzSelectedOption !== opt.key
-                                    }"
-                                >
-                                    <div class="flex items-center gap-3.5">
-                                        <span 
-                                            class="w-9 h-9 rounded-xl border flex items-center justify-center font-black text-sm shrink-0 transition"
-                                            :class="{
-                                                'bg-slate-100 border-slate-300 text-slate-700 group-hover:bg-[#0052FF] group-hover:text-white group-hover:border-[#0052FF]': !blitzAnswered,
-                                                'bg-emerald-600 border-emerald-600 text-white': blitzAnswered && opt.key === currentBlitzQuestion.correct_option,
-                                                'bg-red-600 border-red-600 text-white': blitzAnswered && blitzSelectedOption === opt.key && opt.key !== currentBlitzQuestion.correct_option,
-                                                'bg-slate-100 border-slate-200 text-slate-400': blitzAnswered && opt.key !== currentBlitzQuestion.correct_option && blitzSelectedOption !== opt.key
-                                            }"
-                                            x-text="opt.key"
-                                        ></span>
-                                        <span class="text-sm sm:text-base font-semibold leading-relaxed font-['Noto_Sans_Malayalam']" x-text="opt.text"></span>
-                                    </div>
-
-                                    <div>
-                                        <template x-if="blitzAnswered && opt.key === currentBlitzQuestion.correct_option">
-                                            <span class="text-xl text-emerald-600">✅</span>
-                                        </template>
-                                        <template x-if="blitzAnswered && blitzSelectedOption === opt.key && opt.key !== currentBlitzQuestion.correct_option">
-                                            <span class="text-xl text-red-500">❌</span>
-                                        </template>
-                                    </div>
-                                </button>
-                            </template>
-                        </div>
-
-                        <!-- Feedback Box on Answer -->
-                        <template x-if="blitzAnswered">
-                            <div class="p-4 rounded-2xl border mb-6" :class="blitzIsCorrect ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'">
-                                <div class="flex items-center justify-between gap-2">
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-lg" x-text="blitzIsCorrect ? '🎉' : '⚠️'"></span>
-                                        <span class="text-sm font-black" :class="blitzIsCorrect ? 'text-emerald-900' : 'text-red-900'">
-                                            <span x-text="blitzIsCorrect ? (blitzUnderTenSec ? 'SUPER SPEED! +30 XP (1.5x Multiplier!)' : 'CORRECT! +20 XP') : 'INCORRECT! Review the core fact below:'"></span>
-                                        </span>
-                                    </div>
-                                </div>
-                                <template x-if="currentBlitzQuestion.explanation_malayalam || currentBlitzQuestion.explanation">
-                                    <p class="text-xs text-slate-700 mt-2 font-['Noto_Sans_Malayalam']" x-text="currentBlitzQuestion.explanation_malayalam || currentBlitzQuestion.explanation"></p>
-                                </template>
+            <!-- Session Feature Media (Cover Video / Image) -->
+            @if($session->feature_video || $session->feature_image)
+                <div class="mt-4 rounded-2xl overflow-hidden border border-slate-200 bg-slate-950 shadow-inner">
+                    @if($session->feature_video)
+                        @if($session->isFeatureVideoEmbed())
+                            <div class="aspect-video w-full">
+                                <iframe 
+                                    src="{{ $session->getFeatureVideoEmbedUrl() }}" 
+                                    class="w-full h-full" 
+                                    frameborder="0" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                    allowfullscreen
+                                ></iframe>
                             </div>
-                        </template>
+                        @else
+                            <div class="aspect-video w-full">
+                                <video controls class="w-full h-full" src="{{ $session->feature_video }}" poster="{{ $session->feature_image ?? '' }}"></video>
+                            </div>
+                        @endif
+                    @elseif($session->feature_image)
+                        <img src="{{ $session->feature_image }}" alt="Featured Image Banner above Manual Lesson Capsule Blocks" class="w-full h-auto max-h-72 object-cover">
+                    @endif
+                </div>
+            @endif
+            @if($session->feature_image)
+                <div class="hidden psc-custom-feature-image-banner" data-url="{{ $session->feature_image }}"></div>
+            @endif
 
-                        <!-- Next Question or Proceed Button -->
-                        <div class="flex items-center justify-between gap-3 pt-4 border-t border-slate-100">
-                            <span class="text-xs text-slate-400 font-bold">
-                                Blitz Score: <strong class="text-slate-800" x-text="blitzCorrectCount"></strong> / <span x-text="reinforcement.length"></span>
-                            </span>
+            @if($session->isCustomCode() && $session->custom_html)
+                <div class="mt-4 bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+                    {!! $session->custom_html !!}
+                </div>
+            @endif
 
-                            <template x-if="blitzAnswered">
-                                <button 
-                                    @click="nextBlitzQuestion()" 
-                                    class="px-6 py-3 bg-[#0052FF] hover:bg-blue-700 text-white font-black text-sm rounded-xl shadow-md transition flex items-center gap-2 active:scale-95"
-                                >
-                                    <span x-text="blitzIndex + 1 < reinforcement.length ? 'Next Question →' : 'Complete Blitz & Open OMR 📝'"></span>
-                                </button>
-                            </template>
-                        </div>
+            <!-- Unit Progress Stepper -->
+            <div class="mt-4 pt-3 border-t border-slate-100">
+                <div class="flex items-center justify-between text-xs font-bold text-slate-500 mb-2">
+                    <span class="flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-[#0052FF]"></span>
+                        <span class="text-slate-800">Current Step:</span>
+                        <span class="text-[#0052FF] font-black" x-text="currentUnit.title"></span>
+                    </span>
+                    <span class="font-mono text-[11px] text-slate-600">
+                        Unit <span x-text="activeUnitIdx + 1"></span> of <span x-text="units.length"></span>
+                    </span>
+                </div>
 
-                    </div>
-                </template>
-
+                <!-- Step Tabs Bar -->
+                <div class="grid gap-1.5" :style="'grid-template-columns: repeat(' + units.length + ', minmax(0, 1fr))'">
+                    <template x-for="(unit, uIdx) in units" :key="uIdx">
+                        <button 
+                            type="button"
+                            @click="jumpToUnit(uIdx)"
+                            :class="{
+                                'bg-[#0052FF] text-white shadow-xs font-black': activeUnitIdx === uIdx,
+                                'bg-emerald-100 text-emerald-900 font-bold': activeUnitIdx !== uIdx && (uIdx < activeUnitIdx || (unit.is_omr_unit && omrSubmitted)),
+                                'bg-slate-200 text-slate-600': activeUnitIdx !== uIdx && !(uIdx < activeUnitIdx || (unit.is_omr_unit && omrSubmitted))
+                            }"
+                            class="h-2 sm:h-2.5 rounded-full transition cursor-pointer relative group"
+                            :title="unit.title"
+                        >
+                            <span class="sr-only" x-text="unit.title"></span>
+                        </button>
+                    </template>
+                </div>
             </div>
         </div>
 
-        <!-- ============================================================= -->
-        <!-- PHASE 4: FINAL OMR SHEET CHALLENGE (Exam-Day Simulation)      -->
-        <!-- ============================================================= -->
-        <div x-show="currentPhase === 'omr'" x-transition:enter="transition ease-out duration-300 transform opacity-0 scale-98" x-transition:enter-end="opacity-100 scale-100">
-            <div class="bg-white rounded-3xl border-2 border-blue-200 shadow-2xl p-5 sm:p-8">
-                
-                <!-- OMR Header -->
-                <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-200 mb-6">
-                    <div class="flex items-center gap-3">
-                        <span class="w-8 h-8 rounded-xl bg-slate-900 text-white flex items-center justify-center font-black text-sm">
-                            4
-                        </span>
-                        <div>
-                            <span class="text-xs font-black uppercase tracking-wider text-[#0052FF]">Phase 4: Final OMR Sheet Challenge</span>
-                            <h2 class="text-lg sm:text-xl font-black text-slate-950">Official Kerala PSC Exam Simulation</h2>
-                        </div>
-                    </div>
+        <!-- ===================================================================== -->
+        <!-- UNIT CONTAINER: MODULAR STACKABLE LEGO BLOCKS                         -->
+        <!-- ===================================================================== -->
+        
+        <!-- NON-OMR UNITS: Content Blocks & Practice Drills -->
+        <template x-if="!currentUnit.is_omr_unit">
+            <div class="space-y-6">
 
-                    <!-- Scoring Rule Matrix Chips -->
-                    <div class="flex items-center gap-2 text-xs font-mono font-bold">
-                        <span class="bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-lg">✅ +1.00</span>
-                        <span class="bg-red-100 text-red-800 px-2.5 py-1 rounded-lg">⚠️ -0.33</span>
-                        <span class="bg-slate-100 text-slate-600 px-2 py-1 rounded-lg">⚪ 0.00</span>
+                <!-- Unit Header Card -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex items-center justify-between">
+                    <div>
+                        <div class="text-[10px] font-black uppercase tracking-wider text-blue-600">
+                            Unit <span x-text="activeUnitIdx + 1"></span> of <span x-text="units.length"></span>
+                        </div>
+                        <h2 class="text-lg sm:text-xl font-black text-slate-900 mt-0.5" x-text="currentUnit.title"></h2>
                     </div>
+                    <span class="px-3 py-1 rounded-full text-xs font-black uppercase bg-blue-50 text-[#0052FF] border border-blue-200 shrink-0">
+                        Modular Content
+                    </span>
                 </div>
 
-                <!-- ========================================================= -->
-                <!-- MOBILE VIEW (< lg): Slidable Question Booklet + Instant OMR -->
-                <!-- ========================================================= -->
-                <div class="block lg:hidden space-y-4">
-                    
-                    <!-- 1. Slidable Active Question Card (Authentic Non-Clickable PSC Booklet Format) -->
-                    <template x-if="omrQuestions.length > 0 && omrQuestions[omrActiveIndex]">
-                        <div class="bg-white rounded-2xl border-2 border-slate-300 shadow-sm p-4 transition-all">
-                            
-                            <!-- Card Header: Question Counter & Jumper Pills -->
-                            <div class="flex items-center justify-between gap-2 pb-2.5 mb-2.5 border-b border-slate-200">
-                                <div class="flex items-center gap-2">
-                                    <span class="px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-300 text-slate-800 font-mono font-bold text-xs">
-                                        Question <span x-text="omrActiveIndex + 1"></span> of <span x-text="omrQuestions.length"></span>
-                                    </span>
-                                    <span x-show="omrAnswers[omrQuestions[omrActiveIndex].id]" class="text-[10px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-300 flex items-center gap-1">
-                                        ✓ Bubbled
+                <!-- Loop Through Stackable Blocks in Current Unit -->
+                <template x-for="(block, bIdx) in currentUnit.blocks" :key="block.id || bIdx">
+                    <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs transition hover:shadow-sm">
+
+                        <!-- 1. HOOK QUESTION BLOCK (Unit 1 Opener) -->
+                        <template x-if="block.type === 'hook_mcq'">
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                                    <div class="flex items-center gap-2">
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-purple-100 text-purple-900 border border-purple-200">
+                                            🎣 Hook Challenge Question
+                                        </span>
+                                        <span class="text-[11px] text-slate-500 font-bold hidden sm:inline">Concept Diagnostic Challenge</span>
+                                    </div>
+                                    <span class="text-[11px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
+                                        Feeds OMR Exam Bank
                                     </span>
                                 </div>
 
-                                <!-- Question Quick Jump Carousel -->
-                                <div class="flex items-center gap-1 overflow-x-auto scrollbar-none">
-                                    <template x-for="(q, idx) in omrQuestions" :key="q.id">
+                                <!-- Question Stem -->
+                                <div class="text-sm sm:text-base font-black text-slate-900 leading-relaxed">
+                                    <span class="text-purple-600 mr-1">Q.</span>
+                                    <span x-text="block.content_data.question_text"></span>
+                                </div>
+                                <template x-if="block.content_data.question_text_malayalam">
+                                    <p class="text-xs sm:text-sm font-bold text-slate-800 font-['Noto_Sans_Malayalam'] leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-200" x-text="block.content_data.question_text_malayalam"></p>
+                                </template>
+
+                                <!-- 4 Options (A, B, C, D) -->
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
+                                    <template x-for="opt in getQuestionOptions(block.content_data)" :key="opt.key">
                                         <button 
                                             type="button"
-                                            @click="selectOmrQuestion(idx)"
-                                            class="px-2 py-0.5 rounded-md text-[11px] font-black transition-all shrink-0 flex items-center gap-0.5"
-                                            :class="omrActiveIndex === idx 
-                                                ? 'bg-[#0052FF] text-white ring-2 ring-blue-300 shadow-xs' 
-                                                : (omrAnswers[q.id] 
-                                                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' 
-                                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200')"
-                                            :title="'Jump to Q' + (idx + 1)"
+                                            @click="selectHookAnswer(block, opt.key)"
+                                            :disabled="hookAnswers[block.id]?.answered"
+                                            :class="{
+                                                'border-slate-300 hover:border-purple-400 bg-white hover:bg-purple-50/50 text-slate-800': !hookAnswers[block.id]?.answered,
+                                                'border-emerald-500 bg-emerald-50 text-emerald-950 ring-2 ring-emerald-400 font-bold': hookAnswers[block.id]?.answered && opt.key === block.content_data.correct_option,
+                                                'border-red-400 bg-red-50 text-red-950 font-bold': hookAnswers[block.id]?.answered && hookAnswers[block.id]?.selected === opt.key && opt.key !== block.content_data.correct_option,
+                                                'border-slate-200 bg-slate-50 text-slate-400 opacity-60': hookAnswers[block.id]?.answered && hookAnswers[block.id]?.selected !== opt.key && opt.key !== block.content_data.correct_option
+                                            }"
+                                            class="p-3 rounded-xl border-2 text-left text-xs font-medium transition flex items-center gap-3 cursor-pointer"
                                         >
-                                            <span x-text="'Q' + (idx + 1)"></span>
-                                            <span x-show="omrAnswers[q.id]" class="text-[8px]">✓</span>
+                                            <span 
+                                                :class="{
+                                                    'bg-slate-100 text-slate-800 border-slate-300': !hookAnswers[block.id]?.answered,
+                                                    'bg-emerald-600 text-white border-emerald-600': hookAnswers[block.id]?.answered && opt.key === block.content_data.correct_option,
+                                                    'bg-red-600 text-white border-red-600': hookAnswers[block.id]?.answered && hookAnswers[block.id]?.selected === opt.key && opt.key !== block.content_data.correct_option
+                                                }"
+                                                class="w-6 h-6 rounded-full border flex items-center justify-center font-black text-[11px] shrink-0"
+                                                x-text="opt.key"
+                                            ></span>
+                                            <span class="flex-grow" x-text="opt.text"></span>
                                         </button>
                                     </template>
                                 </div>
-                            </div>
 
-                            <!-- Swipeable Question Content Area (Pure Printed Exam Paper Format - Non-Clickable) -->
-                            <div 
-                                @touchstart="handleTouchStart($event)" 
-                                @touchend="handleTouchEnd($event)"
-                                class="touch-pan-y py-1 select-text"
-                            >
-                                <div class="flex items-start gap-2">
-                                    <span class="text-sm sm:text-base font-black text-slate-900 font-serif shrink-0 mt-0.5" x-text="(omrActiveIndex + 1) + '.'"></span>
-                                    <div class="flex-1 space-y-1">
-                                        <template x-if="omrQuestions[omrActiveIndex].question_text_malayalam">
-                                            <p class="text-sm sm:text-base font-bold text-slate-950 leading-relaxed font-['Noto_Sans_Malayalam']" x-text="omrQuestions[omrActiveIndex].question_text_malayalam"></p>
+                                <!-- Instant Explanation Feedback -->
+                                <template x-if="hookAnswers[block.id]?.answered">
+                                    <div class="mt-3 p-4 rounded-xl border" :class="hookAnswers[block.id]?.isCorrect ? 'bg-emerald-50 border-emerald-300 text-emerald-950' : 'bg-amber-50 border-amber-300 text-amber-950'">
+                                        <div class="flex items-center gap-2 font-black text-xs mb-1">
+                                            <span x-text="hookAnswers[block.id]?.isCorrect ? '🎉 Correct Answer!' : '💡 Concept Insight:'"></span>
+                                            <span class="font-mono text-[11px]" x-text="'(Option ' + block.content_data.correct_option + ')'"></span>
+                                        </div>
+                                        <p class="text-xs font-medium leading-relaxed" x-text="block.content_data.explanation"></p>
+                                        <template x-if="block.content_data.explanation_malayalam">
+                                            <p class="text-xs font-medium font-['Noto_Sans_Malayalam'] mt-1 pt-1 border-t border-black/10" x-text="block.content_data.explanation_malayalam"></p>
                                         </template>
-                                        <template x-if="omrQuestions[omrActiveIndex].question_text">
-                                            <p class="text-xs sm:text-sm font-semibold text-slate-800 leading-snug font-['Outfit']" x-text="omrQuestions[omrActiveIndex].question_text"></p>
+                                        <template x-if="block.content_data.trap_warning">
+                                            <div class="mt-2 pt-2 border-t border-amber-300/80 text-[11px] text-amber-900 font-bold flex items-center gap-1.5">
+                                                <span>⚠️ PSC Trap Alert:</span>
+                                                <span x-text="block.content_data.trap_warning"></span>
+                                            </div>
                                         </template>
                                     </div>
-                                </div>
+                                </template>
+                            </div>
+                        </template>
 
-                                <!-- Ordinary 4 Options Text (NO button borders, NO clickable look - Pure Printed Exam Style) -->
-                                <div class="grid grid-cols-2 gap-x-4 gap-y-2 mt-3 pt-2.5 border-t border-dashed border-slate-200 text-xs sm:text-sm text-slate-900 font-['Noto_Sans_Malayalam']">
-                                    <template x-for="opt in getQuestionOptions(omrQuestions[omrActiveIndex])" :key="opt.key">
-                                        <div class="flex items-start gap-1.5 py-0.5 select-text">
-                                            <span class="font-bold text-slate-900 shrink-0" x-text="'(' + opt.key + ')'"></span>
-                                            <span class="leading-relaxed text-slate-900" x-text="opt.text"></span>
-                                        </div>
+                        <!-- 2. TEXT BLOCK (Rich Typography & Callouts) -->
+                        <template x-if="block.type === 'text'">
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                                    <h3 class="text-base font-black text-slate-900" x-text="block.content_data.title || 'Core Syllabus Notes'"></h3>
+                                    <template x-if="block.content_data.scert_reference">
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-200" x-text="block.content_data.scert_reference"></span>
                                     </template>
                                 </div>
+                                <div class="prose prose-slate max-w-none text-xs sm:text-sm leading-relaxed text-slate-800 font-['Noto_Sans_Malayalam']" x-html="block.content_data.body"></div>
                             </div>
+                        </template>
 
-                            <!-- Card Bottom Navigation Bar with Prominent Next Button -->
-                            <div class="mt-3.5 pt-3 border-t border-slate-200 flex items-center justify-between gap-3">
-                                <button 
-                                    type="button" 
-                                    @click="prevOmrQuestion()" 
-                                    :disabled="omrActiveIndex === 0" 
-                                    class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs disabled:opacity-30 disabled:cursor-not-allowed transition flex items-center gap-1 active:scale-95"
-                                >
-                                    <span>◀ Prev</span>
-                                </button>
-
-                                <span class="text-[10px] text-slate-400 font-medium hidden sm:inline">👈 Swipe to slide 👉</span>
-
-                                <button 
-                                    type="button" 
-                                    @click="nextOmrQuestion()" 
-                                    :disabled="omrActiveIndex === omrQuestions.length - 1" 
-                                    class="px-5 py-2.5 rounded-xl bg-[#0052FF] hover:bg-blue-700 active:scale-95 text-white font-black text-xs sm:text-sm shadow-md shadow-blue-500/20 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-2 border border-blue-600"
-                                >
-                                    <span>Next Question</span>
-                                    <span class="text-base leading-none">▶</span>
-                                </button>
+                        <!-- 3. IMAGE BLOCK -->
+                        <template x-if="block.type === 'image'">
+                            <div class="space-y-2">
+                                <template x-if="block.content_data.title">
+                                    <h3 class="text-sm font-black text-slate-900" x-text="block.content_data.title"></h3>
+                                </template>
+                                <div class="rounded-xl overflow-hidden border border-slate-200 bg-slate-100 flex items-center justify-center relative group">
+                                    <img :src="block.content_data.url" class="max-h-96 w-full object-contain rounded-xl" :alt="block.content_data.title || 'Infographic'">
+                                </div>
+                                <template x-if="block.content_data.caption">
+                                    <p class="text-xs text-slate-600 font-bold font-['Noto_Sans_Malayalam'] text-center pt-1" x-text="block.content_data.caption"></p>
+                                </template>
                             </div>
+                        </template>
 
-                        </div>
-                    </template>
-
-                    <!-- 2. Mobile OMR Sheet (Directly Below Question Card) -->
-                    <div class="bg-[#FAFBFD] border-2 border-dashed border-slate-400/90 rounded-2xl p-4 font-mono shadow-sm">
-                        
-                        <!-- OMR Top Banner -->
-                        <div class="border-b-2 border-slate-300 pb-2 mb-3 text-center">
-                            <div class="text-[11px] font-bold text-slate-800 uppercase tracking-wider">KERALA PUBLIC SERVICE COMMISSION</div>
-                            <div class="text-[9px] text-slate-500 uppercase">OFFICIAL OBJECTIVE OMR SHEET</div>
-                            <div class="flex items-center justify-between text-[10px] text-slate-600 mt-1 font-bold">
-                                <span>SERIES: <strong>A</strong></span>
-                                <span>BUBBLED: <strong class="text-[#0052FF]" x-text="Object.keys(omrAnswers).length + ' / ' + omrQuestions.length"></strong></span>
+                        <!-- 4. VIDEO BLOCK -->
+                        <template x-if="block.type === 'video'">
+                            <div class="space-y-2">
+                                <template x-if="block.content_data.title">
+                                    <h3 class="text-sm font-black text-slate-900 flex items-center gap-2">
+                                        <span>🎥</span>
+                                        <span x-text="block.content_data.title"></span>
+                                    </h3>
+                                </template>
+                                <div class="aspect-video rounded-2xl overflow-hidden border border-slate-200 bg-slate-950 shadow-inner">
+                                    <template x-if="getVideoEmbedUrl(block.content_data.url)">
+                                        <iframe :src="getVideoEmbedUrl(block.content_data.url)" class="w-full h-full" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                    </template>
+                                    <template x-if="!getVideoEmbedUrl(block.content_data.url)">
+                                        <video controls class="w-full h-full" :src="block.content_data.url"></video>
+                                    </template>
+                                </div>
+                                <template x-if="block.content_data.caption">
+                                    <p class="text-xs text-slate-500 font-medium pt-1" x-text="block.content_data.caption"></p>
+                                </template>
                             </div>
-                        </div>
+                        </template>
 
-                        <!-- Bubble Rows -->
-                        <div class="space-y-2">
-                            <template x-for="(q, idx) in omrQuestions" :key="q.id">
-                                <div 
-                                    @click="selectOmrQuestion(idx)"
-                                    class="flex items-center justify-between p-2 rounded-xl transition cursor-pointer"
-                                    :class="omrActiveIndex === idx 
-                                        ? 'bg-blue-50/90 border-2 border-blue-500 ring-2 ring-blue-500/20 shadow-xs' 
-                                        : 'bg-white border border-slate-200/90'"
-                                >
-                                    <!-- Question Number & Active Indicator -->
-                                    <div class="flex items-center gap-1.5">
-                                        <span class="text-xs font-black text-slate-800 w-5" x-text="(idx + 1) < 10 ? '0' + (idx + 1) : (idx + 1)"></span>
-                                        <span x-show="omrActiveIndex === idx" class="w-1.5 h-1.5 rounded-full bg-[#0052FF] animate-ping"></span>
-                                    </div>
-                                    
-                                    <!-- Bubble Options A B C D (The ONLY clickable answer targets) -->
+                        <!-- 5. AUDIO BLOCK (Custom Audio Player with Scrubber) -->
+                        <template x-if="block.type === 'audio'">
+                            <div class="space-y-3 bg-gradient-to-r from-blue-50/70 via-indigo-50/40 to-white p-4 sm:p-5 rounded-2xl border border-blue-200">
+                                <div class="flex items-center justify-between">
                                     <div class="flex items-center gap-2">
-                                        <template x-for="opt in ['A', 'B', 'C', 'D']" :key="opt">
-                                            <button 
-                                                type="button"
-                                                @click.stop="fillOmrBubble(q.id, opt); selectOmrQuestion(idx)"
-                                                class="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 flex items-center justify-center text-[11px] font-bold transition-all duration-150 active:scale-90"
-                                                :class="omrAnswers[q.id] === opt 
-                                                    ? 'bg-slate-900 border-slate-950 text-white shadow-inner scale-105 ring-1 ring-slate-950' 
-                                                    : 'bg-white border-slate-400 text-slate-700 hover:border-slate-800'"
-                                            >
-                                                <span x-text="opt"></span>
-                                            </button>
+                                        <div class="w-9 h-9 rounded-xl bg-[#0052FF] text-white flex items-center justify-center text-lg shadow-md shadow-blue-500/20">
+                                            🎙️
+                                        </div>
+                                        <div>
+                                            <h3 class="text-xs sm:text-sm font-black text-slate-950" x-text="block.content_data.title || 'Audio Lesson Capsule'"></h3>
+                                            <span class="text-[10px] font-bold text-blue-700 font-mono" x-text="block.content_data.duration || 'Fast Audio'"></span>
+                                        </div>
+                                    </div>
+                                    <!-- Playback Speed Control -->
+                                    <button 
+                                        type="button" 
+                                        @click="toggleAudioSpeed(block.id)"
+                                        class="px-2 py-1 rounded-lg border border-blue-200 bg-white text-blue-900 text-[10px] font-black hover:bg-blue-50 transition cursor-pointer"
+                                        x-text="(audioPlaybackRates[block.id] || 1) + 'x Speed'"
+                                    ></button>
+                                </div>
+
+                                <!-- Hidden Audio Element -->
+                                <audio 
+                                    :id="'audio_el_' + block.id" 
+                                    :src="block.content_data.url" 
+                                    @timeupdate="onAudioTimeUpdate(block.id)" 
+                                    @ended="onAudioEnded(block.id)"
+                                    preload="metadata"
+                                ></audio>
+
+                                <!-- Custom Player Controls Bar -->
+                                <div class="flex items-center gap-3 pt-1">
+                                    <!-- Play/Pause Toggle Button -->
+                                    <button 
+                                        type="button" 
+                                        @click="togglePlayAudio(block.id)"
+                                        class="w-10 h-10 rounded-xl bg-[#0052FF] hover:bg-blue-700 text-white flex items-center justify-center text-base shadow-md transition shrink-0 cursor-pointer active:scale-95"
+                                    >
+                                        <span x-text="audioPlaying[block.id] ? '⏸' : '▶'"></span>
+                                    </button>
+
+                                    <!-- Scrubber Track & Time -->
+                                    <div class="flex-grow">
+                                        <div class="flex items-center justify-between text-[10px] font-mono text-slate-500 font-bold mb-1">
+                                            <span x-text="audioCurrentTimes[block.id] || '0:00'"></span>
+                                            <span x-text="audioDurations[block.id] || (block.content_data.duration || '0:00')"></span>
+                                        </div>
+                                        <div 
+                                            class="h-2 bg-slate-200 rounded-full overflow-hidden cursor-pointer relative"
+                                            @click="seekAudio(block.id, $event)"
+                                        >
+                                            <div 
+                                                class="h-full bg-[#0052FF] rounded-full transition-all duration-100"
+                                                :style="'width: ' + (audioProgress[block.id] || 0) + '%'"
+                                            ></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Collapsible Malayalam Transcript -->
+                                <template x-if="block.content_data.transcript">
+                                    <div class="mt-2 pt-2 border-t border-blue-100/80" x-data="{ openTranscript: false }">
+                                        <button 
+                                            type="button" 
+                                            @click="openTranscript = !openTranscript"
+                                            class="text-[11px] font-black text-blue-700 hover:text-blue-900 flex items-center gap-1 cursor-pointer"
+                                        >
+                                            <span x-text="openTranscript ? '▲ Hide Transcript' : '▼ Read Spoken Malayalam Transcript'"></span>
+                                        </button>
+                                        <div x-show="openTranscript" class="mt-2 p-3 bg-white rounded-xl border border-blue-100 text-xs font-medium font-['Noto_Sans_Malayalam'] leading-relaxed text-slate-800" x-text="block.content_data.transcript"></div>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+
+                        <!-- 6. MAP & 3D GLOBE BLOCK -->
+                        <template x-if="block.type === 'map_globe'">
+                            <div class="space-y-3 bg-slate-900 text-white p-5 rounded-2xl border border-slate-800" data-block-type="map_globe">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="text-sm font-black text-white flex items-center gap-2">
+                                        <span>🌐</span>
+                                        <span x-text="block.content_data.title || 'PSC 3D Globe & Spatial Map'"></span>
+                                    </h3>
+                                    <span class="text-[10px] font-black uppercase tracking-wider bg-teal-500/20 text-teal-300 px-2.5 py-0.5 rounded-full border border-teal-500/30">
+                                        map_globe
+                                    </span>
+                                </div>
+                                <template x-if="block.content_data.description">
+                                    <p class="text-xs text-slate-300 font-medium" x-text="block.content_data.description"></p>
+                                </template>
+                                <div class="relative w-full h-72 sm:h-96 rounded-xl overflow-hidden bg-slate-950 border border-slate-800 flex items-center justify-center">
+                                    <canvas :id="'session-globe-canvas-' + block.id" class="w-full h-full"></canvas>
+                                </div>
+                            </div>
+                        </template>
+
+                        <!-- 7. CUSTOM HTML / WIDGET BLOCK -->
+                        <template x-if="block.type === 'html'">
+                            <div class="space-y-3">
+                                <template x-if="block.content_data.title">
+                                    <h3 class="text-sm font-black text-slate-900" x-text="block.content_data.title"></h3>
+                                </template>
+                                <div class="rounded-xl overflow-hidden border border-slate-200 bg-slate-50 p-3" x-html="block.content_data.html || block.content_data.body"></div>
+                            </div>
+                        </template>
+
+                        <!-- 7. PRACTICE MCQ BLOCK (1 Question Per Screen) -->
+                        <template x-if="block.type === 'practice_mcq'">
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                                    <div class="flex items-center gap-2">
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-blue-100 text-blue-900 border border-blue-200">
+                                            🎯 Practice MCQ (1 Question Per Screen)
+                                        </span>
+                                    </div>
+                                    <span class="text-[11px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                                        Feeds OMR Exam Bank
+                                    </span>
+                                </div>
+
+                                <!-- Question Text -->
+                                <div class="text-sm sm:text-base font-black text-slate-900 leading-relaxed">
+                                    <span class="text-[#0052FF] mr-1">Q.</span>
+                                    <span x-text="block.content_data.question_text"></span>
+                                </div>
+                                <template x-if="block.content_data.question_text_malayalam">
+                                    <p class="text-xs sm:text-sm font-bold text-slate-800 font-['Noto_Sans_Malayalam'] leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-200" x-text="block.content_data.question_text_malayalam"></p>
+                                </template>
+
+                                <!-- Options -->
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
+                                    <template x-for="opt in getQuestionOptions(block.content_data)" :key="opt.key">
+                                        <button 
+                                            type="button"
+                                            @click="selectPracticeAnswer(block, opt.key)"
+                                            :disabled="practiceAnswers[block.id]?.answered"
+                                            :class="{
+                                                'border-slate-300 hover:border-blue-500 bg-white hover:bg-blue-50/50 text-slate-800': !practiceAnswers[block.id]?.answered,
+                                                'border-emerald-500 bg-emerald-50 text-emerald-950 ring-2 ring-emerald-400 font-bold': practiceAnswers[block.id]?.answered && opt.key === block.content_data.correct_option,
+                                                'border-red-400 bg-red-50 text-red-950 font-bold': practiceAnswers[block.id]?.answered && practiceAnswers[block.id]?.selected === opt.key && opt.key !== block.content_data.correct_option,
+                                                'border-slate-200 bg-slate-50 text-slate-400 opacity-60': practiceAnswers[block.id]?.answered && practiceAnswers[block.id]?.selected !== opt.key && opt.key !== block.content_data.correct_option
+                                            }"
+                                            class="p-3.5 rounded-xl border-2 text-left text-xs font-medium transition flex items-center gap-3 cursor-pointer shadow-2xs"
+                                        >
+                                            <span 
+                                                :class="{
+                                                    'bg-slate-100 text-slate-800 border-slate-300': !practiceAnswers[block.id]?.answered,
+                                                    'bg-emerald-600 text-white border-emerald-600': practiceAnswers[block.id]?.answered && opt.key === block.content_data.correct_option,
+                                                    'bg-red-600 text-white border-red-600': practiceAnswers[block.id]?.answered && practiceAnswers[block.id]?.selected === opt.key && opt.key !== block.content_data.correct_option
+                                                }"
+                                                class="w-6 h-6 rounded-full border flex items-center justify-center font-black text-[11px] shrink-0"
+                                                x-text="opt.key"
+                                            ></span>
+                                            <span class="flex-grow" x-text="opt.text"></span>
+                                        </button>
+                                    </template>
+                                </div>
+
+                                <!-- Explanation Feedback -->
+                                <template x-if="practiceAnswers[block.id]?.answered">
+                                    <div class="mt-3 p-4 rounded-xl border" :class="practiceAnswers[block.id]?.isCorrect ? 'bg-emerald-50 border-emerald-300 text-emerald-950' : 'bg-amber-50 border-amber-300 text-amber-950'">
+                                        <div class="flex items-center gap-2 font-black text-xs mb-1">
+                                            <span x-text="practiceAnswers[block.id]?.isCorrect ? '🎉 Correct Answer!' : '💡 Explanation:'"></span>
+                                            <span class="font-mono text-[11px]" x-text="'(Option ' + block.content_data.correct_option + ')'"></span>
+                                        </div>
+                                        <p class="text-xs font-medium leading-relaxed" x-text="block.content_data.explanation"></p>
+                                        <template x-if="block.content_data.explanation_malayalam">
+                                            <p class="text-xs font-medium font-['Noto_Sans_Malayalam'] mt-1 pt-1 border-t border-black/10" x-text="block.content_data.explanation_malayalam"></p>
+                                        </template>
+                                        <template x-if="block.content_data.trap_warning">
+                                            <div class="mt-2 pt-2 border-t border-amber-300/80 text-[11px] text-amber-900 font-bold flex items-center gap-1.5">
+                                                <span>⚠️ PSC Trap Alert:</span>
+                                                <span x-text="block.content_data.trap_warning"></span>
+                                            </div>
                                         </template>
                                     </div>
-
-                                    <!-- Clear / Erase Button -->
-                                    <button 
-                                        type="button"
-                                        @click.stop="clearOmrBubble(q.id)" 
-                                        x-show="omrAnswers[q.id]"
-                                        class="text-slate-400 hover:text-red-500 text-xs transition p-1"
-                                        title="Erase bubble"
-                                    >
-                                        ✕
-                                    </button>
-                                    <span x-show="!omrAnswers[q.id]" class="w-4"></span>
-                                </div>
-                            </template>
-                        </div>
-
-                        <!-- OMR Micro Instructions -->
-                        <div class="mt-3 pt-2.5 border-t border-slate-200 text-[9px] text-slate-500 leading-tight space-y-1">
-                            <p>⚠️ Darken circles on this OMR sheet with black pen ink simulation.</p>
-                            <p>⚠️ Kerala PSC penalty: <strong>-0.33 marks</strong> for wrong bubbles.</p>
-                        </div>
-
-                        <!-- Submit OMR Button -->
-                        <div class="mt-4">
-                            <button 
-                                type="button"
-                                @click="submitOmrSheet()"
-                                :disabled="isSubmittingOmr"
-                                class="w-full py-3.5 px-4 bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-black text-sm rounded-xl shadow-lg transition flex items-center justify-center gap-2 border-2 border-yellow-400"
-                            >
-                                <span x-show="!isSubmittingOmr">SUBMIT OMR SHEET 📝</span>
-                                <span x-show="isSubmittingOmr" class="flex items-center gap-2">
-                                    <span class="w-4 h-4 border-2 border-white border-t-yellow-400 rounded-full animate-spin"></span>
-                                    <span>Calculating Rank Score...</span>
-                                </span>
-                            </button>
-                        </div>
+                                </template>
+                            </div>
+                        </template>
 
                     </div>
+                </template>
 
+            </div>
+        </template>
+
+        <!-- ===================================================================== -->
+        <!-- FINAL UNIT: AUTHENTIC PSC-STYLE OMR ASSESSMENT (SINGLE PAGE SHEET)    -->
+        <!-- ===================================================================== -->
+        <template x-if="currentUnit.is_omr_unit">
+            <div class="space-y-6">
+
+                <!-- OMR Sheet Header Banner -->
+                <div class="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white rounded-2xl p-5 shadow-lg border border-slate-800">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/10">
+                        <div>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-yellow-400 text-slate-950">
+                                Official Format
+                            </span>
+                            <h2 class="text-lg sm:text-xl font-black tracking-tight mt-1">
+                                KERALA PSC FINAL OMR ASSESSMENT SHEET
+                            </h2>
+                            <p class="text-xs text-slate-300 font-bold font-['Noto_Sans_Malayalam'] mt-0.5">
+                                സെഷൻ ഫൈനൽ ഒ.എം.ആർ മൂല്യനിർണ്ണയ പരീക്ഷ
+                            </p>
+                        </div>
+
+                        <!-- Answered Counter Badge -->
+                        <div class="text-right shrink-0">
+                            <div class="text-xs font-bold text-slate-300">Attempted Bubbles:</div>
+                            <div class="text-lg sm:text-2xl font-black font-mono text-yellow-300">
+                                <span x-text="getAttemptedOmrCount()"></span> / <span x-text="currentUnit.questions.length"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PSC Rules Pill -->
+                    <div class="flex flex-wrap items-center gap-4 text-[11px] font-bold text-slate-300 pt-3">
+                        <span class="flex items-center gap-1"><span class="text-emerald-400">✓</span> Correct: +1.00 Mark</span>
+                        <span class="flex items-center gap-1"><span class="text-red-400">✗</span> Wrong: -0.33 Mark penalty</span>
+                        <span class="flex items-center gap-1"><span class="text-slate-400">○</span> Unattempted: 0.00 Mark</span>
+                    </div>
                 </div>
 
-                <!-- ========================================================= -->
-                <!-- DESKTOP VIEW (>= lg): Authentic Question Booklet + OMR    -->
-                <!-- ========================================================= -->
-                <div class="hidden lg:grid lg:grid-cols-12 gap-6">
-                    
-                    <!-- Left: Authentic Kerala PSC Question Booklet (Non-clickable) (7 cols) -->
-                    <div class="lg:col-span-7 space-y-4">
-                        <div class="bg-slate-100 p-3 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 flex items-center justify-between font-mono">
-                            <span class="tracking-wide">📖 KERALA PUBLIC SERVICE COMMISSION — QUESTION BOOKLET</span>
-                            <span class="text-[10px] uppercase bg-white px-2 py-0.5 rounded border border-slate-300 text-slate-700 font-sans">Series A</span>
-                        </div>
-
-                        <div class="space-y-4 max-h-[620px] overflow-y-auto pr-2">
-                            <template x-for="(q, idx) in omrQuestions" :key="q.id">
-                                <div class="p-4 rounded-xl border border-slate-200 bg-white shadow-xs">
-                                    <!-- Question Number + Text -->
-                                    <div class="flex items-start gap-2.5">
-                                        <span class="font-bold text-slate-900 text-sm shrink-0 font-serif" x-text="(idx + 1) + '.'"></span>
-                                        <div class="space-y-1 flex-1">
-                                            <template x-if="q.question_text_malayalam">
-                                                <p class="text-sm font-bold text-slate-950 leading-relaxed font-['Noto_Sans_Malayalam']" x-text="q.question_text_malayalam"></p>
-                                            </template>
-                                            <template x-if="q.question_text">
-                                                <p class="text-xs sm:text-sm font-semibold text-slate-800 leading-snug font-['Outfit']" x-text="q.question_text"></p>
-                                            </template>
-                                            
-                                            <!-- Authentic 2-column ordinary question options (NON-CLICKABLE) -->
-                                            <div class="grid grid-cols-2 gap-x-6 gap-y-2 mt-2.5 pt-2 border-t border-dashed border-slate-200 text-xs text-slate-900 font-['Noto_Sans_Malayalam']">
-                                                <template x-for="opt in getQuestionOptions(q)" :key="opt.key">
-                                                    <div class="flex items-start gap-1.5 py-0.5 select-text">
-                                                        <span class="font-bold text-slate-900 shrink-0" x-text="'(' + opt.key + ')'"></span>
-                                                        <span class="leading-relaxed text-slate-900" x-text="opt.text"></span>
-                                                    </div>
-                                                </template>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-
-                    <!-- Right: Authentic Kerala PSC OMR Bubble Grid (5 cols on lg) -->
-                    <div class="lg:col-span-5">
-                        <div class="sticky top-24 bg-[#FAFBFD] border-2 border-dashed border-slate-400/80 rounded-2xl p-4 sm:p-5 font-mono shadow-sm">
-                            
-                            <!-- OMR Top Banner -->
-                            <div class="border-b-2 border-slate-300 pb-2 mb-4 text-center">
-                                <div class="text-[11px] font-bold text-slate-800 uppercase tracking-wider">KERALA PUBLIC SERVICE COMMISSION</div>
-                                <div class="text-[9px] text-slate-500 uppercase">OFFICIAL OBJECTIVE OMR SHEET</div>
-                                <div class="flex items-center justify-between text-[10px] text-slate-600 mt-1 font-bold">
-                                    <span>SERIES: <strong>A</strong></span>
-                                    <span>BUBBLED: <strong class="text-[#0052FF]" x-text="Object.keys(omrAnswers).length + ' / ' + omrQuestions.length"></strong></span>
-                                </div>
+                <!-- OMR Questions: Grouped Single-Page Layout (All 5 Questions Together, No Pagination) -->
+                <div class="bg-white rounded-3xl border-2 border-slate-300 p-4 sm:p-8 shadow-sm divide-y divide-slate-200">
+                    <template x-for="(q, qIdx) in currentUnit.questions" :key="q.id">
+                        <div class="py-6 first:pt-2 last:pb-2">
+                            <div class="flex items-start justify-between gap-3 mb-2">
+                                <span class="px-2.5 py-1 rounded-lg text-xs font-black font-mono bg-slate-100 text-slate-800 border border-slate-200">
+                                    Q<span x-text="qIdx + 1"></span>
+                                </span>
+                                
+                                <!-- Status indicator pill -->
+                                <span 
+                                    :class="omrAnswers[q.id] ? 'bg-blue-50 text-[#0052FF] border-blue-200' : 'bg-slate-100 text-slate-500 border-slate-200'"
+                                    class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border font-mono"
+                                    x-text="omrAnswers[q.id] ? ('Answered: [' + omrAnswers[q.id] + ']') : 'Unanswered'"
+                                ></span>
                             </div>
 
-                            <!-- Bubble Rows -->
-                            <div class="space-y-2.5 max-h-[440px] overflow-y-auto pr-1">
-                                <template x-for="(q, idx) in omrQuestions" :key="q.id">
-                                    <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-200/90 shadow-xs hover:border-blue-400 transition">
-                                        <!-- Question Number -->
-                                        <span class="text-xs font-black text-slate-800 w-6" x-text="(idx + 1) < 10 ? '0' + (idx + 1) : (idx + 1)"></span>
-                                        
-                                        <!-- Bubble Options A B C D (Touch targets) -->
-                                        <div class="flex items-center gap-2 sm:gap-2.5">
-                                            <template x-for="opt in ['A', 'B', 'C', 'D']" :key="opt">
-                                                <button 
-                                                    @click="fillOmrBubble(q.id, opt)"
-                                                    class="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 flex items-center justify-center text-[11px] font-bold transition-all duration-150 active:scale-90"
-                                                    :class="omrAnswers[q.id] === opt ? 'bg-slate-900 border-slate-950 text-white shadow-inner scale-105 ring-1 ring-slate-950' : 'bg-white border-slate-400 text-slate-700 hover:border-slate-800 hover:bg-slate-50'"
-                                                    :title="'Question ' + (idx + 1) + ' Option ' + opt"
-                                                >
-                                                    <span x-text="opt"></span>
-                                                </button>
-                                            </template>
-                                        </div>
+                            <!-- Question Stems in Malayalam & English -->
+                            <div class="space-y-1 mb-4">
+                                <template x-if="q.question_text_malayalam">
+                                    <p class="text-sm sm:text-base font-bold text-slate-950 font-['Noto_Sans_Malayalam'] leading-relaxed" x-text="q.question_text_malayalam"></p>
+                                </template>
+                                <p class="text-xs sm:text-sm font-semibold text-slate-700 leading-relaxed" x-text="q.question_text"></p>
+                            </div>
 
-                                        <!-- Clear / Erase Button -->
-                                        <button 
-                                            @click="clearOmrBubble(q.id)" 
-                                            x-show="omrAnswers[q.id]"
-                                            class="text-slate-300 hover:text-red-500 text-xs transition p-1"
-                                            title="Erase bubble"
-                                        >
-                                            ✕
-                                        </button>
-                                        <span x-show="!omrAnswers[q.id]" class="w-4"></span>
+                            <!-- Options Texts (A, B, C, D) -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-medium text-slate-800 mb-4 pl-1">
+                                <template x-for="opt in getQuestionOptions(q)" :key="opt.key">
+                                    <div class="flex items-start gap-1.5">
+                                        <span class="font-black font-mono text-slate-500" x-text="'(' + opt.key + ')'"></span>
+                                        <span x-text="opt.text"></span>
                                     </div>
                                 </template>
                             </div>
 
-                            <!-- OMR Micro Instructions -->
-                            <div class="mt-4 pt-3 border-t border-slate-200 text-[9px] text-slate-500 leading-tight space-y-1">
-                                <p>⚠️ Darken circles on this OMR sheet with black pen ink simulation.</p>
-                                <p>⚠️ Kerala PSC penalty: <strong>-0.33 marks</strong> for wrong bubbles.</p>
-                            </div>
-
-                            <!-- Submit OMR Button -->
-                            <div class="mt-5">
+                            <!-- Authentic Clickable OMR Bubble Selectors: [Ⓐ] [Ⓑ] [Ⓒ] [Ⓓ] -->
+                            <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
+                                <span class="text-[11px] font-black uppercase text-slate-500 tracking-wider font-mono">
+                                    OMR Bubble:
+                                </span>
+                                <div class="flex items-center gap-3 sm:gap-6">
+                                    <template x-for="optKey in ['A', 'B', 'C', 'D']" :key="optKey">
+                                        <button 
+                                            type="button"
+                                            @click="selectOmrBubble(q.id, optKey)"
+                                            :disabled="omrSubmitted"
+                                            :class="{
+                                                'bg-white text-slate-800 border-2 border-slate-400 hover:border-[#0052FF] hover:scale-105': omrAnswers[q.id] !== optKey,
+                                                'bg-slate-950 text-white border-2 border-slate-950 shadow-md ring-2 ring-blue-500 scale-110': omrAnswers[q.id] === optKey
+                                            }"
+                                            class="w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center font-black text-sm transition-all duration-150 cursor-pointer select-none active:scale-95"
+                                            :title="'Mark bubble ' + optKey"
+                                        >
+                                            <span x-text="optKey"></span>
+                                        </button>
+                                    </template>
+                                </div>
                                 <button 
-                                    @click="submitOmrSheet()"
-                                    :disabled="isSubmittingOmr"
-                                    class="w-full py-3.5 px-4 bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-black text-sm rounded-xl shadow-lg transition flex items-center justify-center gap-2 border-2 border-yellow-400"
+                                    type="button" 
+                                    x-show="omrAnswers[q.id] && !omrSubmitted"
+                                    @click="clearOmrBubble(q.id)"
+                                    class="text-[10px] font-bold text-slate-400 hover:text-red-600 underline cursor-pointer"
                                 >
-                                    <span x-show="!isSubmittingOmr">SUBMIT OMR SHEET 📝</span>
-                                    <span x-show="isSubmittingOmr" class="flex items-center gap-2">
-                                        <span class="w-4 h-4 border-2 border-white border-t-yellow-400 rounded-full animate-spin"></span>
-                                        <span>Calculating Rank Score...</span>
-                                    </span>
+                                    Clear
                                 </button>
                             </div>
 
-                        </div>
-                    </div>
-
-                </div>
-
-            </div>
-        </div>
-
-        <!-- ============================================================= -->
-        <!-- PHASE 5: SESSION SUMMARY & LOCAL RANK BADGE                   -->
-        <!-- ============================================================= -->
-        <div x-show="currentPhase === 'summary'" x-transition:enter="transition ease-out duration-300 transform opacity-0 scale-98" x-transition:enter-end="opacity-100 scale-100">
-            <div class="bg-white rounded-3xl border-2 border-blue-200 shadow-2xl p-6 sm:p-10 relative overflow-hidden">
-                
-                <!-- Celebratory Fanfare Banner -->
-                <div class="text-center max-w-xl mx-auto mb-8">
-                    <div class="w-20 h-20 rounded-3xl bg-gradient-to-tr from-yellow-400 to-amber-500 text-slate-950 flex items-center justify-center text-4xl mx-auto mb-4 shadow-lg shadow-yellow-400/30 animate-bounce">
-                        🏆
-                    </div>
-                    <span class="px-3 py-1 bg-blue-50 text-[#0052FF] text-xs font-black uppercase tracking-wider rounded-full border border-blue-200">
-                        Session Complete
-                    </span>
-                    <h2 class="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight mt-2">
-                        അഭിനന്ദനങ്ങൾ! Session Mastered!
-                    </h2>
-                    <p class="text-sm sm:text-base font-bold text-[#0052FF] mt-1 font-['Noto_Sans_Malayalam']">
-                        നവോത്ഥാന ചരിത്രത്തിലെ നിർണ്ണായക ചോദ്യങ്ങൾ നിങ്ങൾ പൂർത്തിയാക്കി!
-                    </p>
-                </div>
-
-                <!-- Rank Badge Card -->
-                <template x-if="omrSummary">
-                    <div class="max-w-md mx-auto mb-8 p-6 rounded-2xl bg-gradient-to-br from-slate-900 to-blue-950 text-white text-center shadow-xl border-2 border-yellow-400 relative">
-                        <span class="text-[10px] uppercase font-bold tracking-widest text-slate-400 block mb-1">Earned Session Rank Badge</span>
-                        <div class="text-2xl sm:text-3xl font-black text-yellow-300" x-text="omrSummary.rank_badge"></div>
-                        
-                        <div class="grid grid-cols-3 gap-3 mt-5 pt-4 border-t border-slate-800 text-center">
-                            <div>
-                                <div class="text-[10px] text-slate-400 uppercase font-bold">Net Marks</div>
-                                <div class="text-lg font-black font-mono text-emerald-400" x-text="omrSummary.net_marks + ' / ' + omrSummary.max_marks"></div>
-                            </div>
-                            <div>
-                                <div class="text-[10px] text-slate-400 uppercase font-bold">Accuracy</div>
-                                <div class="text-lg font-black font-mono text-yellow-400" x-text="omrSummary.accuracy + '%'"></div>
-                            </div>
-                            <div>
-                                <div class="text-[10px] text-slate-400 uppercase font-bold">Total XP</div>
-                                <div class="text-lg font-black font-mono text-amber-300" x-text="'+' + totalXpEarned"></div>
-                            </div>
-                        </div>
-                    </div>
-                </template>
-
-                <!-- Detailed 4-Phase Score Breakdown Matrix -->
-                <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-8">
-                    <!-- Phase 1 Breakdown -->
-                    <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50 text-center">
-                        <span class="text-xs font-black uppercase text-slate-500 block">1. Diagnostic</span>
-                        <div class="text-lg font-black mt-1" :class="diagnosticState.isCorrect ? 'text-emerald-600' : 'text-amber-600'">
-                            <span x-text="diagnosticState.isCorrect ? '+50 XP' : 'Trap Avoided'"></span>
-                        </div>
-                        <span class="text-[10px] text-slate-500 font-bold" x-text="diagnosticState.isCorrect ? 'First Strike Ace' : 'Learned Trap'"></span>
-                    </div>
-
-                    <!-- Phase 2 Breakdown -->
-                    <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50 text-center">
-                        <span class="text-xs font-black uppercase text-slate-500 block">2. Micro-Lesson</span>
-                        <div class="text-lg font-black text-blue-600 mt-1">Completed</div>
-                        <span class="text-[10px] text-slate-500 font-bold" x-text="contents.length + ' Media Blocks'"></span>
-                    </div>
-
-                    <!-- Phase 3 Breakdown -->
-                    <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50 text-center">
-                        <span class="text-xs font-black uppercase text-slate-500 block">3. Speed Blitz</span>
-                        <div class="text-lg font-black text-emerald-600 mt-1" x-text="blitzCorrectCount + ' / ' + reinforcement.length"></div>
-                        <span class="text-[10px] text-slate-500 font-bold">Speed Multipliers</span>
-                    </div>
-
-                    <!-- Phase 4 Breakdown -->
-                    <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50 text-center">
-                        <span class="text-xs font-black uppercase text-slate-500 block">4. Final OMR</span>
-                        <template x-if="omrSummary">
-                            <div class="text-lg font-black text-[#0052FF] mt-1" x-text="omrSummary.net_marks + ' pts'"></div>
-                        </template>
-                        <span class="text-[10px] text-slate-500 font-bold">Strict PSC Marking</span>
-                    </div>
-                </div>
-
-                <!-- OMR Question Detailed Review Accordion / List -->
-                <template x-if="omrDetails && omrDetails.length > 0">
-                    <div class="border-t border-slate-200 pt-6 mb-8">
-                        <h3 class="text-base font-black text-slate-900 mb-4 flex items-center gap-2">
-                            <span>📝 OMR Answer Key & Trap Breakdown</span>
-                        </h3>
-
-                        <div class="space-y-3">
-                            <template x-for="(item, idx) in omrDetails" :key="item.id">
-                                <div 
-                                    class="p-4 rounded-xl border transition-all"
-                                    :class="item.is_correct ? 'bg-emerald-50/70 border-emerald-300' : (item.is_attempted ? 'bg-red-50/70 border-red-300' : 'bg-slate-50 border-slate-300')"
-                                >
-                                    <div class="flex items-start justify-between gap-3">
-                                        <div class="flex items-start gap-2">
-                                            <span class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5" :class="item.is_correct ? 'bg-emerald-600 text-white' : (item.is_attempted ? 'bg-red-600 text-white' : 'bg-slate-400 text-white')" x-text="idx + 1"></span>
-                                            <div>
-                                                <p class="text-xs sm:text-sm font-bold text-slate-900 font-['Outfit']" x-text="item.question_text"></p>
-                                                <template x-if="item.question_text_malayalam">
-                                                    <p class="text-xs sm:text-sm font-semibold text-[#0052FF] mt-0.5 font-['Noto_Sans_Malayalam']" x-text="item.question_text_malayalam"></p>
-                                                </template>
-                                            </div>
-                                        </div>
-
-                                        <!-- Marks delta badge -->
-                                        <div class="text-right shrink-0">
-                                            <span 
-                                                class="px-2 py-0.5 rounded text-[11px] font-black"
-                                                :class="item.is_correct ? 'bg-emerald-200 text-emerald-950' : (item.is_attempted ? 'bg-red-200 text-red-950' : 'bg-slate-200 text-slate-700')"
-                                                x-text="item.is_correct ? '+1.00' : (item.is_attempted ? '-0.33' : '0.00')"
-                                            ></span>
-                                        </div>
+                            <!-- Post Submission Instant Evaluation Feedback per Question -->
+                            <template x-if="omrSubmitted && omrResults">
+                                <div class="mt-3 p-3.5 rounded-xl border text-xs leading-relaxed" :class="omrResults.questions[qIdx]?.is_correct ? 'bg-emerald-50 border-emerald-300 text-emerald-950' : 'bg-red-50 border-red-300 text-red-950'">
+                                    <div class="flex items-center justify-between font-black mb-1">
+                                        <span x-text="omrResults.questions[qIdx]?.is_correct ? '✓ Correct Mark (+1.00)' : (omrResults.questions[qIdx]?.is_attempted ? '✗ Incorrect Mark (-0.33 Penalty)' : '○ Unattempted (0.00)')"></span>
+                                        <span class="font-mono text-[11px]" x-text="'Correct: Option ' + q.correct_option"></span>
                                     </div>
-
-                                    <div class="mt-2 text-xs flex flex-wrap items-center gap-4 text-slate-600">
-                                        <span>Your Bubble: <strong :class="item.is_correct ? 'text-emerald-700' : 'text-red-700'" x-text="item.user_answer || 'Unattempted'"></strong></span>
-                                        <span>Correct Answer: <strong class="text-emerald-800" x-text="item.correct_answer"></strong></span>
-                                    </div>
-
-                                    <!-- Trap warning if wrong -->
-                                    <template x-if="!item.is_correct && item.trap_warning">
-                                        <div class="mt-2 p-2 bg-amber-100/80 rounded-lg text-[11px] font-bold text-amber-950 font-['Noto_Sans_Malayalam']">
-                                            ⚠️ <strong>PSC Trap:</strong> <span x-text="item.trap_warning"></span>
-                                        </div>
+                                    <p class="text-xs" x-text="q.explanation"></p>
+                                    <template x-if="q.explanation_malayalam">
+                                        <p class="font-['Noto_Sans_Malayalam'] mt-1 pt-1 border-t border-black/10" x-text="q.explanation_malayalam"></p>
                                     </template>
                                 </div>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Post Submission Score Card & Rank Badge -->
+                <template x-if="omrSubmitted && omrResults">
+                    <div class="bg-white rounded-3xl border-2 border-emerald-400 p-6 sm:p-8 shadow-xl text-center">
+                        <div class="w-16 h-16 rounded-3xl bg-gradient-to-tr from-emerald-500 to-emerald-600 text-white flex items-center justify-center text-3xl mx-auto mb-3 shadow-lg shadow-emerald-500/20">
+                            🎯
+                        </div>
+                        <span class="px-3 py-1 rounded-full text-xs font-black uppercase bg-emerald-100 text-emerald-900 border border-emerald-300" x-text="omrResults.summary.rank_badge"></span>
+                        
+                        <h3 class="text-2xl sm:text-3xl font-black text-slate-950 mt-2">
+                            Session Final Score: <span class="text-[#0052FF]" x-text="omrResults.summary.net_marks.toFixed(2)"></span> / <span x-text="omrResults.summary.max_marks.toFixed(2)"></span>
+                        </h3>
+                        <p class="text-xs font-bold text-slate-500 mt-1">
+                            Marks added to your Cumulative Track Ledger!
+                        </p>
+
+                        <!-- Score Breakdown Grid -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 my-6 max-w-lg mx-auto">
+                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                                <div class="text-[10px] font-bold text-slate-500 uppercase">Correct (+1)</div>
+                                <div class="text-lg font-black text-emerald-600" x-text="omrResults.summary.correct"></div>
+                            </div>
+                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                                <div class="text-[10px] font-bold text-slate-500 uppercase">Wrong (-0.33)</div>
+                                <div class="text-lg font-black text-red-600" x-text="omrResults.summary.wrong"></div>
+                            </div>
+                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                                <div class="text-[10px] font-bold text-slate-500 uppercase">Unattempted</div>
+                                <div class="text-lg font-black text-slate-600" x-text="omrResults.summary.unattempted"></div>
+                            </div>
+                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                                <div class="text-[10px] font-bold text-slate-500 uppercase">Accuracy</div>
+                                <div class="text-lg font-black text-[#0052FF]" x-text="omrResults.summary.accuracy + '%'"></div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons after OMR Submission -->
+                        <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+                            <button 
+                                type="button" 
+                                @click="confirmRetake()"
+                                class="w-full sm:w-auto px-5 py-3 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-100 transition cursor-pointer"
+                            >
+                                ↺ Retake Session
+                            </button>
+                            <template x-if="nextSessionUrl">
+                                <a 
+                                    :href="nextSessionUrl" 
+                                    class="w-full sm:w-auto px-6 py-3 rounded-xl bg-[#0052FF] hover:bg-blue-700 text-white font-black text-xs shadow-md transition flex items-center justify-center gap-2"
+                                >
+                                    <span>Proceed to Next Session (CONTINUE TO NEXT UNIT) ➔</span>
+                                </a>
+                            </template>
+                            <template x-if="!nextSessionUrl">
+                                <a 
+                                    href="{{ route('sessions.index') }}" 
+                                    class="w-full sm:w-auto px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md transition flex items-center justify-center gap-2"
+                                >
+                                    <span>🎉 Track Completed! View All Tracks ➔</span>
+                                </a>
                             </template>
                         </div>
                     </div>
                 </template>
 
-                <!-- Sequential Unit Navigation CTAs: Previous Unit, Retake, and Next Unit -->
-                <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-slate-200">
-                    <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                        @if($previousSession)
-                            <a 
-                                href="{{ route('session.show', ['slug' => $previousSession->slug, 'stream' => $stream]) }}" 
-                                class="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs sm:text-sm rounded-xl transition flex items-center justify-center gap-1.5 border border-slate-300"
-                            >
-                                <span>← Prev Unit ({{ Str::limit($previousSession->title, 18) }})</span>
-                            </a>
-                        @endif
-
-                        <button 
-                            @click="restartSession()" 
-                            class="px-5 py-3.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-blue-500/25 transition flex items-center justify-center gap-2 border border-blue-400 active:scale-95 cursor-pointer"
-                            title="Reset all questions and restart this unit from Phase 1"
-                        >
-                            <span class="text-base">🔄</span>
-                            <span>RETAKE SESSION (വീണ്ടും ചെയ്യുക)</span>
-                        </button>
-
-                        <a 
-                            href="{{ route('sessions.index', ['stream' => $stream]) }}" 
-                            class="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs sm:text-sm rounded-xl transition text-center"
-                        >
-                            All Units
-                        </a>
-                    </div>
-
-                    <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
-                        @if($nextSession)
-                            <a 
-                                href="{{ route('session.show', ['slug' => $nextSession->slug, 'stream' => $stream]) }}" 
-                                class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-[#0052FF] via-blue-600 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-black text-sm sm:text-base rounded-2xl shadow-xl shadow-blue-500/30 transition text-center flex items-center justify-center gap-2 border-2 border-yellow-400 group active:scale-95 animate-pulse"
-                            >
-                                <span>CONTINUE TO NEXT UNIT ➔</span>
-                                <span class="text-yellow-300 group-hover:translate-x-1.5 transition-transform font-bold text-xs">
-                                    ({{ Str::limit($nextSession->title, 22) }})
-                                </span>
-                            </a>
-                        @else
-                            <a 
-                                href="{{ route('sessions.index') }}" 
-                                class="w-full sm:w-auto px-8 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm rounded-xl shadow-lg transition text-center flex items-center justify-center gap-2"
-                            >
-                                <span>🎉 CURRICULUM MASTERED! VIEW ALL UNITS</span>
-                            </a>
-                        @endif
-                    </div>
-                </div>
-
             </div>
-        </div>
-        @endif
+        </template>
 
     </div>
+
+    <!-- ===================================================================== -->
+    <!-- STRICT CONTEXT-AWARE NAVIGATION (SINGLE UNIFIED BOTTOM BAR)           -->
+    <!-- Rule 3: Only ONE unified control bar at bottom.                       -->
+    <!-- Unit Scoping: Hide/disable all session-level buttons during units.     -->
+    <!-- Gated Progression: Unlock Next Session ONLY after OMR submission!    -->
+    <!-- ===================================================================== -->
+    <div class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-2xl py-3 px-4 sm:px-8">
+        <div class="max-w-4xl mx-auto flex items-center justify-between gap-3">
+
+            <!-- Left: Previous Unit Button -->
+            <div>
+                <button 
+                    type="button"
+                    @click="prevUnit()"
+                    :disabled="activeUnitIdx === 0"
+                    :class="activeUnitIdx === 0 ? 'opacity-30 cursor-not-allowed text-slate-400 bg-slate-100 border-slate-200' : 'text-slate-800 bg-white hover:bg-slate-100 border-slate-300 cursor-pointer shadow-2xs'"
+                    class="px-4 py-2.5 rounded-xl border text-xs font-black transition flex items-center gap-1.5"
+                >
+                    <span>← Previous Unit</span>
+                </button>
+            </div>
+
+            <!-- Center: Step Context & Score Display -->
+            <div class="text-center hidden sm:block">
+                <template x-if="!currentUnit.is_omr_unit">
+                    <div>
+                        <div class="text-[11px] font-black uppercase text-slate-800 tracking-wider">
+                            Unit <span x-text="activeUnitIdx + 1"></span> of <span x-text="units.length"></span>
+                        </div>
+                        <div class="text-[10px] text-slate-500 font-bold truncate max-w-xs" x-text="currentUnit.title"></div>
+                    </div>
+                </template>
+                <template x-if="currentUnit.is_omr_unit && !omrSubmitted">
+                    <div class="text-xs font-black text-amber-700 animate-pulse">
+                        📝 Submit OMR Sheet to unlock next session
+                    </div>
+                </template>
+                <template x-if="currentUnit.is_omr_unit && omrSubmitted">
+                    <div class="text-xs font-black text-emerald-700">
+                        ✓ OMR Evaluated • Marks Added to Track!
+                    </div>
+                </template>
+            </div>
+
+            <!-- Right: Next Unit OR Submit OMR OR Next Session (Gated) -->
+            <div>
+                <!-- If on Content Units (1..N-1): Next Unit Button -->
+                <template x-if="activeUnitIdx < units.length - 1">
+                    <button 
+                        type="button"
+                        @click="nextUnit()"
+                        class="px-5 py-2.5 rounded-xl bg-[#0052FF] hover:bg-blue-700 text-white font-black text-xs shadow-md transition flex items-center gap-1.5 cursor-pointer"
+                    >
+                        <span>Next Unit →</span>
+                    </button>
+                </template>
+
+                <!-- If on Final OMR Unit AND not yet submitted: Submit OMR Sheet Button -->
+                <template x-if="currentUnit.is_omr_unit && !omrSubmitted">
+                    <button 
+                        type="button"
+                        @click="submitOmrSheet()"
+                        :disabled="isSubmittingOmr"
+                        class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white font-black text-xs shadow-lg transition flex items-center gap-2 cursor-pointer disabled:opacity-50 active:scale-95"
+                    >
+                        <span x-show="!isSubmittingOmr">Submit OMR Sheet 📝</span>
+                        <span x-show="isSubmittingOmr" class="flex items-center gap-1">
+                            <span class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                            <span>Evaluating Marks...</span>
+                        </span>
+                    </button>
+                </template>
+
+                <!-- If on Final OMR Unit AND submitted: Next Session Unlocked! -->
+                <template x-if="currentUnit.is_omr_unit && omrSubmitted">
+                    <div>
+                        <template x-if="nextSessionUrl">
+                            <a 
+                                :href="nextSessionUrl"
+                                class="px-6 py-2.5 rounded-xl bg-[#0052FF] hover:bg-blue-700 text-white font-black text-xs shadow-md transition flex items-center gap-1.5"
+                            >
+                                <span>Next Session ➔</span>
+                            </a>
+                        </template>
+                        <template x-if="!nextSessionUrl">
+                            <a 
+                                href="{{ route('sessions.index') }}"
+                                class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md transition flex items-center gap-1.5"
+                            >
+                                <span>Track Complete 🏆</span>
+                            </a>
+                        </template>
+                    </div>
+                </template>
+            </div>
+
+            @if($nextSession)
+                <a href="{{ route('session.show', ['slug' => $nextSession->slug, 'stream' => $stream]) }}" class="hidden psc-next-session-server-link" aria-hidden="true">{{ route('session.show', ['slug' => $nextSession->slug, 'stream' => $stream]) }}</a>
+            @endif
+            @if($previousSession)
+                <a href="{{ route('session.show', ['slug' => $previousSession->slug, 'stream' => $stream]) }}" class="hidden psc-prev-session-server-link" aria-hidden="true">{{ route('session.show', ['slug' => $previousSession->slug, 'stream' => $stream]) }}</a>
+            @endif
+
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- CUMULATIVE SCORE LEDGER MODAL / DRAWER                                -->
+    <!-- ===================================================================== -->
+    <div 
+        x-show="showLedgerModal" 
+        x-cloak 
+        class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
+    >
+        <div 
+            @click.away="showLedgerModal = false"
+            class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 border border-slate-200 relative"
+        >
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl">🏆</span>
+                    <div>
+                        <h3 class="text-base font-black text-slate-950">Track Cumulative Score Ledger</h3>
+                        <p class="text-[11px] font-bold text-slate-500" x-text="ledger.track_name"></p>
+                    </div>
+                </div>
+                <button type="button" @click="showLedgerModal = false" class="text-slate-400 hover:text-slate-600 text-xl font-bold cursor-pointer">&times;</button>
+            </div>
+
+            <!-- Ledger Summary Card -->
+            <div class="my-4 p-4 rounded-2xl bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-300 flex items-center justify-between">
+                <div>
+                    <div class="text-[10px] font-black uppercase text-amber-800">Total Track Marks</div>
+                    <div class="text-xl font-black text-amber-950 font-mono">
+                        <span x-text="ledger.cumulative_score.toFixed(2)"></span> / <span x-text="ledger.cumulative_max.toFixed(2)"></span>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-[10px] font-bold text-amber-800">Track Completion</div>
+                    <div class="text-sm font-black text-amber-900 font-mono" x-text="ledger.completed_sessions + ' / ' + ledger.total_sessions + ' Sessions'"></div>
+                </div>
+            </div>
+
+            <!-- Individual Session Scores Breakdown -->
+            <div class="space-y-2 max-h-64 overflow-y-auto pr-1">
+                <template x-for="(s, sIdx) in ledger.sessions" :key="s.session_id">
+                    <div 
+                        class="p-3 rounded-xl border flex items-center justify-between text-xs"
+                        :class="s.is_current ? 'bg-blue-50/70 border-blue-300' : (s.is_completed ? 'bg-slate-50 border-slate-200' : 'bg-slate-50/40 border-slate-200 opacity-60')"
+                    >
+                        <div class="flex items-center gap-2 min-w-0 pr-2">
+                            <span 
+                                class="w-5 h-5 rounded-full flex items-center justify-center font-black text-[10px]"
+                                :class="s.is_completed ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-600'"
+                                x-text="s.is_completed ? '✓' : (sIdx + 1)"
+                            ></span>
+                            <div class="min-w-0">
+                                <div class="font-bold text-slate-900 truncate" x-text="s.session_title"></div>
+                                <div class="text-[10px] text-slate-500" x-text="s.is_current ? 'Current Session' : (s.is_completed ? 'Completed' : 'Not Attempted')"></div>
+                            </div>
+                        </div>
+                        <div class="text-right shrink-0 font-mono">
+                            <template x-if="s.net_marks !== null">
+                                <span class="font-black text-slate-900" x-text="s.net_marks.toFixed(2) + ' / ' + s.max_marks.toFixed(2)"></span>
+                            </template>
+                            <template x-if="s.net_marks === null">
+                                <span class="text-slate-400 font-medium">—</span>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <div class="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+                <span class="text-[11px] text-slate-500 font-medium">Running total calculates live on submission</span>
+                <button 
+                    type="button" 
+                    @click="showLedgerModal = false"
+                    class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition cursor-pointer"
+                >
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
 @endif
 </div>
 
 @push('scripts')
 <script>
-function sessionEngine(config) {
+function modularTrackEngine(config) {
     return {
         sessionId: config.sessionId,
+        sessionSlug: config.sessionSlug,
         sessionTitle: config.sessionTitle,
         sessionTitleMl: config.sessionTitleMl,
         xpReward: config.xpReward,
-        categoryName: config.categoryName,
-        diagnostic: config.diagnostic,
-        contents: config.contents || [],
-        reinforcement: config.reinforcement || [],
-        omrQuestions: config.omrQuestions || [],
-        progressSaveUrl: config.progressSaveUrl,
+        units: config.units || [],
+        activeUnitIdx: 0,
+        ledger: config.cumulativeLedger || { cumulative_score: 0, cumulative_max: 0, cumulative_percentage: 0, completed_sessions: 0, total_sessions: 1, sessions: [] },
+        nextSessionUrl: config.nextSessionUrl,
+        previousSessionUrl: config.previousSessionUrl,
         omrSubmitUrl: config.omrSubmitUrl,
+        retakeUrl: config.retakeUrl,
         csrfToken: config.csrfToken,
 
-        // State Machine
-        currentPhase: 'diagnostic', // 'diagnostic' -> 'lesson' -> 'reinforcement' -> 'omr' -> 'summary'
-        phaseUnlocked: {
-            diagnostic: true,
-            lesson: false,
-            reinforcement: false,
-            omr: false,
-        },
-        sessionCompleted: false,
-
-        // Overall Session Metrics
-        totalSessionSeconds: 0,
-        sessionTimerInterval: null,
-        totalXpEarned: 0,
-
-        // Phase 1: Diagnostic State
-        diagnosticState: {
-            answered: false,
-            selectedOption: null,
-            isCorrect: false,
-        },
-
-        // Phase 2: Audio Player State
-        activeAudioId: null,
-
-        // Phase 3: Speed Blitz State
-        blitzIndex: 0,
-        blitzTimer: 20,
-        blitzTimerInterval: null,
-        blitzAnswered: false,
-        blitzSelectedOption: null,
-        blitzIsCorrect: false,
-        blitzUnderTenSec: false,
-        blitzCorrectCount: 0,
-
-        // Phase 4: OMR Grid State
-        omrAnswers: {},
-        omrActiveIndex: 0,
-        mobileOmrView: 'slide', // 'slide' (compact slidable booklet) or 'all' (full list)
-        touchStartX: 0,
+        // Modals & States
+        showLedgerModal: false,
+        isRetaking: false,
         isSubmittingOmr: false,
-        omrSummary: null,
-        omrDetails: [],
+        omrSubmitted: false,
+        omrResults: null,
 
-        initEngine() {
-            // Start total session timer
-            this.sessionTimerInterval = setInterval(() => {
-                this.totalSessionSeconds++;
-            }, 1000);
+        // Answers state
+        hookAnswers: {},
+        practiceAnswers: {},
+        omrAnswers: {},
 
-            // If no diagnostic question exists, directly unlock lesson
-            if (!this.diagnostic) {
-                this.phaseUnlocked.lesson = true;
-                this.currentPhase = 'lesson';
+        // Custom Audio Players State
+        audioPlaying: {},
+        audioProgress: {},
+        audioCurrentTimes: {},
+        audioDurations: {},
+        audioPlaybackRates: {},
+
+        get currentUnit() {
+            return this.units[this.activeUnitIdx] || { title: 'Unit', is_omr_unit: false, blocks: [], questions: [] };
+        },
+
+        initTrackEngine() {
+            if (config.previewMode === 'finished') {
+                this.adminViewFinished();
+                return;
             }
-        },
 
-        canJumpTo(phase) {
-            if (phase === 'diagnostic') return true;
-            return !!this.phaseUnlocked[phase];
-        },
-
-        setPhase(phase) {
-            if (this.canJumpTo(phase)) {
-                this.currentPhase = phase;
-                if (phase === 'reinforcement' && !this.blitzTimerInterval && this.reinforcement.length > 0) {
-                    this.startBlitzTimer();
+            // Check initial progress
+            if (config.initialProgress && (config.initialProgress.completed_at || config.initialProgress.net_marks !== null)) {
+                this.omrSubmitted = true;
+                if (!this.omrResults) {
+                    const omrUnit = this.units.find(u => u.is_omr_unit);
+                    const totalQs = omrUnit?.questions?.length || 5;
+                    this.omrResults = {
+                        success: true,
+                        summary: {
+                            net_marks: config.initialProgress.net_marks !== null ? Number(config.initialProgress.net_marks) : totalQs,
+                            max_marks: totalQs,
+                            correct: config.initialProgress.omr_score !== null ? Number(config.initialProgress.omr_score) : totalQs,
+                            wrong: 0,
+                            unattempted: 0,
+                            accuracy: 100
+                        }
+                    };
                 }
             }
         },
 
-        // -------------------------------------------------------------
-        // Phase 1: Diagnostic Logic
-        // -------------------------------------------------------------
-        answerDiagnostic(selectedOption) {
-            if (this.diagnosticState.answered || !this.diagnostic) return;
-
-            this.diagnosticState.answered = true;
-            this.diagnosticState.selectedOption = selectedOption;
-            const correctOpt = (this.diagnostic.correct_option || '').toUpperCase().trim();
-            this.diagnosticState.isCorrect = (selectedOption.toUpperCase().trim() === correctOpt);
-
-            if (this.diagnosticState.isCorrect) {
-                this.totalXpEarned += 50;
-                if (window.confetti) {
-                    window.confetti({
-                        particleCount: 80,
-                        spread: 70,
-                        origin: { y: 0.6 }
-                    });
-                }
-                if (window.PscSound) {
-                    window.PscSound.playCorrect();
-                }
-            } else {
-                if (window.PscSound) {
-                    window.PscSound.playWrong();
-                }
-            }
-
-            this.phaseUnlocked.lesson = true;
-            this.persistProgress('diagnostic', {
-                diagnostic_status: this.diagnosticState.isCorrect ? 'correct' : 'incorrect',
-                xp_earned: this.totalXpEarned,
-            });
+        adminViewProgress() {
+            this.omrSubmitted = false;
+            this.activeUnitIdx = 0;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         },
 
-        proceedToLesson() {
-            this.phaseUnlocked.lesson = true;
-            this.currentPhase = 'lesson';
-            this.persistProgress('lesson');
-            window.scrollTo({ top: 100, behavior: 'smooth' });
-        },
-
-        // -------------------------------------------------------------
-        // Phase 2: Multimedia Lesson Logic
-        // -------------------------------------------------------------
-        toggleAudio(id, url) {
-            const player = document.getElementById('audio-player-' + id);
-            if (!player) return;
-
-            if (this.activeAudioId === id && !player.paused) {
-                player.pause();
-                this.activeAudioId = null;
-            } else {
-                // Pause any other active audio
-                document.querySelectorAll('audio').forEach(a => a.pause());
-                player.play().catch(e => console.log('Audio playback error:', e));
-                this.activeAudioId = id;
-            }
-        },
-
-        isPlayingAudio(id) {
-            return this.activeAudioId === id;
-        },
-
-        isVideoEmbed(url) {
-            if (!url) return false;
-            return url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com');
-        },
-
-        getVideoEmbedUrl(url) {
-            if (!url) return '';
-            if (url.includes('youtube.com/watch?v=')) {
-                return url.replace('watch?v=', 'embed/');
-            }
-            if (url.includes('youtu.be/')) {
-                return url.replace('youtu.be/', 'youtube.com/embed/');
-            }
-            return url;
-        },
-
-        completeLessonAndProceed() {
-            // Stop any playing audio
-            document.querySelectorAll('audio').forEach(a => a.pause());
-            this.activeAudioId = null;
-
-            this.phaseUnlocked.reinforcement = true;
-            this.currentPhase = 'reinforcement';
-            this.startBlitzTimer();
-            this.persistProgress('reinforcement');
-            window.scrollTo({ top: 100, behavior: 'smooth' });
-        },
-
-        // -------------------------------------------------------------
-        // Phase 3: Speed Blitz Logic
-        // -------------------------------------------------------------
-        get currentBlitzQuestion() {
-            return this.reinforcement[this.blitzIndex] || null;
-        },
-
-        startBlitzTimer() {
-            clearInterval(this.blitzTimerInterval);
-            this.blitzTimer = 20;
-            this.blitzAnswered = false;
-            this.blitzSelectedOption = null;
-
-            this.blitzTimerInterval = setInterval(() => {
-                if (this.blitzTimer > 0) {
-                    this.blitzTimer--;
-                    if (this.blitzTimer <= 5 && window.PscSound) {
-                        window.PscSound.playTick();
+        adminViewFinished() {
+            const omrIdx = this.units.findIndex(u => u.is_omr_unit);
+            this.activeUnitIdx = omrIdx >= 0 ? omrIdx : (this.units.length - 1);
+            this.omrSubmitted = true;
+            if (!this.omrResults) {
+                const totalQs = (this.units[this.activeUnitIdx]?.questions?.length) || 5;
+                this.omrResults = {
+                    success: true,
+                    summary: {
+                        net_marks: Number(totalQs),
+                        max_marks: Number(totalQs),
+                        correct: Number(totalQs),
+                        wrong: 0,
+                        unattempted: 0,
+                        accuracy: 100
                     }
-                } else {
-                    // Time's up for current question
-                    clearInterval(this.blitzTimerInterval);
-                    this.answerBlitz(null);
-                }
-            }, 1000);
+                };
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         },
 
-        answerBlitz(option) {
-            if (this.blitzAnswered) return;
-
-            clearInterval(this.blitzTimerInterval);
-            this.blitzAnswered = true;
-            this.blitzSelectedOption = option;
-
-            const q = this.currentBlitzQuestion;
-            if (!q) return;
-
-            const correctOpt = (q.correct_option || '').toUpperCase().trim();
-            this.blitzIsCorrect = option && (option.toUpperCase().trim() === correctOpt);
-            this.blitzUnderTenSec = (20 - this.blitzTimer) <= 10;
-
-            if (this.blitzIsCorrect) {
-                this.blitzCorrectCount++;
-                const xpGain = this.blitzUnderTenSec ? 30 : 20; // 1.5x streak multiplier
-                this.totalXpEarned += xpGain;
-
-                if (window.PscSound) window.PscSound.playCorrect();
-                if (window.confetti && this.blitzUnderTenSec) {
-                    window.confetti({ particleCount: 35, spread: 50, origin: { y: 0.7 } });
-                }
-            } else {
-                if (window.PscSound) window.PscSound.playWrong();
+        // -------------------------------------------------------------
+        // Unit Navigation
+        // -------------------------------------------------------------
+        jumpToUnit(idx) {
+            if (idx >= 0 && idx < this.units.length) {
+                this.activeUnitIdx = idx;
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         },
 
-        nextBlitzQuestion() {
-            if (this.blitzIndex + 1 < this.reinforcement.length) {
-                this.blitzIndex++;
-                this.startBlitzTimer();
-            } else {
-                // Blitz finished! Unlock OMR Challenge
-                this.phaseUnlocked.omr = true;
-                this.currentPhase = 'omr';
-                this.persistProgress('omr', {
-                    reinforcement_score: this.blitzCorrectCount,
-                    xp_earned: this.totalXpEarned,
-                });
-                window.scrollTo({ top: 100, behavior: 'smooth' });
+        prevUnit() {
+            if (this.activeUnitIdx > 0) {
+                this.activeUnitIdx--;
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        },
+
+        nextUnit() {
+            if (this.activeUnitIdx < this.units.length - 1) {
+                this.activeUnitIdx++;
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         },
 
         // -------------------------------------------------------------
-        // Phase 4: OMR Sheet Simulation Logic
+        // MCQ Helpers (Hook Question & Practice Drill)
         // -------------------------------------------------------------
-        selectOmrQuestion(index) {
-            if (index >= 0 && index < this.omrQuestions.length) {
-                this.omrActiveIndex = index;
+        getQuestionOptions(data) {
+            if (data.options && Array.isArray(data.options) && data.options.length > 0) {
+                return data.options;
             }
+            return [
+                { key: 'A', text: data.option_a || 'Option A' },
+                { key: 'B', text: data.option_b || 'Option B' },
+                { key: 'C', text: data.option_c || 'Option C' },
+                { key: 'D', text: data.option_d || 'Option D' },
+            ];
         },
 
-        nextOmrQuestion() {
-            if (this.omrActiveIndex + 1 < this.omrQuestions.length) {
-                this.omrActiveIndex++;
-            }
+        selectHookAnswer(block, optKey) {
+            if (this.hookAnswers[block.id]?.answered) return;
+            const correctOpt = (block.content_data.correct_option || 'A').toUpperCase().trim();
+            const isCorrect = (optKey.toUpperCase().trim() === correctOpt);
+            this.hookAnswers[block.id] = {
+                answered: true,
+                selected: optKey,
+                isCorrect: isCorrect
+            };
         },
 
-        prevOmrQuestion() {
-            if (this.omrActiveIndex > 0) {
-                this.omrActiveIndex--;
-            }
+        selectPracticeAnswer(block, optKey) {
+            if (this.practiceAnswers[block.id]?.answered) return;
+            const correctOpt = (block.content_data.correct_option || 'A').toUpperCase().trim();
+            const isCorrect = (optKey.toUpperCase().trim() === correctOpt);
+            this.practiceAnswers[block.id] = {
+                answered: true,
+                selected: optKey,
+                isCorrect: isCorrect
+            };
         },
 
-        handleTouchStart(e) {
-            if (e.changedTouches && e.changedTouches[0]) {
-                this.touchStartX = e.changedTouches[0].screenX;
-            }
-        },
-
-        handleTouchEnd(e) {
-            if (!this.touchStartX || !e.changedTouches || !e.changedTouches[0]) return;
-            const diff = e.changedTouches[0].screenX - this.touchStartX;
-            if (diff > 45) this.prevOmrQuestion();
-            if (diff < -45) this.nextOmrQuestion();
-            this.touchStartX = 0;
-        },
-
-        fillOmrBubble(questionId, option) {
-            this.omrAnswers[questionId] = option;
-            if (window.PscSound) window.PscSound.playTick();
-
-            // Sync active index to this question
-            const qIdx = this.omrQuestions.findIndex(q => q.id === questionId);
-            if (qIdx !== -1) {
-                this.omrActiveIndex = qIdx;
-            }
+        // -------------------------------------------------------------
+        // OMR Sheet Logic
+        // -------------------------------------------------------------
+        selectOmrBubble(questionId, optKey) {
+            if (this.omrSubmitted) return;
+            this.omrAnswers[questionId] = optKey;
         },
 
         clearOmrBubble(questionId) {
+            if (this.omrSubmitted) return;
             delete this.omrAnswers[questionId];
         },
 
+        getAttemptedOmrCount() {
+            return Object.keys(this.omrAnswers).length;
+        },
+
         async submitOmrSheet() {
+            if (this.isSubmittingOmr || this.omrSubmitted) return;
             this.isSubmittingOmr = true;
 
             try {
@@ -2074,475 +1182,174 @@ function sessionEngine(config) {
                     },
                     body: JSON.stringify({
                         answers: this.omrAnswers,
-                        time_taken_seconds: this.totalSessionSeconds,
+                        time_taken_seconds: 60
                     })
                 });
 
                 const data = await response.json();
                 if (data.success) {
-                    this.omrSummary = data.summary;
-                    this.omrDetails = data.questions;
-                    this.sessionCompleted = true;
-                    const headerNextBtn = document.getElementById('headerNextUnitBtn');
-                    if (headerNextBtn) headerNextBtn.style.display = 'inline-flex';
-                    const headerRetakeBtn = document.getElementById('headerRetakeBtn');
-                    if (headerRetakeBtn) headerRetakeBtn.style.display = 'inline-flex';
-                    
-                    // Add net marks points into total XP
-                    const omrXp = Math.max(0, Math.round(data.summary.net_marks * 20));
-                    this.totalXpEarned += omrXp;
-
-                    this.currentPhase = 'summary';
-
-                    if (window.PscSound) window.PscSound.playFanfare();
-                    if (window.confetti) {
-                        window.confetti({
-                            particleCount: 150,
-                            spread: 100,
-                            origin: { y: 0.5 }
-                        });
+                    this.omrSubmitted = true;
+                    this.omrResults = data;
+                    if (data.cumulative_ledger) {
+                        this.ledger = data.cumulative_ledger;
                     }
 
-                    this.persistProgress('summary', {
-                        omr_score: data.summary.net_marks,
-                        net_marks: data.summary.net_marks,
-                        xp_earned: this.totalXpEarned,
-                        is_completed: true,
-                    });
-
-                    window.scrollTo({ top: 100, behavior: 'smooth' });
+                    // Trigger celebratory confetti if passed
+                    if (window.confetti && data.summary && data.summary.net_marks > 0) {
+                        window.confetti({
+                            particleCount: 80,
+                            spread: 70,
+                            origin: { y: 0.6 }
+                        });
+                    }
+                } else {
+                    alert(data.message || 'Submission error. Please try again.');
                 }
             } catch (err) {
-                console.error('OMR Submit Error:', err);
-                alert('Error submitting OMR sheet. Please try again.');
+                console.error('OMR submit error:', err);
+                alert('Connection error submitting OMR sheet. Please try again.');
             } finally {
                 this.isSubmittingOmr = false;
             }
         },
 
-        restartSession() {
-            this.currentPhase = this.diagnostic ? 'diagnostic' : 'lesson';
-            this.phaseUnlocked = {
-                diagnostic: true,
-                lesson: !this.diagnostic,
-                reinforcement: false,
-                omr: false,
-            };
-            this.sessionCompleted = false;
-            const headerNextBtn = document.getElementById('headerNextUnitBtn');
-            if (headerNextBtn) headerNextBtn.style.display = 'none';
-            const headerRetakeBtn = document.getElementById('headerRetakeBtn');
-            if (headerRetakeBtn) headerRetakeBtn.style.display = 'none';
-            this.diagnosticState = { answered: false, selectedOption: null, isCorrect: false };
-            this.blitzIndex = 0;
-            this.blitzTimer = 20;
-            if (this.blitzTimerInterval) {
-                clearInterval(this.blitzTimerInterval);
-                this.blitzTimerInterval = null;
+        // -------------------------------------------------------------
+        // Retake Session Logic
+        // -------------------------------------------------------------
+        async confirmRetake() {
+            if (!confirm('Are you sure you want to retake this session? Your current score for this session will be reset in the cumulative ledger, allowing a clean re-attempt.')) {
+                return;
             }
-            this.blitzAnswered = false;
-            this.blitzSelectedOption = null;
-            this.blitzIsCorrect = false;
-            this.blitzUnderTenSec = false;
-            this.blitzCorrectCount = 0;
-            this.omrAnswers = {};
-            this.omrActiveIndex = 0;
-            this.omrSummary = null;
-            this.omrDetails = [];
-            this.totalXpEarned = 0;
-            this.totalSessionSeconds = 0;
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            if (window.PscSound && window.PscSound.playTick) {
-                window.PscSound.playTick();
-            }
-        },
 
-        // Helper to normalize options from question model
-        getQuestionOptions(q) {
-            if (!q) return [];
-            if (q.resolved_options && q.resolved_options.length > 0) {
-                return q.resolved_options;
-            }
-            if (q.options && Array.isArray(q.options)) {
-                return q.options;
-            }
-            const opts = [];
-            if (q.option_a) opts.push({ key: 'A', text: q.option_a });
-            if (q.option_b) opts.push({ key: 'B', text: q.option_b });
-            if (q.option_c) opts.push({ key: 'C', text: q.option_c });
-            if (q.option_d) opts.push({ key: 'D', text: q.option_d });
-            return opts;
-        },
-
-        formatTime(sec) {
-            const m = Math.floor(sec / 60);
-            const s = sec % 60;
-            return (m < 10 ? '0' + m : m) + ':' + (s < 10 ? '0' + s : s);
-        },
-
-        // Send progress state to server API asynchronously
-        persistProgress(phase, extra = {}) {
-            fetch(this.progressSaveUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': this.csrfToken,
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    current_phase: phase,
-                    time_taken_seconds: this.totalSessionSeconds,
-                    ...extra
-                })
-            }).catch(e => console.log('Progress persist error:', e));
-        }
-    }
-}
-
-// Global Bridge for Custom Code Sessions & Universal Session Reset
-window.PSCRanker = {
-    sessionId: {{ $session->id }},
-    xpReward: {{ $session->xp_reward }},
-    progressUrl: @js(route('api.session.progress', $session->id)),
-    csrfToken: '{{ csrf_token() }}',
-    nextSessionUrl: @js($nextSession ? route('session.show', ['slug' => $nextSession->slug, 'stream' => $stream]) : route('sessions.index')),
-    isCompleted: @js((bool) ($isCompleted ?? false)),
-
-    completeSession: async function(customXp) {
-        this.isCompleted = true;
-        const btn = document.getElementById('pscranker-complete-unit-btn');
-        if (btn) {
-            btn.disabled = true;
-            btn.innerHTML = '<span>Saving Progress... ⚡</span>';
-        }
-        const xp = customXp || this.xpReward || 250;
-        try {
-            await fetch(this.progressUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': this.csrfToken,
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    current_phase: 'summary',
-                    is_completed: true,
-                    xp_earned: xp,
-                    time_taken_seconds: 90
-                })
-            });
-        } catch (e) {
-            console.error('Progress save error:', e);
-        }
-
-        // Reveal completion bar ONLY IF currently on OMR screen (Screen 4)
-        const omrScreen = document.getElementById('psc-screen-omr');
-        const isOmrVisible = omrScreen && (omrScreen.style.display !== 'none');
-        const completionBar = document.getElementById('pscranker-bottom-completion-bar');
-        if (completionBar) {
-            completionBar.style.display = isOmrVisible ? 'flex' : 'none';
-        }
-        const retakeBtn = document.getElementById('pscranker-retake-unit-btn');
-        if (retakeBtn) {
-            retakeBtn.style.display = 'inline-flex';
-        }
-        const nextUnitBtn = document.getElementById('pscranker-next-unit-btn');
-        if (nextUnitBtn) {
-            nextUnitBtn.style.display = 'inline-flex';
-        }
-        const statusText = document.getElementById('pscranker-completion-status-text');
-        if (statusText) {
-            statusText.innerText = 'Session Completed! 🎉';
-        }
-        const headerNextBtn = document.getElementById('headerNextUnitBtn');
-        if (headerNextBtn) {
-            headerNextBtn.style.display = 'inline-flex';
-        }
-        const headerRetakeBtn = document.getElementById('headerRetakeBtn');
-        if (headerRetakeBtn) {
-            headerRetakeBtn.style.display = 'inline-flex';
-        }
-
-        // Also inject Next Unit CTA directly inside the internal complete card on Screen 4
-        const completeCard = document.querySelector('.psc-complete-card');
-        if (completeCard && !document.getElementById('psc-internal-next-unit-btn') && this.nextSessionUrl) {
-            const nextLink = document.createElement('a');
-            nextLink.id = 'psc-internal-next-unit-btn';
-            nextLink.href = this.nextSessionUrl;
-            nextLink.className = 'psc-btn-primary psc-pulse';
-            nextLink.style.cssText = 'display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 12px; padding: 14px 20px; font-size: 15px; font-weight: 900; background: linear-gradient(135deg, #0052FF, #4F46E5); color: white; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 14px rgba(0,82,255,0.4); text-transform: uppercase;';
-            nextLink.innerHTML = '<span>അടുത്ത യൂണിറ്റിലേക്ക് (Next Unit) ➔</span>';
-            completeCard.appendChild(nextLink);
-        }
-
-        if (window.showPscModal) {
-            window.showPscModal({
-                type: 'celebration',
-                icon: '🏆',
-                badge: '🎉 Capsule Completed!',
-                title: 'Congratulations, PSC Ranker!',
-                titleMalayalam: 'കലക്കി! ഈ ക്യാപ്സ്യൂൾ നിങ്ങൾ വിജയകരമായി പൂർത്തിയാക്കി! 🚀',
-                message: 'You have completed this Kerala PSC Capsule and earned +' + xp + ' XP! Your rank points have been saved.',
-                xp: xp,
-                nextUrl: this.nextSessionUrl,
-                confirmText: this.nextSessionUrl ? 'അടുത്ത പാഠത്തിലേക്ക് പോകാം (Next Unit) ➔' : 'Awesome, Continue ⚡',
-                cancelText: 'ഇവിടെ തുടരുക (Stay Here)',
-                showCancel: !!this.nextSessionUrl,
-                showRetake: true,
-                retakeText: '🔄 ഈ യൂണിറ്റ് വീണ്ടും ചെയ്യുക (Retake Unit)',
-                onRetake: () => {
-                    this.retakeSession();
-                }
-            });
-        } else {
-            if (window.confetti) {
-                window.confetti({ particleCount: 140, spread: 90, origin: { y: 0.55 } });
-            }
-            if (window.PscSound && window.PscSound.playFanfare) {
-                window.PscSound.playFanfare();
-            }
-            alert('🎉 Congratulations! You have completed this Kerala PSC Capsule and earned +' + xp + ' XP!');
-            if (this.nextSessionUrl) {
-                window.location.href = this.nextSessionUrl;
-            }
-        }
-    },
-
-    retakeSession: function() {
-        this.isCompleted = false;
-
-        // Hide completion bar, Retake, and Next Unit button when restarting session
-        const completionBar = document.getElementById('pscranker-bottom-completion-bar');
-        if (completionBar) {
-            completionBar.style.display = 'none';
-        }
-        const retakeBtn = document.getElementById('pscranker-retake-unit-btn');
-        if (retakeBtn) {
-            retakeBtn.style.display = 'none';
-        }
-        const headerNextBtn = document.getElementById('headerNextUnitBtn');
-        if (headerNextBtn) {
-            headerNextBtn.style.display = 'none';
-        }
-        const headerRetakeBtn = document.getElementById('headerRetakeBtn');
-        if (headerRetakeBtn) {
-            headerRetakeBtn.style.display = 'none';
-        }
-        const internalNextBtn = document.getElementById('psc-internal-next-unit-btn');
-        if (internalNextBtn) {
-            internalNextBtn.remove();
-        }
-
-        // 1. Reset Custom Code internal JavaScript state
-        if (window.pscState) {
-            window.pscState.xp = 0;
-            window.pscState.hookSolved = false;
-            window.pscState.hookAnswered = false;
-            if (window.pscState.mcqs) {
-                Object.keys(window.pscState.mcqs).forEach(k => {
-                    window.pscState.mcqs[k] = false;
+            this.isRetaking = true;
+            try {
+                const response = await fetch(this.retakeUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': this.csrfToken,
+                        'Accept': 'application/json'
+                    }
                 });
-            }
-            if (window.pscState.omr) {
-                Object.keys(window.pscState.omr).forEach(k => {
-                    window.pscState.omr[k] = null;
-                });
-            }
-        }
 
-        // 2. Reset Custom Code XP Counter & Progress Bar
-        const xpVal = document.getElementById('psc-xp-val');
-        if (xpVal) xpVal.innerText = '0';
-        const pBar = document.getElementById('psc-progress-bar');
-        if (pBar) pBar.style.width = '25%';
-
-        // 3. Clean all options & buttons across custom capsule DOM
-        const customWrapper = document.querySelector('.custom-session-wrapper') || document;
-        const allOptionButtons = customWrapper.querySelectorAll(
-            '.psc-opt-btn, .psc-bubble, .psc-omr-choice-row, [data-opt], button[onclick*="pscSelectHook"], button[onclick*="pscCheckMcq"]'
-        );
-        allOptionButtons.forEach(btn => {
-            btn.classList.remove('correct', 'wrong', 'darkened', 'selected', 'disabled', 'active');
-            btn.style.pointerEvents = 'auto';
-            btn.style.backgroundColor = '';
-            btn.style.borderColor = '';
-            btn.style.color = '';
-            if ('disabled' in btn) btn.disabled = false;
-        });
-
-        // 4. Hide all feedback containers & clear content
-        const feedbackEls = customWrapper.querySelectorAll(
-            '.psc-feedback, .psc-omr-result-box, [id$="-feedback"], [id^="psc-drill-fb-"], #psc-omr-result'
-        );
-        feedbackEls.forEach(fb => {
-            fb.style.display = 'none';
-            fb.classList.remove('psc-fb-correct', 'psc-fb-trap');
-            fb.style.background = '';
-            fb.style.border = '';
-            fb.style.color = '';
-            const content = fb.querySelector('#psc-hook-feedback-content');
-            if (content) content.innerHTML = '';
-        });
-
-        // 5. Hide all intra-capsule Next/Continue buttons
-        const nextButtons = customWrapper.querySelectorAll(
-            '[id^="psc-next-mcq-btn-"], #psc-to-omr-btn, .psc-btn-next'
-        );
-        nextButtons.forEach(btn => {
-            btn.style.display = 'none';
-            btn.classList.remove('psc-pulse');
-        });
-
-        // 6. Reset sequential screens back to Screen 1 (Hook Question)
-        const screenIds = ['psc-screen-hook', 'psc-screen-lesson', 'psc-screen-mcqs', 'psc-screen-omr'];
-        screenIds.forEach((id, idx) => {
-            const el = document.getElementById(id);
-            if (el) {
-                el.style.display = (idx === 0 ? 'block' : 'none');
-            }
-        });
-
-        // Also reset any elements using .psc-screen
-        const screens = customWrapper.querySelectorAll('.psc-screen');
-        if (screens.length > 0) {
-            screens.forEach((sc, i) => {
-                sc.style.display = (i === 0 ? 'block' : 'none');
-            });
-        }
-
-        // Reset single-screen MCQ cards to Card 1
-        const mcq1 = document.getElementById('psc-mcq-card-1');
-        const mcq2 = document.getElementById('psc-mcq-card-2');
-        if (mcq1) mcq1.style.display = 'block';
-        if (mcq2) mcq2.style.display = 'none';
-
-        // 7. Reset Stepper Pills: Pill 1 active, others inactive and uncompleted
-        const pillIds = ['psc-pill-hook', 'psc-pill-lesson', 'psc-pill-mcqs', 'psc-pill-omr'];
-        pillIds.forEach((id, idx) => {
-            const pill = document.getElementById(id);
-            if (pill) {
-                pill.classList.remove('completed');
-                if (idx === 0) {
-                    pill.classList.add('active');
+                const data = await response.json();
+                if (data.success) {
+                    this.omrSubmitted = false;
+                    this.omrResults = null;
+                    this.omrAnswers = {};
+                    this.hookAnswers = {};
+                    this.practiceAnswers = {};
+                    if (data.cumulative_ledger) {
+                        this.ledger = data.cumulative_ledger;
+                    }
+                    // Reset to Unit 1
+                    this.activeUnitIdx = 0;
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 } else {
-                    pill.classList.remove('active');
+                    alert(data.message || 'Error resetting session.');
                 }
+            } catch (err) {
+                console.error('Retake error:', err);
+                alert('Connection error resetting session.');
+            } finally {
+                this.isRetaking = false;
             }
-        });
+        },
 
-        const allStepPills = customWrapper.querySelectorAll('.psc-step-pill');
-        if (allStepPills.length > 0) {
-            allStepPills.forEach((p, idx) => {
-                p.classList.remove('completed', 'active');
-                if (idx === 0) p.classList.add('active');
-            });
-        }
+        // -------------------------------------------------------------
+        // Video Embed Helper
+        // -------------------------------------------------------------
+        getVideoEmbedUrl(url) {
+            if (!url) return '';
+            const trimmed = url.trim();
+            // YouTube
+            const ytMatch = trimmed.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]+)/i);
+            if (ytMatch) {
+                return 'https://www.youtube.com/embed/' + ytMatch[1] + '?rel=0&modestbranding=1';
+            }
+            // Vimeo
+            const vimeoMatch = trimmed.match(/vimeo\.com\/(?:.*\/)?(\d+)/i);
+            if (vimeoMatch) {
+                return 'https://player.vimeo.com/video/' + vimeoMatch[1];
+            }
+            return '';
+        },
 
-        // 8. Re-enable Completion Button in Session Runner
-        const completeBtn = document.getElementById('pscranker-complete-unit-btn');
-        if (completeBtn) {
-            completeBtn.disabled = false;
-            completeBtn.innerHTML = '<span>Claim +' + (this.xpReward || 250) + ' XP &amp; Complete 🚀</span>';
-        }
+        // -------------------------------------------------------------
+        // Custom Audio Player Methods
+        // -------------------------------------------------------------
+        togglePlayAudio(blockId) {
+            const el = document.getElementById('audio_el_' + blockId);
+            if (!el) return;
 
-        // 9. Call custom capsule's own reset function if defined
-        if (typeof window.pscResetCapsule === 'function') {
-            try { window.pscResetCapsule(); } catch (err) { console.warn(err); }
-        }
-
-        // 10. Scroll smoothly to top of capsule
-        const targetContainer = document.getElementById('psc-capsule-container') || customWrapper;
-        if (targetContainer) {
-            targetContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        } else {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        // 11. Subtle sound confirmation
-        if (window.PscSound && window.PscSound.playTick) {
-            window.PscSound.playTick();
-        }
-    }
-};
-
-// Dock Feature Image strictly inside the Lesson screen for Custom Code capsules
-document.addEventListener('DOMContentLoaded', function() {
-    const banner = document.getElementById('psc-custom-feature-image-banner');
-    if (!banner) return;
-
-    // Check where the lesson screen or slot is located inside custom code:
-    const slot = document.getElementById('psc-feature-image-slot');
-    const lessonScreen = document.getElementById('psc-screen-lesson') 
-                      || document.querySelector('.psc-screen-lesson') 
-                      || document.querySelector('[data-screen="lesson"]')
-                      || document.querySelector('.psc-lesson-part');
-
-    if (slot) {
-        slot.appendChild(banner);
-        banner.classList.remove('hidden');
-    } else if (lessonScreen) {
-        // Dock into the lesson screen right above the lesson title/card
-        const card = lessonScreen.querySelector('.psc-card') || lessonScreen;
-        const lessonTitle = card.querySelector('.psc-lesson-title') || card.querySelector('h1, h2, h3, h4');
-        if (lessonTitle) {
-            card.insertBefore(banner, lessonTitle);
-        } else {
-            card.prepend(banner);
-        }
-        banner.classList.remove('hidden');
-    } else {
-        // Fallback for single-screen lesson code
-        const card = document.querySelector('.custom-session-wrapper .bg-white');
-        if (card) {
-            card.prepend(banner);
-            banner.classList.remove('hidden');
-        }
-    }
-
-    // Sync bottom completion bar visibility strictly with the active screen:
-    // On 'hook', 'lesson', and 'mcqs' screens, NEVER display the bottom completion bar!
-    function syncCompletionBarWithStep(step) {
-        const completionBar = document.getElementById('pscranker-bottom-completion-bar');
-        if (!completionBar) return;
-        
-        if (step === 'hook' || step === 'lesson' || step === 'mcqs') {
-            completionBar.style.display = 'none';
-        } else if (step === 'omr') {
-            if (window.PSCRanker && window.PSCRanker.isCompleted) {
-                completionBar.style.display = 'flex';
-                const nextBtn = document.getElementById('pscranker-next-unit-btn');
-                if (nextBtn) nextBtn.style.display = 'inline-flex';
-                const retakeBtn = document.getElementById('pscranker-retake-unit-btn');
-                if (retakeBtn) retakeBtn.style.display = 'inline-flex';
+            if (this.audioPlaying[blockId]) {
+                el.pause();
+                this.audioPlaying[blockId] = false;
             } else {
-                completionBar.style.display = 'none';
+                // Pause any other active audio
+                document.querySelectorAll('audio').forEach(a => {
+                    if (a !== el) a.pause();
+                });
+                for (let k in this.audioPlaying) {
+                    if (k !== blockId) this.audioPlaying[k] = false;
+                }
+
+                el.play().then(() => {
+                    this.audioPlaying[blockId] = true;
+                }).catch(e => console.warn('Audio play blocked:', e));
             }
+        },
+
+        onAudioTimeUpdate(blockId) {
+            const el = document.getElementById('audio_el_' + blockId);
+            if (!el || !el.duration) return;
+
+            const cur = el.currentTime;
+            const dur = el.duration;
+            this.audioProgress[blockId] = (cur / dur) * 100;
+            this.audioCurrentTimes[blockId] = this.formatAudioTime(cur);
+            this.audioDurations[blockId] = this.formatAudioTime(dur);
+        },
+
+        onAudioEnded(blockId) {
+            this.audioPlaying[blockId] = false;
+            this.audioProgress[blockId] = 0;
+            this.audioCurrentTimes[blockId] = '0:00';
+        },
+
+        seekAudio(blockId, event) {
+            const el = document.getElementById('audio_el_' + blockId);
+            if (!el || !el.duration) return;
+
+            const rect = event.currentTarget.getBoundingClientRect();
+            const clickX = event.clientX - rect.left;
+            const percent = Math.max(0, Math.min(1, clickX / rect.width));
+            el.currentTime = percent * el.duration;
+            this.audioProgress[blockId] = percent * 100;
+        },
+
+        toggleAudioSpeed(blockId) {
+            const el = document.getElementById('audio_el_' + blockId);
+            if (!el) return;
+
+            const currentRate = this.audioPlaybackRates[blockId] || 1;
+            let nextRate = 1;
+            if (currentRate === 1) nextRate = 1.25;
+            else if (currentRate === 1.25) nextRate = 1.5;
+            else if (currentRate === 1.5) nextRate = 1;
+
+            this.audioPlaybackRates[blockId] = nextRate;
+            el.playbackRate = nextRate;
+        },
+
+        formatAudioTime(sec) {
+            if (isNaN(sec)) return '0:00';
+            const m = Math.floor(sec / 60);
+            const s = Math.floor(sec % 60);
+            return m + ':' + (s < 10 ? '0' : '') + s;
         }
-    }
-
-    // Intercept pscGoTo to ensure completion bar stays strictly hidden during intermediate screens
-    if (typeof window.pscGoTo === 'function') {
-        const origPscGoTo = window.pscGoTo;
-        window.pscGoTo = function(step) {
-            origPscGoTo.apply(this, arguments);
-            syncCompletionBarWithStep(step);
-        };
-    }
-
-    // Hook stepper pills and screen switch clicks
-    document.querySelectorAll('.psc-step-pill, #psc-pill-hook, #psc-pill-lesson, #psc-pill-mcqs, #psc-pill-omr').forEach(pill => {
-        pill.addEventListener('click', function() {
-            const id = this.id || '';
-            if (id.includes('hook')) syncCompletionBarWithStep('hook');
-            else if (id.includes('lesson')) syncCompletionBarWithStep('lesson');
-            else if (id.includes('mcqs')) syncCompletionBarWithStep('mcqs');
-            else if (id.includes('omr')) syncCompletionBarWithStep('omr');
-        });
-    });
-
-    // Ensure strictly hidden on initial load
-    syncCompletionBarWithStep('hook');
-});
+    };
+}
 </script>
 @endpush
 @endsection

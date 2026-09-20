@@ -125,25 +125,12 @@
 
                         @if($isAdmin)
                             <div class="flex items-center gap-2">
-                                <a href="{{ route('admin.dashboard') }}" class="px-3 py-1.5 text-xs font-black text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg transition border border-slate-300">
-                                    📊 Dashboard
+                                <a href="{{ route('admin.dashboard') }}" class="px-3.5 py-2 text-xs font-black text-white bg-[#0F172A] hover:bg-slate-800 rounded-xl transition shadow-xs flex items-center gap-1.5 border border-slate-700">
+                                    <span>⚡ Admin Console</span>
                                 </a>
-                                <a href="{{ route('admin.affiliates.index') }}" class="px-3 py-1.5 text-xs font-black text-amber-950 bg-yellow-100 hover:bg-yellow-200 rounded-lg transition border border-yellow-300">
-                                    🤝 Affiliates
-                                </a>
-                                <a href="{{ route('admin.users.index') }}" class="px-3 py-1.5 text-xs font-black text-emerald-800 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition border border-emerald-300">
-                                    👥 Users & Subs
-                                </a>
-                                <a href="{{ route('admin.sessions.index') }}" class="px-3 py-1.5 text-xs font-black text-[#0052FF] bg-blue-50 hover:bg-blue-100 rounded-lg transition border border-blue-200">
-                                    ⚙️ Lessons Manager
-                                </a>
-                                <a href="{{ route('admin.media.index') }}" class="px-3 py-1.5 text-xs font-black text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-lg transition border border-purple-200">
-                                    📁 Media
-                                </a>
-                                <span class="text-xs font-bold text-slate-600 hidden lg:inline">{{ $user->name }}</span>
                                 <form action="{{ route('logout') }}" method="POST" class="inline">
                                     @csrf
-                                    <button type="submit" class="px-3 py-1.5 text-xs font-bold text-slate-500 hover:text-red-600 rounded-lg hover:bg-slate-100 transition cursor-pointer">
+                                    <button type="submit" class="px-2.5 py-2 text-xs font-bold text-slate-500 hover:text-red-600 rounded-lg hover:bg-slate-100 transition cursor-pointer">
                                         Logout
                                     </button>
                                 </form>

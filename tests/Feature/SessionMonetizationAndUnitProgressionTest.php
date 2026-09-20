@@ -56,7 +56,7 @@ test('sessions correctly provide previous and next unit progression in sequence'
 });
 
 test('session runner shows next unit button and previous unit button for students', function () {
-    $category = Category::create(['name' => 'History', 'slug' => 'history', 'order' => 1]);
+    $category = Category::firstOrCreate(['slug' => 'history'], ['name' => 'History', 'order' => 1]);
 
     $unit1 = Session::create([
         'title' => 'Unit 1: Intro',
@@ -155,7 +155,7 @@ test('home page hero leads students to course units catalog', function () {
     $response->assertSee('UNIT BY UNIT');
 });
 
-test('next unit button is hidden during learning and revealed upon session completion', function () {
+test('navigation uses single unified bottom bar and next session is unlocked upon completion', function () {
     $category = Category::create(['name' => 'General', 'slug' => 'general', 'order' => 1]);
     $user = User::factory()->create();
 
@@ -166,8 +166,6 @@ test('next unit button is hidden during learning and revealed upon session compl
         'order' => 1,
         'xp_reward' => 100,
         'is_active' => true,
-        'creation_mode' => 'code',
-        'custom_html' => '<div id="psc-screen-hook">Hook</div><div id="psc-screen-lesson" style="display:none">Lesson</div>',
     ]);
 
     $unit2 = Session::create([
@@ -179,18 +177,14 @@ test('next unit button is hidden during learning and revealed upon session compl
         'is_active' => true,
     ]);
 
-    // 1. When session is not yet completed, Next Unit buttons and bottom bar are hidden
+    // 1. Session runner has single unified bottom bar with previous/next unit controls
     $inProgressResponse = $this->actingAs($user)->get(route('session.show', $unit1->slug));
     $inProgressResponse->assertStatus(200);
     $inProgressContent = $inProgressResponse->getContent();
     
-    // Header next unit button has display: none
-    expect($inProgressContent)->toContain('id="headerNextUnitBtn"');
-    expect($inProgressContent)->toMatch('/id="headerNextUnitBtn"[^>]*style="display: none;"/');
-
-    // Bottom completion bar has display: none
-    expect($inProgressContent)->toContain('id="pscranker-bottom-completion-bar"');
-    expect($inProgressContent)->toMatch('/id="pscranker-bottom-completion-bar"[^>]*style="display: none;"/');
+    expect($inProgressContent)->toContain('STRICT CONTEXT-AWARE NAVIGATION');
+    expect($inProgressContent)->toContain('Next Unit →');
+    expect($inProgressContent)->toContain('Submit OMR Sheet');
 
     // 2. When session is marked completed in progress records
     \App\Models\UserSessionProgress::create([
@@ -198,6 +192,7 @@ test('next unit button is hidden during learning and revealed upon session compl
         'session_id' => $unit1->id,
         'current_phase' => 'summary',
         'completed_at' => now(),
+        'net_marks' => 5.0,
         'xp_earned' => 100,
     ]);
 
@@ -205,11 +200,161 @@ test('next unit button is hidden during learning and revealed upon session compl
     $completedResponse->assertStatus(200);
     $completedContent = $completedResponse->getContent();
 
-    // In completed state, header next unit button does NOT have display: none
-    expect($completedContent)->toMatch('/id="headerNextUnitBtn"[^>]*style=""/');
-    // Bottom bar starts hidden by default on Screen 1 to prevent double navigation
-    expect($completedContent)->toMatch('/id="pscranker-bottom-completion-bar"[^>]*style="display: none;"/');
-    expect($completedContent)->toContain('Session Completed!');
-    expect($completedContent)->toContain('അടുത്ത യൂണിറ്റ് (Next Unit ➔)');
+    expect($completedContent)->toContain('Next Session ➔');
+    expect($completedContent)->toContain('CONTINUE TO NEXT UNIT');
 });
+
+test('new session form loads with paid premium tier by default and 3-tier toggles', function () {
+    $admin = User::factory()->create(['email' => 'admin-tier@pscranker.com', 'is_admin' => true]);
+
+    $response = $this->actingAs($admin)->get(route('admin.sessions.create'));
+    $response->assertStatus(200);
+    $response->assertSee('Monetization &amp; Access Tier', false);
+    $response->assertSee('Free (Public)');
+    $response->assertSee('Registered');
+    $response->assertSee('Paid (PRO)');
+    $response->assertSee('Paid by Default');
+    $response->assertSee('Upload Image');
+    $response->assertSee('Upload Audio');
+    $response->assertSee('Upload Video');
+});
+
+test('creating session defaults to paid premium tier when tier is not specified', function () {
+    $admin = User::factory()->create(['email' => 'admin-tier2@pscranker.com', 'is_admin' => true]);
+    $category = Category::firstOrCreate(['slug' => 'polity'], ['name' => 'Polity', 'order' => 1]);
+
+    $response = $this->actingAs($admin)->post(route('admin.sessions.store'), [
+        'title' => 'Default Paid Session Example',
+        'slug' => 'default-paid-session-example',
+        'category_id' => $category->id,
+        'order' => 1,
+        'xp_reward' => 200,
+        'is_active' => '1',
+    ]);
+
+    $response->assertRedirect();
+    $session = Session::where('slug', 'default-paid-session-example')->firstOrFail();
+    expect($session->access_level)->toBe('premium');
+    expect($session->is_premium)->toBeTrue();
+    expect((float)$session->price)->toBe(199.00);
+    expect($session->isFree())->toBeFalse();
+});
+
+test('admin can toggle session to registered or free tier and gating works accordingly', function () {
+    $admin = User::factory()->create(['email' => 'admin-tier3@pscranker.com', 'is_admin' => true]);
+    $category = Category::firstOrCreate(['slug' => 'economics'], ['name' => 'Economics', 'order' => 2]);
+
+    // 1. Create a Registered-only session
+    $regResponse = $this->actingAs($admin)->post(route('admin.sessions.store'), [
+        'title' => 'Registered Members Only Unit',
+        'slug' => 'registered-members-only-unit',
+        'category_id' => $category->id,
+        'order' => 2,
+        'xp_reward' => 150,
+        'is_active' => '1',
+        'access_level' => 'registered',
+        'is_premium' => '0',
+    ]);
+
+    $regResponse->assertRedirect();
+    $regSession = Session::where('slug', 'registered-members-only-unit')->firstOrFail();
+    expect($regSession->access_level)->toBe('registered');
+    expect($regSession->is_premium)->toBeFalse();
+
+    // Guest (unauthenticated) visiting registered session sees registration requirement
+    auth()->logout();
+    $guestResponse = $this->get(route('session.show', $regSession->slug));
+    $guestResponse->assertStatus(200);
+    $guestResponse->assertSee('Free Registration Required');
+    $guestResponse->assertSee('REGISTER FREE ACCOUNT');
+
+    // Registered candidate visiting can access without paywall
+    $candidate = User::factory()->create();
+    $candidateResponse = $this->actingAs($candidate)->get(route('session.show', $regSession->slug));
+    $candidateResponse->assertStatus(200);
+    $candidateResponse->assertDontSee('Free Registration Required');
+
+    // 2. Create a Free Public session
+    $freeResponse = $this->actingAs($admin)->post(route('admin.sessions.store'), [
+        'title' => 'Open Public Free Unit',
+        'slug' => 'open-public-free-unit',
+        'category_id' => $category->id,
+        'order' => 3,
+        'xp_reward' => 100,
+        'is_active' => '1',
+        'access_level' => 'guest',
+        'is_premium' => '0',
+    ]);
+
+    $freeResponse->assertRedirect();
+    $freeSession = Session::where('slug', 'open-public-free-unit')->firstOrFail();
+    expect($freeSession->access_level)->toBe('guest');
+    expect($freeSession->is_premium)->toBeFalse();
+
+    auth()->logout();
+    $publicGuestResponse = $this->get(route('session.show', $freeSession->slug));
+    $publicGuestResponse->assertStatus(200);
+    $publicGuestResponse->assertDontSee('Free Registration Required');
+    $publicGuestResponse->assertDontSee('PRO Unit Locked');
+});
+
+test('admin session builder starts with clean unit without unwanted default blocks', function () {
+    $admin = User::factory()->create(['is_admin' => true]);
+
+    $response = $this->actingAs($admin)->get(route('admin.sessions.create'));
+    $response->assertStatus(200);
+    $response->assertSee('This unit starts empty — no unwanted default blocks');
+    $response->assertSee('+ Hook MCQ');
+    $response->assertSee('+ Practice MCQ');
+    $response->assertSee('+ Text Block');
+});
+
+test('admin can view created session in both in-progress and finished view modes', function () {
+    $admin = User::factory()->create(['is_admin' => true]);
+    $category = Category::firstOrCreate(['slug' => 'polity'], ['name' => 'Indian Polity', 'order' => 1]);
+
+    // 1. Create a session (even in draft mode)
+    $createResponse = $this->actingAs($admin)->post(route('admin.sessions.store'), [
+        'title' => 'Constitutional Preamble Studio Test',
+        'slug' => 'constitutional-preamble-test',
+        'category_id' => $category->id,
+        'order' => 1,
+        'xp_reward' => 200,
+        'is_active' => '0', // Draft mode
+        'access_level' => 'premium',
+        'is_premium' => '1',
+        'price' => 199.00,
+    ]);
+
+    $createResponse->assertRedirect();
+    $createResponse->assertSessionHas('view_url');
+    $createResponse->assertSessionHas('finished_url');
+
+    $session = Session::where('slug', 'constitutional-preamble-test')->firstOrFail();
+
+    // 2. Draft session is accessible to admin
+    $adminRunnerResponse = $this->actingAs($admin)->get(route('session.show', $session->slug));
+    $adminRunnerResponse->assertStatus(200);
+    $adminRunnerResponse->assertSee('Admin Inspector');
+    $adminRunnerResponse->assertSee('In-Progress Stepper');
+    $adminRunnerResponse->assertSee('Finished Scorecard');
+    $adminRunnerResponse->assertSee('DRAFT (Unpublished)');
+
+    // 3. Draft session is NOT accessible to public guest
+    auth()->logout();
+    $guestResponse = $this->get(route('session.show', $session->slug));
+    $guestResponse->assertStatus(404);
+
+    // 4. Admin can view finished session scorecard mode via query parameter
+    $finishedResponse = $this->actingAs($admin)->get(route('session.show', ['slug' => $session->slug, 'preview' => 'finished']));
+    $finishedResponse->assertStatus(200);
+    $finishedResponse->assertSee('Admin Inspector');
+
+    // 5. Index page has View Live and Finished buttons
+    $indexResponse = $this->actingAs($admin)->get(route('admin.sessions.index'));
+    $indexResponse->assertStatus(200);
+    $indexResponse->assertSee('👁️ Live ↗');
+    $indexResponse->assertSee('🏁 Finished');
+});
+
 

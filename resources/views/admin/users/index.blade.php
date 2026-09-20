@@ -1,10 +1,11 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Candidate Accounts & Subscription Management — PSCRanker Admin')
+@section('page_title', 'Candidates & Subscriptions')
+@section('page_subtitle', 'Manage candidate profiles, offline fee collections, and subscription extensions')
 
 @section('content')
-<div class="py-8 bg-slate-50 min-h-[90vh]">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="space-y-6">
 
         <!-- Top Header & Banner -->
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 bg-gradient-to-r from-slate-950 via-slate-900 to-blue-950 text-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-800 relative overflow-hidden">
@@ -406,7 +407,6 @@
         </div>
 
     </div>
-</div>
 
 <!-- ========================================== -->
 <!-- MODAL 1: Create Candidate Account Manually -->

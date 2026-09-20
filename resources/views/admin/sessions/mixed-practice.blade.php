@@ -1,6 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Mixed Practice Train Concocter — PSCRanker Admin')
+@section('page_title', 'Mixed Practice Train')
+@section('page_subtitle', 'Curate sequential cross-subject sessions for the General Stream')
 
 @section('content')
 <div 
@@ -12,9 +14,8 @@
         reorderUrl: @js(route('admin.mixed-practice.reorder')),
         csrfToken: '{{ csrf_token() }}'
     })"
-    class="py-8 bg-slate-50 min-h-[90vh]"
+    class="space-y-6"
 >
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         <!-- Top Breadcrumbs & Action Bar -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
@@ -321,7 +322,6 @@
         </div>
 
     </div>
-</div>
 
 @push('scripts')
 <script>

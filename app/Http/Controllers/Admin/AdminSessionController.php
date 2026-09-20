@@ -282,7 +282,11 @@ class AdminSessionController extends Controller
         $nextTrainOrder = (Session::where('in_general_stream', true)->max('general_stream_order') ?? 0) + 1;
 
         return view('admin.sessions.form', [
-            'session' => new Session(),
+            'session' => new Session([
+                'access_level' => 'premium',
+                'is_premium' => true,
+                'price' => 199.00,
+            ]),
             'categories' => $categories,
             'isEdit' => false,
             'contents' => collect(),
@@ -319,8 +323,10 @@ class AdminSessionController extends Controller
             'general_stream_order' => 'nullable|integer',
             'creation_mode' => 'nullable|string|in:manual,code',
             'custom_html' => 'nullable|string',
+            'pass_mark' => 'nullable|integer|min:0|max:100',
+            'time_limit_minutes' => 'nullable|integer|min:1|max:180',
             'contents' => 'nullable|array',
-            'contents.*.type' => 'required|string|in:image,video,audio,text,html,map_globe',
+            'contents.*.type' => 'required|string|in:image,video,audio,text,html,map_globe,hook_mcq,practice_mcq',
             'contents.*.content_data' => 'required|array',
             'contents.*.order' => 'required|integer',
             'questions' => 'nullable|array',
@@ -383,7 +389,14 @@ class AdminSessionController extends Controller
                 : ((Session::where('in_general_stream', true)->max('general_stream_order') ?? 0) + 1);
         }
 
-        $accessLevel = $request->input('access_level') ?: ($request->boolean('is_premium') ? 'premium' : 'guest');
+        $accessLevel = $request->input('access_level');
+        if (!$accessLevel) {
+            if ($request->has('is_premium')) {
+                $accessLevel = $request->boolean('is_premium') ? 'premium' : 'guest';
+            } else {
+                $accessLevel = 'premium';
+            }
+        }
         $isPremium = ($accessLevel === 'premium');
 
         $session = Session::create([
@@ -398,11 +411,13 @@ class AdminSessionController extends Controller
             'is_active' => $request->boolean('is_active', true),
             'access_level' => $accessLevel,
             'is_premium' => $isPremium,
-            'price' => $isPremium ? ($request->input('price') ?: 199.00) : null,
+            'price' => $isPremium ? ($request->filled('price') ? (float)$request->input('price') : 199.00) : null,
             'in_general_stream' => $inGeneralStream,
             'general_stream_order' => $generalStreamOrder,
             'creation_mode' => $creationMode,
             'custom_html' => $creationMode === 'code' ? $request->input('custom_html') : null,
+            'pass_mark' => $request->filled('pass_mark') ? (int)$request->input('pass_mark') : 50,
+            'time_limit_minutes' => $request->filled('time_limit_minutes') ? (int)$request->input('time_limit_minutes') : 10,
         ]);
 
         // Place and re-sequence category order & train order cleanly without collision
@@ -420,7 +435,9 @@ class AdminSessionController extends Controller
 
         $fresh = $session->fresh();
         return redirect()->route('admin.sessions.edit', $session)
-            ->with('success', "Learning Session created successfully! (Unit #{$fresh->order} in subject, Train Step #" . ($fresh->general_stream_order ?? 'N/A') . ")");
+            ->with('success', "Learning Session created successfully! (Unit #{$fresh->order} in subject, Train Step #" . ($fresh->general_stream_order ?? 'N/A') . ")")
+            ->with('view_url', route('session.show', $session->slug))
+            ->with('finished_url', route('session.show', ['slug' => $session->slug, 'preview' => 'finished']));
     }
 
     /**
@@ -489,6 +506,8 @@ class AdminSessionController extends Controller
             'general_stream_order' => 'nullable|integer',
             'creation_mode' => 'nullable|string|in:manual,code',
             'custom_html' => 'nullable|string',
+            'pass_mark' => 'nullable|integer|min:0|max:100',
+            'time_limit_minutes' => 'nullable|integer|min:1|max:180',
         ]);
 
         $creationMode = $request->input('creation_mode', 'manual');
@@ -544,7 +563,14 @@ class AdminSessionController extends Controller
                 : ($session->general_stream_order ?: ((Session::where('in_general_stream', true)->max('general_stream_order') ?? 0) + 1));
         }
 
-        $accessLevel = $request->input('access_level') ?: ($request->boolean('is_premium') ? 'premium' : ($session->access_level ?? 'guest'));
+        $accessLevel = $request->input('access_level');
+        if (!$accessLevel) {
+            if ($request->has('is_premium')) {
+                $accessLevel = $request->boolean('is_premium') ? 'premium' : 'guest';
+            } else {
+                $accessLevel = $session->access_level ?? ($session->is_premium ? 'premium' : 'guest');
+            }
+        }
         $isPremium = ($accessLevel === 'premium');
 
         $session->update([
@@ -559,11 +585,13 @@ class AdminSessionController extends Controller
             'is_active' => $request->boolean('is_active', true),
             'access_level' => $accessLevel,
             'is_premium' => $isPremium,
-            'price' => $isPremium ? ($request->input('price') ?: 199.00) : null,
+            'price' => $isPremium ? ($request->filled('price') ? (float)$request->input('price') : 199.00) : null,
             'in_general_stream' => $inGeneralStream,
             'general_stream_order' => $generalStreamOrder,
             'creation_mode' => $creationMode,
             'custom_html' => $creationMode === 'code' ? $request->input('custom_html') : $session->custom_html,
+            'pass_mark' => $request->filled('pass_mark') ? (int)$request->input('pass_mark') : ($session->pass_mark ?? 50),
+            'time_limit_minutes' => $request->filled('time_limit_minutes') ? (int)$request->input('time_limit_minutes') : ($session->time_limit_minutes ?? 10),
         ]);
 
         // Re-sequence subject category order
@@ -586,7 +614,9 @@ class AdminSessionController extends Controller
 
         $fresh = $session->fresh();
         return redirect()->route('admin.sessions.edit', $session)
-            ->with('success', "Session updated successfully! (Unit #{$fresh->order} in subject, Train Step #" . ($fresh->general_stream_order ?? 'N/A') . ")");
+            ->with('success', "Session updated successfully! (Unit #{$fresh->order} in subject, Train Step #" . ($fresh->general_stream_order ?? 'N/A') . ")")
+            ->with('view_url', route('session.show', $session->slug))
+            ->with('finished_url', route('session.show', ['slug' => $session->slug, 'preview' => 'finished']));
     }
 
     /**
@@ -613,6 +643,8 @@ class AdminSessionController extends Controller
      */
     private function syncContentsAndQuestions(Session $session, Request $request): void
     {
+        $allOmrQuestions = [];
+
         // 1. Process Content Blocks (JSON payload or array)
         if ($request->has('contents_json')) {
             $contentsData = json_decode($request->input('contents_json'), true) ?? [];
@@ -620,12 +652,38 @@ class AdminSessionController extends Controller
 
             foreach ($contentsData as $idx => $block) {
                 if (!empty($block['type'])) {
+                    $contentData = $block['content_data'] ?? [];
+                    $unitOrder = (int) ($block['unit_order'] ?? 1);
+                    $unitTitle = $block['unit_title'] ?? null;
+
                     SessionContent::create([
                         'session_id' => $session->id,
+                        'unit_order' => $unitOrder,
+                        'unit_title' => $unitTitle,
                         'type' => $block['type'],
-                        'content_data' => $block['content_data'] ?? [],
+                        'content_data' => $contentData,
                         'order' => $idx + 1,
                     ]);
+
+                    // Crucial Linkage: Any Hook MCQ or Practice MCQ block added into a unit automatically feeds into the OMR question bank!
+                    if (in_array($block['type'], ['hook_mcq', 'practice_mcq']) && !empty($contentData['question_text'])) {
+                        $phaseType = ($block['type'] === 'hook_mcq') ? 'diagnostic' : 'reinforcement';
+                        $allOmrQuestions[] = [
+                            'phase_type' => $phaseType,
+                            'question_text' => $contentData['question_text'],
+                            'question_text_malayalam' => $contentData['question_text_malayalam'] ?? null,
+                            'option_a' => $contentData['option_a'] ?? '',
+                            'option_b' => $contentData['option_b'] ?? '',
+                            'option_c' => $contentData['option_c'] ?? '',
+                            'option_d' => $contentData['option_d'] ?? '',
+                            'correct_option' => strtoupper(trim($contentData['correct_option'] ?? 'A')),
+                            'explanation' => $contentData['explanation'] ?? null,
+                            'explanation_malayalam' => $contentData['explanation_malayalam'] ?? null,
+                            'trap_warning' => $contentData['trap_warning'] ?? ($contentData['trap_warning_text'] ?? null),
+                            'trap_warning_text' => $contentData['trap_warning_text'] ?? ($contentData['trap_warning'] ?? null),
+                            'psc_exam_reference' => $contentData['psc_reference'] ?? ($contentData['psc_exam_reference'] ?? null),
+                        ];
+                    }
                 }
             }
         }
@@ -633,56 +691,66 @@ class AdminSessionController extends Controller
         // 2. Process Questions (JSON payload)
         if ($request->has('questions_json')) {
             $questionsData = json_decode($request->input('questions_json'), true) ?? [];
-            $session->questions()->delete();
-
             foreach ($questionsData as $q) {
                 if (!empty($q['question_text'])) {
-                    $phaseType = $q['phase_type'] ?? 'reinforcement';
-
-                    Question::create([
-                        'session_id' => $session->id,
-                        'category_id' => $session->category_id,
-                        'phase_type' => $phaseType,
-                        'question_text' => $q['question_text'],
-                        'question_text_malayalam' => $q['question_text_malayalam'] ?? null,
-                        'option_a' => $q['option_a'] ?? '',
-                        'option_b' => $q['option_b'] ?? '',
-                        'option_c' => $q['option_c'] ?? '',
-                        'option_d' => $q['option_d'] ?? '',
-                        'correct_option' => strtoupper(trim($q['correct_option'] ?? 'A')),
-                        'explanation' => $q['explanation'] ?? null,
-                        'explanation_malayalam' => $q['explanation_malayalam'] ?? null,
-                        'trap_warning' => $q['trap_warning_text'] ?? ($q['trap_warning'] ?? null),
-                        'trap_warning_text' => $q['trap_warning_text'] ?? ($q['trap_warning'] ?? null),
-                        'psc_exam_reference' => $q['psc_exam_reference'] ?? null,
-                        'points' => 1.00,
-                        'negative_points' => 0.33,
-                    ]);
-
-                    // Auto-mirror reinforcement MCQs as OMR questions so they appear in OMR test automatically
-                    if ($phaseType === 'reinforcement') {
-                        Question::create([
-                            'session_id' => $session->id,
-                            'category_id' => $session->category_id,
-                            'phase_type' => 'omr',
-                            'question_text' => $q['question_text'],
-                            'question_text_malayalam' => $q['question_text_malayalam'] ?? null,
-                            'option_a' => $q['option_a'] ?? '',
-                            'option_b' => $q['option_b'] ?? '',
-                            'option_c' => $q['option_c'] ?? '',
-                            'option_d' => $q['option_d'] ?? '',
-                            'correct_option' => strtoupper(trim($q['correct_option'] ?? 'A')),
-                            'explanation' => $q['explanation'] ?? null,
-                            'explanation_malayalam' => $q['explanation_malayalam'] ?? null,
-                            'trap_warning' => $q['trap_warning_text'] ?? ($q['trap_warning'] ?? null),
-                            'trap_warning_text' => $q['trap_warning_text'] ?? ($q['trap_warning'] ?? null),
-                            'psc_exam_reference' => $q['psc_exam_reference'] ?? null,
-                            'points' => 1.00,
-                            'negative_points' => 0.33,
-                        ]);
-                    }
+                    $allOmrQuestions[] = $q;
                 }
             }
+        }
+
+        // Deduplicate and persist questions
+        $session->questions()->delete();
+
+        $seenTexts = [];
+        foreach ($allOmrQuestions as $q) {
+            $key = trim($q['question_text']);
+            if (isset($seenTexts[$key])) {
+                continue;
+            }
+            $seenTexts[$key] = true;
+
+            $phaseType = $q['phase_type'] ?? 'reinforcement';
+
+            Question::create([
+                'session_id' => $session->id,
+                'category_id' => $session->category_id,
+                'phase_type' => $phaseType,
+                'question_text' => $q['question_text'],
+                'question_text_malayalam' => $q['question_text_malayalam'] ?? null,
+                'option_a' => $q['option_a'] ?? '',
+                'option_b' => $q['option_b'] ?? '',
+                'option_c' => $q['option_c'] ?? '',
+                'option_d' => $q['option_d'] ?? '',
+                'correct_option' => strtoupper(trim($q['correct_option'] ?? 'A')),
+                'explanation' => $q['explanation'] ?? null,
+                'explanation_malayalam' => $q['explanation_malayalam'] ?? null,
+                'trap_warning' => $q['trap_warning_text'] ?? ($q['trap_warning'] ?? null),
+                'trap_warning_text' => $q['trap_warning_text'] ?? ($q['trap_warning'] ?? null),
+                'psc_exam_reference' => $q['psc_exam_reference'] ?? ($q['psc_reference'] ?? null),
+                'points' => 1.00,
+                'negative_points' => 0.33,
+            ]);
+
+            // Auto-mirror as OMR question so it automatically populates the Capstone OMR test pool
+            Question::create([
+                'session_id' => $session->id,
+                'category_id' => $session->category_id,
+                'phase_type' => 'omr',
+                'question_text' => $q['question_text'],
+                'question_text_malayalam' => $q['question_text_malayalam'] ?? null,
+                'option_a' => $q['option_a'] ?? '',
+                'option_b' => $q['option_b'] ?? '',
+                'option_c' => $q['option_c'] ?? '',
+                'option_d' => $q['option_d'] ?? '',
+                'correct_option' => strtoupper(trim($q['correct_option'] ?? 'A')),
+                'explanation' => $q['explanation'] ?? null,
+                'explanation_malayalam' => $q['explanation_malayalam'] ?? null,
+                'trap_warning' => $q['trap_warning_text'] ?? ($q['trap_warning'] ?? null),
+                'trap_warning_text' => $q['trap_warning_text'] ?? ($q['trap_warning'] ?? null),
+                'psc_exam_reference' => $q['psc_exam_reference'] ?? ($q['psc_reference'] ?? null),
+                'points' => 1.00,
+                'negative_points' => 0.33,
+            ]);
         }
     }
 }

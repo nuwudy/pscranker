@@ -17,6 +17,8 @@ Route::get('/sessions', [SessionController::class, 'index'])->name('sessions.ind
 Route::get('/session/{slug}', [SessionController::class, 'show'])->name('session.show');
 Route::post('/api/session/{id}/progress', [SessionController::class, 'saveProgress'])->name('api.session.progress');
 Route::post('/api/session/{id}/omr-submit', [SessionController::class, 'submitOmr'])->name('api.session.omr-submit');
+Route::post('/api/session/{id}/retake', [SessionController::class, 'retake'])->name('api.session.retake');
+Route::get('/api/session/{id}/cumulative-ledger', [SessionController::class, 'getCumulativeLedger'])->name('api.session.cumulative-ledger');
 
 // Speed Drills - Rapid Fire 3-minute Engine
 Route::get('/drill/{slug?}', [DrillController::class, 'show'])->name('drill.show');
@@ -71,6 +73,8 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::get('mixed-practice', [AdminSessionController::class, 'mixedPractice'])->name('mixed-practice.index');
     Route::post('mixed-practice/toggle', [AdminSessionController::class, 'toggleMixedPractice'])->name('mixed-practice.toggle');
     Route::post('mixed-practice/reorder', [AdminSessionController::class, 'reorderMixedPractice'])->name('mixed-practice.reorder');
+    Route::post('categories/quick-store', [\App\Http\Controllers\Admin\CategoryController::class, 'quickStore'])->name('categories.quick-store');
+    Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class);
     Route::resource('sessions', AdminSessionController::class);
     Route::get('media', [MediaController::class, 'index'])->name('media.index');
     Route::get('media/api-list', [MediaController::class, 'apiList'])->name('media.api-list');

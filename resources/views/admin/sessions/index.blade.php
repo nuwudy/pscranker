@@ -1,17 +1,24 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
-@section('title', 'Admin Session Manager — PSCRanker')
+@section('title', 'Learning Sessions Manager — PSCRanker Admin')
+@section('page_title', 'Learning Sessions & Tracks')
+@section('page_subtitle', 'Manage sequential units, stackable blocks, and capstone OMR banks')
 
 @section('content')
-<div class="py-8 bg-slate-50 min-h-[85vh]">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6">
-        
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-            <div>
-                <h1 class="text-2xl sm:text-3xl font-black text-slate-900">Learning Sessions Manager</h1>
-                <p class="text-xs text-slate-500 font-medium">Create and edit 4-phase micro-learning sessions, content blocks, and question banks.</p>
-            </div>
+<div class="space-y-6">
+    
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">All Learning Sessions</h2>
+            <p class="text-xs text-slate-500 font-medium">Create and edit sequential units, content blocks, and question banks.</p>
+        </div>
             <div class="flex items-center gap-2.5">
+                <a 
+                    href="{{ route('admin.categories.index') }}" 
+                    class="px-4 py-2.5 bg-purple-50 hover:bg-purple-100 text-purple-700 font-black text-xs rounded-xl border border-purple-200 transition flex items-center gap-1.5 shadow-2xs"
+                >
+                    <span>📚 Subject Tracks &amp; Categories</span>
+                </a>
                 <a 
                     href="{{ route('admin.mixed-practice.index') }}" 
                     class="px-4 py-2.5 bg-blue-50 hover:bg-blue-100 text-[#0052FF] font-black text-xs rounded-xl border border-blue-200 transition flex items-center gap-1.5 shadow-2xs"
@@ -53,7 +60,7 @@
                         <tr class="hover:bg-blue-50/30 transition">
                             <td class="p-4 font-mono font-bold">
                                 <span class="inline-flex items-center px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200 text-slate-800 text-xs font-black">
-                                    Unit #{{ $session->order }}
+                                    Session #{{ $session->order }}
                                 </span>
                             </td>
                             <td class="p-4">
@@ -117,41 +124,53 @@
                                     @endif
                                 </div>
                             </td>
-                            <td class="p-4 text-right space-x-2 whitespace-nowrap">
-                                <a 
-                                    href="{{ route('session.show', $session->slug) }}" 
-                                    target="_blank"
-                                    class="text-blue-600 hover:underline font-bold text-xs"
-                                >
-                                    Preview ↗
-                                </a>
-                                <a 
-                                    href="{{ route('admin.sessions.edit', $session) }}" 
-                                    class="text-[#0052FF] hover:underline font-black text-xs"
-                                >
-                                    Edit
-                                </a>
-                                <form 
-                                    action="{{ route('admin.sessions.destroy', $session) }}" 
-                                    method="POST" 
-                                    class="inline-block"
-                                    onsubmit="return confirm('Are you sure you want to permanently delete session #{{ $session->id }} (\'{{ addslashes($session->title) }}\')? This will delete all its contents and questions.');"
-                                >
-                                    @csrf
-                                    @method('DELETE')
-                                    <button 
-                                        type="submit" 
-                                        class="text-red-600 hover:text-red-800 font-bold hover:underline text-xs cursor-pointer ml-1"
+                            <td class="p-4 text-right whitespace-nowrap">
+                                <div class="flex items-center justify-end gap-1.5">
+                                    <a 
+                                        href="{{ route('session.show', $session->slug) }}" 
+                                        target="_blank"
+                                        class="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-black text-xs transition inline-flex items-center gap-1 shadow-2xs"
+                                        title="View Live Session Progression Stepper"
                                     >
-                                        Delete
-                                    </button>
-                                </form>
+                                        <span>👁️ Live ↗</span>
+                                    </a>
+                                    <a 
+                                        href="{{ route('session.show', ['slug' => $session->slug, 'preview' => 'finished']) }}" 
+                                        target="_blank"
+                                        class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition inline-flex items-center gap-1"
+                                        title="View Finished Session Scorecard"
+                                    >
+                                        <span>🏁 Finished</span>
+                                    </a>
+                                    <a 
+                                        href="{{ route('admin.sessions.edit', $session) }}" 
+                                        class="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#0052FF] border border-blue-200 font-black text-xs transition inline-flex items-center gap-1"
+                                    >
+                                        <span>✏️ Edit</span>
+                                    </a>
+                                    <form 
+                                        action="{{ route('admin.sessions.destroy', $session) }}" 
+                                        method="POST" 
+                                        class="inline-block"
+                                        onsubmit="return confirm('Are you sure you want to permanently delete session #{{ $session->id }} (\'{{ addslashes($session->title) }}\')? This will delete all its contents and questions.');"
+                                    >
+                                        @csrf
+                                        @method('DELETE')
+                                        <button 
+                                            type="submit" 
+                                            class="px-2 py-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg font-bold text-xs cursor-pointer transition"
+                                            title="Delete Session"
+                                        >
+                                            ✕
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
                             <td colspan="8" class="p-8 text-center text-slate-500">
-                                No sessions created yet. Click "+ Create New Session" to build your first 4-phase micro-lesson!
+                                No sessions created yet. Click "+ Create New Session" to build your first modular learning track session!
                             </td>
                         </tr>
                     @endforelse
@@ -164,5 +183,4 @@
         </div>
 
     </div>
-</div>
 @endsection

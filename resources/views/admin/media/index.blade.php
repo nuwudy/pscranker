@@ -1,13 +1,14 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Media Library — PSCRanker Admin')
+@section('page_title', 'Media Library')
+@section('page_subtitle', 'Upload photos, audio capsules, and infographics for learning sessions')
 
 @section('content')
 <div 
     x-data="mediaLibraryManager()"
-    class="py-8 bg-slate-50 min-h-[90vh]"
+    class="space-y-6"
 >
-    <div class="max-w-6xl mx-auto px-4 sm:px-6">
 
         <!-- Top Header & Action Row -->
         <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
@@ -236,8 +237,6 @@
                 {{ $mediaFiles->links() }}
             </div>
         @endif
-
-    </div>
 
     <!-- Upload Modal -->
     <div 

@@ -47,16 +47,20 @@ class SessionController extends Controller
      */
     public function show(string $slug, Request $request)
     {
-        $session = Session::with([
+        $sessionQuery = Session::with([
             'category',
             'contents',
             'diagnosticQuestion',
             'reinforcementQuestions',
             'omrQuestions'
         ])
-        ->where('slug', $slug)
-        ->where('is_active', true)
-        ->firstOrFail();
+        ->where('slug', $slug);
+
+        if (!auth()->check() || !auth()->user()->isAdmin()) {
+            $sessionQuery->where('is_active', true);
+        }
+
+        $session = $sessionQuery->firstOrFail();
 
         $stream = $request->query('stream', 'subject');
         $previousSession = $session->getPreviousSession($stream);
@@ -107,6 +111,7 @@ class SessionController extends Controller
             }
         }
 
+        $guestToken = request()->cookie('pscranker_guest_token');
         $isCompleted = false;
         if ($user) {
             $isCompleted = UserSessionProgress::where('user_id', $user->id)
@@ -116,18 +121,32 @@ class SessionController extends Controller
                       ->orWhere('current_phase', 'summary');
                 })
                 ->exists();
-        } else {
-            $guestToken = request()->cookie('pscranker_guest_token');
-            if ($guestToken) {
-                $isCompleted = UserSessionProgress::where('guest_token', $guestToken)
-                    ->where('session_id', $session->id)
-                    ->where(function ($q) {
-                        $q->whereNotNull('completed_at')
-                          ->orWhere('current_phase', 'summary');
-                    })
-                    ->exists();
-            }
+        } elseif ($guestToken) {
+            $isCompleted = UserSessionProgress::where('guest_token', $guestToken)
+                ->where('session_id', $session->id)
+                ->where(function ($q) {
+                    $q->whereNotNull('completed_at')
+                      ->orWhere('current_phase', 'summary');
+                })
+                ->exists();
         }
+
+        $userId = $user ? $user->id : null;
+        $cumulativeLedger = $session->getCumulativeLedger($userId, $guestToken, $stream);
+        $structuredUnits = $session->structured_units;
+
+        $currentProgress = UserSessionProgress::where('session_id', $session->id)
+            ->where(function ($q) use ($userId, $guestToken) {
+                if ($userId) {
+                    $q->where('user_id', $userId);
+                } elseif ($guestToken) {
+                    $q->where('guest_token', $guestToken);
+                } else {
+                    $q->whereRaw('1 = 0');
+                }
+            })->first();
+
+        $previewMode = $request->query('preview'); // 'finished' or null
 
         return view('pages.session-runner', compact(
             'session',
@@ -140,7 +159,11 @@ class SessionController extends Controller
             'stream',
             'streamTitle',
             'streamTitleMalayalam',
-            'isCompleted'
+            'isCompleted',
+            'cumulativeLedger',
+            'structuredUnits',
+            'currentProgress',
+            'previewMode'
         ));
     }
 
@@ -284,10 +307,32 @@ class SessionController extends Controller
             $badgeColor = 'red';
         }
 
+        // Persist progress to database
+        $userId = auth()->id();
+        $guestToken = $validated['guest_token'] ?? $request->cookie('pscranker_guest_token') ?? Str::random(32);
+
+        $progress = UserSessionProgress::firstOrNew([
+            'user_id' => $userId,
+            'guest_token' => $userId ? null : $guestToken,
+            'session_id' => $session->id,
+        ]);
+
+        $progress->current_phase = 'summary';
+        $progress->omr_score = $netMarks;
+        $progress->net_marks = $netMarks;
+        $progress->time_taken_seconds = (int) ($validated['time_taken_seconds'] ?? 0);
+        $progress->completed_at = now();
+        $progress->save();
+
+        $stream = $request->input('stream', 'subject');
+        $cumulativeLedger = $session->getCumulativeLedger($userId, $guestToken, $stream);
+
         return response()->json([
             'success' => true,
+            'guest_token' => $guestToken,
             'summary' => [
                 'total_questions' => $totalQuestions,
+                'attempted' => ($correctCount + $wrongCount),
                 'correct' => $correctCount,
                 'wrong' => $wrongCount,
                 'unattempted' => $unattemptedCount,
@@ -301,6 +346,67 @@ class SessionController extends Controller
                 'badge_color' => $badgeColor,
             ],
             'questions' => $questionDetails,
+            'cumulative_ledger' => $cumulativeLedger,
+        ])->withCookie(cookie()->make('pscranker_guest_token', $guestToken, 60 * 24 * 30));
+    }
+
+    /**
+     * Retake Session:
+     * Resets the current session's score, recalculates the running cumulative score dynamically,
+     * and allows a clean re-attempt.
+     */
+    public function retake(Request $request, int $id): JsonResponse
+    {
+        $session = Session::findOrFail($id);
+        $userId = auth()->id();
+        $guestToken = $request->input('guest_token') ?? $request->cookie('pscranker_guest_token');
+
+        $progress = UserSessionProgress::where('session_id', $session->id)
+            ->where(function ($q) use ($userId, $guestToken) {
+                if ($userId) {
+                    $q->where('user_id', $userId);
+                } elseif ($guestToken) {
+                    $q->where('guest_token', $guestToken);
+                } else {
+                    $q->whereRaw('1 = 0');
+                }
+            })->first();
+
+        if ($progress) {
+            $progress->omr_score = 0;
+            $progress->net_marks = 0.00;
+            $progress->reinforcement_score = 0;
+            $progress->diagnostic_status = null;
+            $progress->current_phase = 'diagnostic';
+            $progress->completed_at = null;
+            $progress->save();
+        }
+
+        $stream = $request->input('stream', 'subject');
+        $cumulativeLedger = $session->getCumulativeLedger($userId, $guestToken, $stream);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Session score reset. You can now retake this session cleanly.',
+            'cumulative_ledger' => $cumulativeLedger,
+        ]);
+    }
+
+    /**
+     * Get Cumulative Ledger for the current session track.
+     */
+    public function getCumulativeLedger(Request $request, int $id): JsonResponse
+    {
+        $session = Session::findOrFail($id);
+        $userId = auth()->id();
+        $guestToken = $request->input('guest_token') ?? $request->cookie('pscranker_guest_token');
+        $stream = $request->input('stream', 'subject');
+
+        $cumulativeLedger = $session->getCumulativeLedger($userId, $guestToken, $stream);
+
+        return response()->json([
+            'success' => true,
+            'cumulative_ledger' => $cumulativeLedger,
         ]);
     }
 }

@@ -1,10 +1,11 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Affiliate Promoters & Monthly Commission Hub — Admin Mission Control')
+@section('page_title', 'Affiliate Promoters & Commissions')
+@section('page_subtitle', 'Manage zero-coupon field promoters, commission slabs, and monthly payouts')
 
 @section('content')
-<div class="py-8 bg-slate-50 min-h-screen">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="space-y-6">
 
         <!-- Top Mission Control Banner -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-800 relative overflow-hidden">
@@ -848,7 +849,6 @@
         @endif
 
     </div>
-</div>
 
 <!-- ============================================================= -->
 <!-- MODAL: EXECUTE MONTHLY DISBURSEMENT                           -->

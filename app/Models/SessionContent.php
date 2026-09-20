@@ -14,12 +14,15 @@ class SessionContent extends Model
 
     protected $fillable = [
         'session_id',
+        'unit_order',
+        'unit_title',
         'type',
         'content_data',
         'order',
     ];
 
     protected $casts = [
+        'unit_order' => 'integer',
         'content_data' => 'array',
         'order' => 'integer',
     ];
