@@ -405,9 +405,7 @@
                         <!-- 3. IMAGE BLOCK -->
                         <template x-if="block.type === 'image'">
                             <div class="space-y-2">
-                                <template x-if="block.content_data.title">
-                                    <h3 class="text-sm font-black text-slate-900" x-text="block.content_data.title"></h3>
-                                </template>
+
                                 <div class="rounded-xl overflow-hidden border border-slate-200 bg-slate-100 flex items-center justify-center relative group">
                                     <img :src="block.content_data.url" class="max-h-96 w-full object-contain rounded-xl" :alt="block.content_data.title || 'Infographic'">
                                 </div>
