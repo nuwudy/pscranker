@@ -743,10 +743,10 @@
                         <div class="w-16 h-16 rounded-3xl bg-gradient-to-tr from-emerald-500 to-emerald-600 text-white flex items-center justify-center text-3xl mx-auto mb-3 shadow-lg shadow-emerald-500/20">
                             🎯
                         </div>
-                        <span class="px-3 py-1 rounded-full text-xs font-black uppercase bg-emerald-100 text-emerald-900 border border-emerald-300" x-text="omrResults.summary.rank_badge"></span>
+                        <span class="px-3 py-1 rounded-full text-xs font-black uppercase bg-emerald-100 text-emerald-900 border border-emerald-300" x-text="omrResults?.summary?.rank_badge"></span>
                         
                         <h3 class="text-2xl sm:text-3xl font-black text-slate-950 mt-2">
-                            Session Final Score: <span class="text-[#0052FF]" x-text="omrResults.summary.net_marks.toFixed(2)"></span> / <span x-text="omrResults.summary.max_marks.toFixed(2)"></span>
+                            Session Final Score: <span class="text-[#0052FF]" x-text="omrResults?.summary?.net_marks?.toFixed(2)"></span> / <span x-text="omrResults?.summary?.max_marks?.toFixed(2)"></span>
                         </h3>
                         <p class="text-xs font-bold text-slate-500 mt-1">
                             Marks added to your Cumulative Track Ledger!
@@ -756,19 +756,19 @@
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 my-6 max-w-lg mx-auto">
                             <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
                                 <div class="text-[10px] font-bold text-slate-500 uppercase">Correct (+1)</div>
-                                <div class="text-lg font-black text-emerald-600" x-text="omrResults.summary.correct"></div>
+                                <div class="text-lg font-black text-emerald-600" x-text="omrResults?.summary?.correct"></div>
                             </div>
                             <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
                                 <div class="text-[10px] font-bold text-slate-500 uppercase">Wrong (-0.33)</div>
-                                <div class="text-lg font-black text-red-600" x-text="omrResults.summary.wrong"></div>
+                                <div class="text-lg font-black text-red-600" x-text="omrResults?.summary?.wrong"></div>
                             </div>
                             <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
                                 <div class="text-[10px] font-bold text-slate-500 uppercase">Unattempted</div>
-                                <div class="text-lg font-black text-slate-600" x-text="omrResults.summary.unattempted"></div>
+                                <div class="text-lg font-black text-slate-600" x-text="omrResults?.summary?.unattempted"></div>
                             </div>
                             <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
                                 <div class="text-[10px] font-bold text-slate-500 uppercase">Accuracy</div>
-                                <div class="text-lg font-black text-[#0052FF]" x-text="omrResults.summary.accuracy + '%'"></div>
+                                <div class="text-lg font-black text-[#0052FF]" x-text="(omrResults?.summary?.accuracy || 0) + '%'"></div>
                             </div>
                         </div>
 
