@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head><script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script></head>
+<body>
+    <div x-data="{ state: {} }">
+        <button id="testBtn" :disabled="state['abc']?.answered" @click="console.log('Clicked!')">Click Me</button>
+    </div>
+    <script>
+        setTimeout(() => {
+            console.log('Button disabled property:', document.getElementById('testBtn').disabled);
+            console.log('Button outerHTML:', document.getElementById('testBtn').outerHTML);
+        }, 1000);
+    </script>
+</body>
+</html>

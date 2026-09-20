@@ -398,7 +398,7 @@
                                         <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-200" x-text="block.content_data.scert_reference"></span>
                                     </template>
                                 </div>
-                                <div class="prose prose-slate max-w-none text-xs sm:text-sm leading-relaxed text-slate-800 font-['Noto_Sans_Malayalam']" x-html="block.content_data.body"></div>
+                                <div class="psc-text-block text-xs sm:text-sm leading-relaxed text-slate-800 font-['Noto_Sans_Malayalam']" x-html="block.content_data.body"></div>
                             </div>
                         </template>
 
@@ -412,7 +412,9 @@
                                     <img :src="block.content_data.url" class="max-h-96 w-full object-contain rounded-xl" :alt="block.content_data.title || 'Infographic'">
                                 </div>
                                 <template x-if="block.content_data.caption">
-                                    <p class="text-xs text-slate-600 font-bold font-['Noto_Sans_Malayalam'] text-center pt-1" x-text="block.content_data.caption"></p>
+                                    <div class="flex justify-center pt-2">
+                                        <p class="inline-block px-3 py-1.5 bg-slate-100 border border-slate-200 text-[11px] text-slate-600 font-bold font-['Noto_Sans_Malayalam'] text-center rounded-full shadow-2xs" x-html="block.content_data.caption"></p>
+                                    </div>
                                 </template>
                             </div>
                         </template>
