@@ -1132,18 +1132,22 @@ function modularTrackEngine(config) {
         },
 
         selectHookAnswer(block, optKey) {
-            if (this.hookAnswers[block.id]?.answered) return;
+            console.log('selectHookAnswer fired for block:', block.id, 'option:', optKey);
+            if (this.hookAnswers[block.id]?.answered) {
+                console.log('Already answered.');
+                return;
+            }
+            
             const correctOpt = (block.content_data?.correct_option || 'A').toUpperCase().trim();
             const isCorrect = (optKey.toUpperCase().trim() === correctOpt);
             
-            // Force reactivity by re-assigning the object
-            this.hookAnswers = {
-                ...this.hookAnswers,
-                [block.id]: {
-                    answered: true,
-                    selected: optKey,
-                    isCorrect: isCorrect
-                }
+            console.log('Correct option is:', correctOpt, '| User selected:', optKey, '| isCorrect:', isCorrect);
+            
+            // Direct assignment is perfectly reactive in Alpine v3
+            this.hookAnswers[block.id] = {
+                answered: true,
+                selected: optKey,
+                isCorrect: isCorrect
             };
             
             if (window.PscSound) {
@@ -1153,18 +1157,20 @@ function modularTrackEngine(config) {
         },
 
         selectPracticeAnswer(block, optKey) {
-            if (this.practiceAnswers[block.id]?.answered) return;
+            console.log('selectPracticeAnswer fired for block:', block.id, 'option:', optKey);
+            if (this.practiceAnswers[block.id]?.answered) {
+                console.log('Already answered.');
+                return;
+            }
+            
             const correctOpt = (block.content_data?.correct_option || 'A').toUpperCase().trim();
             const isCorrect = (optKey.toUpperCase().trim() === correctOpt);
             
-            // Force reactivity by re-assigning the object
-            this.practiceAnswers = {
-                ...this.practiceAnswers,
-                [block.id]: {
-                    answered: true,
-                    selected: optKey,
-                    isCorrect: isCorrect
-                }
+            // Direct assignment is perfectly reactive in Alpine v3
+            this.practiceAnswers[block.id] = {
+                answered: true,
+                selected: optKey,
+                isCorrect: isCorrect
             };
             
             if (window.PscSound) {
