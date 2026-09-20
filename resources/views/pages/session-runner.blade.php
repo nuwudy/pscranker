@@ -1133,22 +1133,42 @@ function modularTrackEngine(config) {
             if (this.hookAnswers[block.id]?.answered) return;
             const correctOpt = (block.content_data.correct_option || 'A').toUpperCase().trim();
             const isCorrect = (optKey.toUpperCase().trim() === correctOpt);
-            this.hookAnswers[block.id] = {
-                answered: true,
-                selected: optKey,
-                isCorrect: isCorrect
+            
+            // Force reactivity by re-assigning the object
+            this.hookAnswers = {
+                ...this.hookAnswers,
+                [block.id]: {
+                    answered: true,
+                    selected: optKey,
+                    isCorrect: isCorrect
+                }
             };
+            
+            if (window.PscSound) {
+                if (isCorrect) window.PscSound.playCorrect();
+                else window.PscSound.playWrong();
+            }
         },
 
         selectPracticeAnswer(block, optKey) {
             if (this.practiceAnswers[block.id]?.answered) return;
             const correctOpt = (block.content_data.correct_option || 'A').toUpperCase().trim();
             const isCorrect = (optKey.toUpperCase().trim() === correctOpt);
-            this.practiceAnswers[block.id] = {
-                answered: true,
-                selected: optKey,
-                isCorrect: isCorrect
+            
+            // Force reactivity by re-assigning the object
+            this.practiceAnswers = {
+                ...this.practiceAnswers,
+                [block.id]: {
+                    answered: true,
+                    selected: optKey,
+                    isCorrect: isCorrect
+                }
             };
+            
+            if (window.PscSound) {
+                if (isCorrect) window.PscSound.playCorrect();
+                else window.PscSound.playWrong();
+            }
         },
 
         // -------------------------------------------------------------
