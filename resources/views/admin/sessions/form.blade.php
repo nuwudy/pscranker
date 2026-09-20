@@ -2329,6 +2329,19 @@ function adminSessionBuilder(initial) {
 
         submitMainForm() {
             this.prepareFormData();
+            
+            // Force hidden inputs to update immediately to avoid AlpineJS reactivity race conditions
+            // before calling form.submit() synchronously.
+            const contentsInput = document.querySelector('input[name="contents_json"]');
+            if (contentsInput) {
+                contentsInput.value = JSON.stringify(this.serializedContents);
+            }
+            
+            const questionsInput = document.querySelector('input[name="questions_json"]');
+            if (questionsInput) {
+                questionsInput.value = JSON.stringify(this.serializedQuestions);
+            }
+
             const form = document.getElementById('admin-session-form');
             if (form) {
                 form.submit();
