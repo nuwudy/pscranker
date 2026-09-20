@@ -304,7 +304,19 @@
 
                         <!-- 1. HOOK QUESTION BLOCK (Unit 1 Opener) -->
                         <template x-if="block.type === 'hook_mcq'">
-                            <div class="space-y-4">
+                            <div class="space-y-4" x-data="{
+                                answered: false,
+                                selected: null,
+                                correct: (block.content_data.correct_option || 'A').toUpperCase().trim(),
+                                checkAns(key) {
+                                    if (this.answered) return;
+                                    this.answered = true;
+                                    this.selected = key;
+                                    if (window.PscSound) {
+                                        this.selected === this.correct ? window.PscSound.playCorrect() : window.PscSound.playWrong();
+                                    }
+                                }
+                            }">
                                 <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                                     <div class="flex items-center gap-2">
                                         <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-purple-100 text-purple-900 border border-purple-200">
@@ -328,24 +340,24 @@
 
                                 <!-- 4 Options (A, B, C, D) -->
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
-                                    <template x-for="opt in getQuestionOptions(block.content_data)" :key="opt.key">
+                                    <template x-for="opt in block._options" :key="opt.key">
                                         <button 
                                             type="button"
-                                            @click="selectHookAnswer(block, opt.key)"
-                                            :disabled="hookAnswers[block.id]?.answered"
+                                            @click="checkAns(opt.key)"
+                                            :disabled="answered"
                                             :class="{
-                                                'border-slate-300 hover:border-purple-400 bg-white hover:bg-purple-50/50 text-slate-800': !hookAnswers[block.id]?.answered,
-                                                'border-emerald-500 bg-emerald-50 text-emerald-950 ring-2 ring-emerald-400 font-bold': hookAnswers[block.id]?.answered && opt.key === block.content_data?.correct_option,
-                                                'border-red-400 bg-red-50 text-red-950 font-bold': hookAnswers[block.id]?.answered && hookAnswers[block.id]?.selected === opt.key && opt.key !== block.content_data?.correct_option,
-                                                'border-slate-200 bg-slate-50 text-slate-400 opacity-60': hookAnswers[block.id]?.answered && hookAnswers[block.id]?.selected !== opt.key && opt.key !== block.content_data?.correct_option
+                                                'border-slate-300 hover:border-purple-400 bg-white hover:bg-purple-50/50 text-slate-800': !answered,
+                                                'border-emerald-500 bg-emerald-50 text-emerald-950 ring-2 ring-emerald-400 font-bold': answered && opt.key === correct,
+                                                'border-red-400 bg-red-50 text-red-950 font-bold': answered && selected === opt.key && opt.key !== correct,
+                                                'border-slate-200 bg-slate-50 text-slate-400 opacity-60': answered && selected !== opt.key && opt.key !== correct
                                             }"
                                             class="p-3 rounded-xl border-2 text-left text-xs font-medium transition flex items-center gap-3 cursor-pointer"
                                         >
                                             <span 
                                                 :class="{
-                                                    'bg-slate-100 text-slate-800 border-slate-300': !hookAnswers[block.id]?.answered,
-                                                    'bg-emerald-600 text-white border-emerald-600': hookAnswers[block.id]?.answered && opt.key === block.content_data?.correct_option,
-                                                    'bg-red-600 text-white border-red-600': hookAnswers[block.id]?.answered && hookAnswers[block.id]?.selected === opt.key && opt.key !== block.content_data?.correct_option
+                                                    'bg-slate-100 text-slate-800 border-slate-300': !answered,
+                                                    'bg-emerald-600 text-white border-emerald-600': answered && opt.key === correct,
+                                                    'bg-red-600 text-white border-red-600': answered && selected === opt.key && opt.key !== correct
                                                 }"
                                                 class="w-6 h-6 rounded-full border flex items-center justify-center font-black text-[11px] shrink-0"
                                                 x-text="opt.key"
@@ -356,11 +368,11 @@
                                 </div>
 
                                 <!-- Instant Explanation Feedback -->
-                                <template x-if="hookAnswers[block.id]?.answered">
-                                    <div class="mt-3 p-4 rounded-xl border" :class="hookAnswers[block.id]?.isCorrect ? 'bg-emerald-50 border-emerald-300 text-emerald-950' : 'bg-amber-50 border-amber-300 text-amber-950'">
+                                <template x-if="answered">
+                                    <div class="mt-3 p-4 rounded-xl border" :class="(selected === correct) ? 'bg-emerald-50 border-emerald-300 text-emerald-950' : 'bg-amber-50 border-amber-300 text-amber-950'">
                                         <div class="flex items-center gap-2 font-black text-xs mb-1">
-                                            <span x-text="hookAnswers[block.id]?.isCorrect ? '🎉 Correct Answer!' : '💡 Concept Insight:'"></span>
-                                            <span class="font-mono text-[11px]" x-text="'(Option ' + block.content_data.correct_option + ')'"></span>
+                                            <span x-text="(selected === correct) ? '🎉 Correct Answer!' : '💡 Concept Insight:'"></span>
+                                            <span class="font-mono text-[11px]" x-text="'(Option ' + correct + ')'"></span>
                                         </div>
                                         <p class="text-xs font-medium leading-relaxed" x-text="block.content_data.explanation"></p>
                                         <template x-if="block.content_data.explanation_malayalam">
@@ -537,7 +549,19 @@
 
                         <!-- 7. PRACTICE MCQ BLOCK (1 Question Per Screen) -->
                         <template x-if="block.type === 'practice_mcq'">
-                            <div class="space-y-4">
+                            <div class="space-y-4" x-data="{
+                                answered: false,
+                                selected: null,
+                                correct: (block.content_data.correct_option || 'A').toUpperCase().trim(),
+                                checkAns(key) {
+                                    if (this.answered) return;
+                                    this.answered = true;
+                                    this.selected = key;
+                                    if (window.PscSound) {
+                                        this.selected === this.correct ? window.PscSound.playCorrect() : window.PscSound.playWrong();
+                                    }
+                                }
+                            }">
                                 <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                                     <div class="flex items-center gap-2">
                                         <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-blue-100 text-blue-900 border border-blue-200">
@@ -560,24 +584,24 @@
 
                                 <!-- Options -->
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
-                                    <template x-for="opt in getQuestionOptions(block.content_data)" :key="opt.key">
+                                    <template x-for="opt in block._options" :key="opt.key">
                                         <button 
                                             type="button"
-                                            @click="selectPracticeAnswer(block, opt.key)"
-                                            :disabled="practiceAnswers[block.id]?.answered"
+                                            @click="checkAns(opt.key)"
+                                            :disabled="answered"
                                             :class="{
-                                                'border-slate-300 hover:border-blue-500 bg-white hover:bg-blue-50/50 text-slate-800': !practiceAnswers[block.id]?.answered,
-                                                'border-emerald-500 bg-emerald-50 text-emerald-950 ring-2 ring-emerald-400 font-bold': practiceAnswers[block.id]?.answered && opt.key === block.content_data?.correct_option,
-                                                'border-red-400 bg-red-50 text-red-950 font-bold': practiceAnswers[block.id]?.answered && practiceAnswers[block.id]?.selected === opt.key && opt.key !== block.content_data?.correct_option,
-                                                'border-slate-200 bg-slate-50 text-slate-400 opacity-60': practiceAnswers[block.id]?.answered && practiceAnswers[block.id]?.selected !== opt.key && opt.key !== block.content_data?.correct_option
+                                                'border-slate-300 hover:border-blue-500 bg-white hover:bg-blue-50/50 text-slate-800': !answered,
+                                                'border-emerald-500 bg-emerald-50 text-emerald-950 ring-2 ring-emerald-400 font-bold': answered && opt.key === correct,
+                                                'border-red-400 bg-red-50 text-red-950 font-bold': answered && selected === opt.key && opt.key !== correct,
+                                                'border-slate-200 bg-slate-50 text-slate-400 opacity-60': answered && selected !== opt.key && opt.key !== correct
                                             }"
                                             class="p-3.5 rounded-xl border-2 text-left text-xs font-medium transition flex items-center gap-3 cursor-pointer shadow-2xs"
                                         >
                                             <span 
                                                 :class="{
-                                                    'bg-slate-100 text-slate-800 border-slate-300': !practiceAnswers[block.id]?.answered,
-                                                    'bg-emerald-600 text-white border-emerald-600': practiceAnswers[block.id]?.answered && opt.key === block.content_data?.correct_option,
-                                                    'bg-red-600 text-white border-red-600': practiceAnswers[block.id]?.answered && practiceAnswers[block.id]?.selected === opt.key && opt.key !== block.content_data?.correct_option
+                                                    'bg-slate-100 text-slate-800 border-slate-300': !answered,
+                                                    'bg-emerald-600 text-white border-emerald-600': answered && opt.key === correct,
+                                                    'bg-red-600 text-white border-red-600': answered && selected === opt.key && opt.key !== correct
                                                 }"
                                                 class="w-6 h-6 rounded-full border flex items-center justify-center font-black text-[11px] shrink-0"
                                                 x-text="opt.key"
@@ -588,11 +612,11 @@
                                 </div>
 
                                 <!-- Explanation Feedback -->
-                                <template x-if="practiceAnswers[block.id]?.answered">
-                                    <div class="mt-3 p-4 rounded-xl border" :class="practiceAnswers[block.id]?.isCorrect ? 'bg-emerald-50 border-emerald-300 text-emerald-950' : 'bg-amber-50 border-amber-300 text-amber-950'">
+                                <template x-if="answered">
+                                    <div class="mt-3 p-4 rounded-xl border" :class="(selected === correct) ? 'bg-emerald-50 border-emerald-300 text-emerald-950' : 'bg-amber-50 border-amber-300 text-amber-950'">
                                         <div class="flex items-center gap-2 font-black text-xs mb-1">
-                                            <span x-text="practiceAnswers[block.id]?.isCorrect ? '🎉 Correct Answer!' : '💡 Explanation:'"></span>
-                                            <span class="font-mono text-[11px]" x-text="'(Option ' + block.content_data.correct_option + ')'"></span>
+                                            <span x-text="(selected === correct) ? '🎉 Correct Answer!' : '💡 Explanation:'"></span>
+                                            <span class="font-mono text-[11px]" x-text="'(Option ' + correct + ')'"></span>
                                         </div>
                                         <p class="text-xs font-medium leading-relaxed" x-text="block.content_data.explanation"></p>
                                         <template x-if="block.content_data.explanation_malayalam">
@@ -1037,6 +1061,29 @@ function modularTrackEngine(config) {
         },
 
         initTrackEngine() {
+            // Pre-process all blocks to have _options assigned, avoiding template function calls
+            if (this.units && Array.isArray(this.units)) {
+                this.units.forEach(unit => {
+                    if (unit.blocks && Array.isArray(unit.blocks)) {
+                        unit.blocks.forEach(block => {
+                            if (block.type === 'hook_mcq' || block.type === 'practice_mcq') {
+                                const data = block.content_data || {};
+                                if (data.options && Array.isArray(data.options) && data.options.length > 0) {
+                                    block._options = data.options;
+                                } else {
+                                    block._options = [
+                                        { key: 'A', text: data.option_a || 'Option A' },
+                                        { key: 'B', text: data.option_b || 'Option B' },
+                                        { key: 'C', text: data.option_c || 'Option C' },
+                                        { key: 'D', text: data.option_d || 'Option D' },
+                                    ];
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+
             if (config.previewMode === 'finished') {
                 this.adminViewFinished();
                 return;
@@ -1120,15 +1167,19 @@ function modularTrackEngine(config) {
         // MCQ Helpers (Hook Question & Practice Drill)
         // -------------------------------------------------------------
         getQuestionOptions(data) {
+            if (data._cached_options) return data._cached_options;
+            
             if (data.options && Array.isArray(data.options) && data.options.length > 0) {
+                data._cached_options = data.options;
                 return data.options;
             }
-            return [
+            data._cached_options = [
                 { key: 'A', text: data.option_a || 'Option A' },
                 { key: 'B', text: data.option_b || 'Option B' },
                 { key: 'C', text: data.option_c || 'Option C' },
                 { key: 'D', text: data.option_d || 'Option D' },
             ];
+            return data._cached_options;
         },
 
         selectHookAnswer(block, optKey) {
@@ -1149,6 +1200,7 @@ function modularTrackEngine(config) {
                 selected: optKey,
                 isCorrect: isCorrect
             };
+            this.hookAnswers = { ...this.hookAnswers };
             
             if (window.PscSound) {
                 if (isCorrect) window.PscSound.playCorrect();
@@ -1172,6 +1224,7 @@ function modularTrackEngine(config) {
                 selected: optKey,
                 isCorrect: isCorrect
             };
+            this.practiceAnswers = { ...this.practiceAnswers };
             
             if (window.PscSound) {
                 if (isCorrect) window.PscSound.playCorrect();
@@ -1185,11 +1238,13 @@ function modularTrackEngine(config) {
         selectOmrBubble(questionId, optKey) {
             if (this.omrSubmitted) return;
             this.omrAnswers[questionId] = optKey;
+            this.omrAnswers = { ...this.omrAnswers };
         },
 
         clearOmrBubble(questionId) {
             if (this.omrSubmitted) return;
             delete this.omrAnswers[questionId];
+            this.omrAnswers = { ...this.omrAnswers };
         },
 
         getAttemptedOmrCount() {
