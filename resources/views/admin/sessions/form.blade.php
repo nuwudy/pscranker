@@ -572,9 +572,10 @@
                 </div>
 
                 <!-- Units List Container -->
-                <div class="space-y-6">
+                <div class="space-y-8">
                     <template x-for="(unit, uIdx) in units" :key="unit.id">
-                        <div class="p-4 sm:p-5 rounded-2xl border-2 border-purple-200 bg-purple-50/15 space-y-4 transition hover:border-purple-300">
+                        <div class="relative">
+                            <div class="p-4 sm:p-5 rounded-2xl border-2 border-purple-200 bg-purple-50/15 space-y-4 transition hover:border-purple-300">
                             
                             <!-- Unit Header Bar -->
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-purple-200/60">
@@ -1104,8 +1105,21 @@
                                         <span>⚡ + HTML</span>
                                     </button>
                                 </div>
+                                </div>
                             </div>
 
+                            <!-- Insert Unit Button (Between units) -->
+                            <div class="absolute -bottom-[20px] left-1/2 -translate-x-1/2 z-10 flex items-center justify-center" x-show="uIdx < units.length - 1">
+                                <button 
+                                    type="button" 
+                                    @click="insertUnit(uIdx + 1)" 
+                                    class="h-7 flex items-center gap-1 px-3 rounded-full bg-white border-2 border-dashed border-purple-300 text-purple-600 hover:bg-purple-50 hover:border-solid hover:border-purple-500 hover:text-purple-800 font-bold text-[10px] uppercase tracking-wide shadow-sm hover:shadow-md transition cursor-pointer"
+                                    title="Insert Unit Here"
+                                >
+                                    <span class="text-sm leading-none font-black">+</span>
+                                    <span>Insert Unit</span>
+                                </button>
+                            </div>
                         </div>
                     </template>
                 </div>
@@ -1899,6 +1913,15 @@ function adminSessionBuilder(initial) {
         addUnit() {
             const nextUnitNum = this.units.length + 1;
             this.units.push({
+                id: 'unit_' + Date.now() + '_' + nextUnitNum,
+                title: 'Unit ' + nextUnitNum + ': Study Track',
+                blocks: []
+            });
+        },
+
+        insertUnit(index) {
+            const nextUnitNum = this.units.length + 1;
+            this.units.splice(index, 0, {
                 id: 'unit_' + Date.now() + '_' + nextUnitNum,
                 title: 'Unit ' + nextUnitNum + ': Study Track',
                 blocks: []
