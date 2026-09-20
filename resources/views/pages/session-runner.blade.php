@@ -722,9 +722,9 @@
 
                             <!-- Post Submission Instant Evaluation Feedback per Question -->
                             <template x-if="omrSubmitted && omrResults">
-                                <div class="mt-3 p-3.5 rounded-xl border text-xs leading-relaxed" :class="omrResults.questions[qIdx]?.is_correct ? 'bg-emerald-50 border-emerald-300 text-emerald-950' : 'bg-red-50 border-red-300 text-red-950'">
+                                <div class="mt-3 p-3.5 rounded-xl border text-xs leading-relaxed" :class="omrResults?.questions?.[qIdx]?.is_correct ? 'bg-emerald-50 border-emerald-300 text-emerald-950' : 'bg-red-50 border-red-300 text-red-950'">
                                     <div class="flex items-center justify-between font-black mb-1">
-                                        <span x-text="omrResults.questions[qIdx]?.is_correct ? '✓ Correct Mark (+1.00)' : (omrResults.questions[qIdx]?.is_attempted ? '✗ Incorrect Mark (-0.33 Penalty)' : '○ Unattempted (0.00)')"></span>
+                                        <span x-text="omrResults?.questions?.[qIdx]?.is_correct ? '✓ Correct Mark (+1.00)' : (omrResults?.questions?.[qIdx]?.is_attempted ? '✗ Incorrect Mark (-0.33 Penalty)' : '○ Unattempted (0.00)')"></span>
                                         <span class="font-mono text-[11px]" x-text="'Correct: Option ' + q.correct_option"></span>
                                     </div>
                                     <p class="text-xs" x-text="q.explanation"></p>
@@ -1050,6 +1050,7 @@ function modularTrackEngine(config) {
                     const totalQs = omrUnit?.questions?.length || 5;
                     this.omrResults = {
                         success: true,
+                        questions: [],
                         summary: {
                             net_marks: config.initialProgress.net_marks !== null ? Number(config.initialProgress.net_marks) : totalQs,
                             max_marks: totalQs,
@@ -1077,6 +1078,7 @@ function modularTrackEngine(config) {
                 const totalQs = (this.units[this.activeUnitIdx]?.questions?.length) || 5;
                 this.omrResults = {
                     success: true,
+                    questions: [],
                     summary: {
                         net_marks: Number(totalQs),
                         max_marks: Number(totalQs),
