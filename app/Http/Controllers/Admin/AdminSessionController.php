@@ -639,117 +639,40 @@ class AdminSessionController extends Controller
     }
 
     /**
-     * Helper to sync content blocks and questions.
+     * Sync content blocks from the modular builder.
+     *
+     * session_contents is the single source of truth.
+     * hook_mcq and practice_mcq blocks automatically feed the OMR exam
+     * via Session::getEffectiveOmrQuestionsAttribute() at query time.
+     * We no longer write to the `questions` table from here.
      */
     private function syncContentsAndQuestions(Session $session, Request $request): void
     {
-        $allOmrQuestions = [];
-
-        // 1. Process Content Blocks (JSON payload or array)
-        if ($request->has('contents_json')) {
-            $contentsData = json_decode($request->input('contents_json'), true) ?? [];
-            $session->contents()->delete();
-
-            foreach ($contentsData as $idx => $block) {
-                if (!empty($block['type'])) {
-                    $contentData = $block['content_data'] ?? [];
-                    $unitOrder = (int) ($block['unit_order'] ?? 1);
-                    $unitTitle = $block['unit_title'] ?? null;
-
-                    SessionContent::create([
-                        'session_id' => $session->id,
-                        'unit_order' => $unitOrder,
-                        'unit_title' => $unitTitle,
-                        'type' => $block['type'],
-                        'content_data' => $contentData,
-                        'order' => $idx + 1,
-                    ]);
-
-                    // Crucial Linkage: Any Hook MCQ or Practice MCQ block added into a unit automatically feeds into the OMR question bank!
-                    if (in_array($block['type'], ['hook_mcq', 'practice_mcq']) && !empty($contentData['question_text'])) {
-                        $phaseType = ($block['type'] === 'hook_mcq') ? 'diagnostic' : 'reinforcement';
-                        $allOmrQuestions[] = [
-                            'phase_type' => $phaseType,
-                            'question_text' => $contentData['question_text'],
-                            'question_text_malayalam' => $contentData['question_text_malayalam'] ?? null,
-                            'option_a' => $contentData['option_a'] ?? '',
-                            'option_b' => $contentData['option_b'] ?? '',
-                            'option_c' => $contentData['option_c'] ?? '',
-                            'option_d' => $contentData['option_d'] ?? '',
-                            'correct_option' => strtoupper(trim($contentData['correct_option'] ?? 'A')),
-                            'explanation' => $contentData['explanation'] ?? null,
-                            'explanation_malayalam' => $contentData['explanation_malayalam'] ?? null,
-                            'trap_warning' => $contentData['trap_warning'] ?? ($contentData['trap_warning_text'] ?? null),
-                            'trap_warning_text' => $contentData['trap_warning_text'] ?? ($contentData['trap_warning'] ?? null),
-                            'psc_exam_reference' => $contentData['psc_reference'] ?? ($contentData['psc_exam_reference'] ?? null),
-                        ];
-                    }
-                }
-            }
-        }
-
-        // 2. Process Questions (JSON payload)
-        if ($request->has('questions_json')) {
-            $questionsData = json_decode($request->input('questions_json'), true) ?? [];
-            foreach ($questionsData as $q) {
-                if (!empty($q['question_text'])) {
-                    $allOmrQuestions[] = $q;
-                }
-            }
-        }
-
-        // Deduplicate and persist questions
+        // Wipe legacy questions table data for this session (clean slate).
+        // Questions are now derived purely from session_contents blocks.
         $session->questions()->delete();
 
-        $seenTexts = [];
-        foreach ($allOmrQuestions as $q) {
-            $key = trim($q['question_text']);
-            if (isset($seenTexts[$key])) {
+        if (!$request->has('contents_json')) {
+            return;
+        }
+
+        $contentsData = json_decode($request->input('contents_json'), true) ?? [];
+
+        // Delete existing content blocks and rewrite fresh
+        $session->contents()->delete();
+
+        foreach ($contentsData as $idx => $block) {
+            if (empty($block['type'])) {
                 continue;
             }
-            $seenTexts[$key] = true;
 
-            $phaseType = $q['phase_type'] ?? 'reinforcement';
-
-            Question::create([
-                'session_id' => $session->id,
-                'category_id' => $session->category_id,
-                'phase_type' => $phaseType,
-                'question_text' => $q['question_text'],
-                'question_text_malayalam' => $q['question_text_malayalam'] ?? null,
-                'option_a' => $q['option_a'] ?? '',
-                'option_b' => $q['option_b'] ?? '',
-                'option_c' => $q['option_c'] ?? '',
-                'option_d' => $q['option_d'] ?? '',
-                'correct_option' => strtoupper(trim($q['correct_option'] ?? 'A')),
-                'explanation' => $q['explanation'] ?? null,
-                'explanation_malayalam' => $q['explanation_malayalam'] ?? null,
-                'trap_warning' => $q['trap_warning_text'] ?? ($q['trap_warning'] ?? null),
-                'trap_warning_text' => $q['trap_warning_text'] ?? ($q['trap_warning'] ?? null),
-                'psc_exam_reference' => $q['psc_exam_reference'] ?? ($q['psc_reference'] ?? null),
-                'points' => 1.00,
-                'negative_points' => 0.33,
-            ]);
-
-            // Auto-mirror as OMR question so it automatically populates the Capstone OMR test pool
-            Question::create([
-                'session_id' => $session->id,
-                'category_id' => $session->category_id,
-                'phase_type' => 'omr',
-                'question_text' => $q['question_text'],
-                'question_text_malayalam' => $q['question_text_malayalam'] ?? null,
-                'option_a' => $q['option_a'] ?? '',
-                'option_b' => $q['option_b'] ?? '',
-                'option_c' => $q['option_c'] ?? '',
-                'option_d' => $q['option_d'] ?? '',
-                'correct_option' => strtoupper(trim($q['correct_option'] ?? 'A')),
-                'explanation' => $q['explanation'] ?? null,
-                'explanation_malayalam' => $q['explanation_malayalam'] ?? null,
-                'trap_warning' => $q['trap_warning_text'] ?? ($q['trap_warning'] ?? null),
-                'trap_warning_text' => $q['trap_warning_text'] ?? ($q['trap_warning'] ?? null),
-                'psc_exam_reference' => $q['psc_exam_reference'] ?? ($q['psc_reference'] ?? null),
-                'points' => 1.00,
-                'negative_points' => 0.33,
+            SessionContent::create([
+                'session_id'   => $session->id,
+                'unit_order'   => (int) ($block['unit_order'] ?? 1),
+                'unit_title'   => $block['unit_title'] ?? null,
+                'type'         => $block['type'],
+                'content_data' => $block['content_data'] ?? [],
+                'order'        => $idx + 1,
             ]);
         }
     }

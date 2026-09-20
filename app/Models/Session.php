@@ -220,33 +220,32 @@ class Session extends Model
 
     public function getEffectiveOmrQuestionsAttribute()
     {
-        if ($this->omrQuestions->isNotEmpty()) {
-            return $this->omrQuestions;
-        }
+        // Single source of truth: always build OMR questions purely from
+        // hook_mcq and practice_mcq blocks stored in session_contents.
+        // The legacy `questions` table is no longer used for OMR sourcing.
+        $mcqBlocks = $this->contents()
+            ->whereIn('type', ['practice_mcq', 'hook_mcq'])
+            ->orderBy('unit_order', 'asc')
+            ->orderBy('order', 'asc')
+            ->get();
 
-        if ($this->reinforcementQuestions->isNotEmpty()) {
-            return $this->reinforcementQuestions;
-        }
-
-        // Auto-extract from practice_mcq and hook_mcq blocks in session_contents
-        $mcqBlocks = $this->contents()->whereIn('type', ['practice_mcq', 'hook_mcq'])->orderBy('unit_order', 'asc')->orderBy('order', 'asc')->get();
         if ($mcqBlocks->isNotEmpty()) {
             return $mcqBlocks->map(function ($block) {
                 $data = $block->content_data ?? [];
                 $q = new Question([
-                    'session_id' => $this->id,
-                    'phase_type' => 'omr',
-                    'question_text' => $data['question_text'] ?? '',
+                    'session_id'             => $this->id,
+                    'phase_type'             => 'omr',
+                    'question_text'          => $data['question_text'] ?? '',
                     'question_text_malayalam' => $data['question_text_malayalam'] ?? null,
-                    'option_a' => $data['option_a'] ?? '',
-                    'option_b' => $data['option_b'] ?? '',
-                    'option_c' => $data['option_c'] ?? '',
-                    'option_d' => $data['option_d'] ?? '',
-                    'correct_option' => $data['correct_option'] ?? 'A',
-                    'explanation' => $data['explanation'] ?? null,
-                    'explanation_malayalam' => $data['explanation_malayalam'] ?? null,
-                    'trap_warning' => $data['trap_warning'] ?? null,
-                    'psc_exam_reference' => $data['psc_reference'] ?? null,
+                    'option_a'               => $data['option_a'] ?? '',
+                    'option_b'               => $data['option_b'] ?? '',
+                    'option_c'               => $data['option_c'] ?? '',
+                    'option_d'               => $data['option_d'] ?? '',
+                    'correct_option'         => strtoupper(trim($data['correct_option'] ?? 'A')),
+                    'explanation'            => $data['explanation'] ?? null,
+                    'explanation_malayalam'  => $data['explanation_malayalam'] ?? null,
+                    'trap_warning'           => $data['trap_warning'] ?? null,
+                    'psc_exam_reference'     => $data['psc_reference'] ?? ($data['psc_exam_reference'] ?? null),
                 ]);
                 $q->id = $block->id;
                 return $q;
@@ -258,9 +257,37 @@ class Session extends Model
 
     public function getEffectiveReinforcementQuestionsAttribute()
     {
-        return $this->reinforcementQuestions->isNotEmpty()
-            ? $this->reinforcementQuestions
-            : collect();
+        // Reinforcement questions now come purely from practice_mcq blocks in session_contents.
+        $practiceBlocks = $this->contents()
+            ->where('type', 'practice_mcq')
+            ->orderBy('unit_order', 'asc')
+            ->orderBy('order', 'asc')
+            ->get();
+
+        if ($practiceBlocks->isNotEmpty()) {
+            return $practiceBlocks->map(function ($block) {
+                $data = $block->content_data ?? [];
+                $q = new Question([
+                    'session_id'             => $this->id,
+                    'phase_type'             => 'reinforcement',
+                    'question_text'          => $data['question_text'] ?? '',
+                    'question_text_malayalam' => $data['question_text_malayalam'] ?? null,
+                    'option_a'               => $data['option_a'] ?? '',
+                    'option_b'               => $data['option_b'] ?? '',
+                    'option_c'               => $data['option_c'] ?? '',
+                    'option_d'               => $data['option_d'] ?? '',
+                    'correct_option'         => strtoupper(trim($data['correct_option'] ?? 'A')),
+                    'explanation'            => $data['explanation'] ?? null,
+                    'explanation_malayalam'  => $data['explanation_malayalam'] ?? null,
+                    'trap_warning'           => $data['trap_warning'] ?? null,
+                    'psc_exam_reference'     => $data['psc_reference'] ?? ($data['psc_exam_reference'] ?? null),
+                ]);
+                $q->id = $block->id;
+                return $q;
+            });
+        }
+
+        return collect();
     }
 
     public function progress(): HasMany
@@ -276,136 +303,71 @@ class Session extends Model
     public function getStructuredUnitsAttribute(): array
     {
         $units = [];
-        $rawContents = $this->contents()->orderBy('unit_order', 'asc')->orderBy('order', 'asc')->get();
-        $diagnosticQ = $this->diagnosticQuestion;
-        $reinforcementQs = $this->effective_reinforcement_questions;
+
+        // Single source of truth: all content comes from session_contents only.
+        // No legacy questions table merging.
+        $rawContents = $this->contents()
+            ->orderBy('unit_order', 'asc')
+            ->orderBy('order', 'asc')
+            ->get();
+
         $omrQs = $this->effective_omr_questions;
 
         // Group content blocks by unit_order
         $grouped = $rawContents->groupBy(fn($item) => $item->unit_order ?: 1);
 
         if ($grouped->isEmpty()) {
-            // Default Unit 1 if no content blocks exist yet
+            // Show a single empty unit placeholder if nothing saved yet
             $grouped = collect([1 => collect()]);
         }
 
         $unitCounter = 1;
         foreach ($grouped as $unitOrder => $items) {
             $firstItem = $items->first();
-            $unitTitle = ($firstItem && !empty($firstItem->unit_title)) 
-                ? $firstItem->unit_title 
+            $unitTitle = ($firstItem && !empty($firstItem->unit_title))
+                ? $firstItem->unit_title
                 : "Unit {$unitCounter}: Concept & Study Notes";
 
             $blocks = [];
-
-            // If Unit 1 and we have a Hook MCQ (diagnostic question), insert Hook MCQ block at the top of Unit 1 ONLY IF NOT ALREADY IN BLOCKS
-            if ($unitCounter === 1 && $diagnosticQ && !$items->contains(fn($b) => $b->type === 'hook_mcq')) {
-                $blocks[] = [
-                    'id' => 'hook_mcq_' . $diagnosticQ->id,
-                    'type' => 'hook_mcq',
-                    'title' => 'Hook Question (Concept Challenge)',
-                    'title_malayalam' => 'ഹുക്ക് ചോദ്യം (പ്രിലിമിനറി വെല്ലുവിളി)',
-                    'content_data' => [
-                        'question_id' => $diagnosticQ->id,
-                        'question_text' => $diagnosticQ->question_text,
-                        'question_text_malayalam' => $diagnosticQ->question_text_malayalam,
-                        'option_a' => $diagnosticQ->option_a,
-                        'option_b' => $diagnosticQ->option_b,
-                        'option_c' => $diagnosticQ->option_c,
-                        'option_d' => $diagnosticQ->option_d,
-                        'options' => $diagnosticQ->resolved_options,
-                        'correct_option' => $diagnosticQ->correct_option,
-                        'explanation' => $diagnosticQ->explanation,
-                        'explanation_malayalam' => $diagnosticQ->explanation_malayalam,
-                        'trap_warning' => $diagnosticQ->resolved_trap_warning,
-                        'psc_reference' => $diagnosticQ->psc_exam_reference,
-                    ],
-                ];
-            }
-
             foreach ($items as $item) {
                 $blocks[] = [
-                    'id' => 'block_' . $item->id,
-                    'type' => $item->type,
+                    'id'           => 'block_' . $item->id,
+                    'type'         => $item->type,
                     'content_data' => $item->content_data,
-                    'order' => $item->order,
+                    'order'        => $item->order,
                 ];
             }
 
             $units[] = [
                 'unit_number' => $unitCounter,
-                'title' => $unitTitle,
+                'title'       => $unitTitle,
                 'is_omr_unit' => false,
-                'blocks' => $blocks,
+                'blocks'      => $blocks,
             ];
             $unitCounter++;
         }
 
-        // Add Practice MCQ units if there are reinforcement questions NOT already added inside unit content blocks
-        $existingPracticeQTexts = $rawContents->where('type', 'practice_mcq')
-            ->map(fn($item) => trim($item->content_data['question_text'] ?? ''))
-            ->filter()
-            ->all();
-
-        $standalonePracticeQs = $reinforcementQs->filter(function ($q) use ($existingPracticeQTexts) {
-            return !in_array(trim($q->question_text), $existingPracticeQTexts);
-        });
-
-        if ($standalonePracticeQs->isNotEmpty()) {
-            foreach ($standalonePracticeQs->values() as $idx => $q) {
-                $units[] = [
-                    'unit_number' => $unitCounter,
-                    'title' => "Unit {$unitCounter}: Practice Drill #" . ($idx + 1),
-                    'is_omr_unit' => false,
-                    'blocks' => [
-                        [
-                            'id' => 'practice_mcq_' . $q->id,
-                            'type' => 'practice_mcq',
-                            'title' => 'Speed Practice MCQ (1 Question Per Screen)',
-                            'title_malayalam' => 'റാപ്പിഡ് പ്രാക്ടീസ് ചോദ്യം',
-                            'content_data' => [
-                                'question_id' => $q->id,
-                                'question_text' => $q->question_text,
-                                'question_text_malayalam' => $q->question_text_malayalam,
-                                'option_a' => $q->option_a,
-                                'option_b' => $q->option_b,
-                                'option_c' => $q->option_c,
-                                'option_d' => $q->option_d,
-                                'options' => $q->resolved_options,
-                                'correct_option' => $q->correct_option,
-                                'explanation' => $q->explanation,
-                                'explanation_malayalam' => $q->explanation_malayalam,
-                                'trap_warning' => $q->resolved_trap_warning,
-                                'psc_reference' => $q->psc_exam_reference,
-                            ],
-                        ]
-                    ],
-                ];
-                $unitCounter++;
-            }
-        }
-
-        // Final Unit: CAPSTONE OMR ASSESSMENT (Grouped single-page layout displaying all questions together)
+        // Final Unit: CAPSTONE OMR SHEET — auto-built from all hook_mcq + practice_mcq blocks
         $units[] = [
-            'unit_number' => $unitCounter,
-            'title' => "Unit {$unitCounter}: Capstone OMR Sheet Exam (Final)",
+            'unit_number'    => $unitCounter,
+            'title'          => "Unit {$unitCounter}: Capstone OMR Sheet Exam (Final)",
             'title_malayalam' => 'ഫൈനൽ ഒ.എം.ആർ പരീക്ഷാ ഷീറ്റ്',
-            'is_omr_unit' => true,
-            'questions' => $omrQs->map(function ($q) {
+            'is_omr_unit'    => true,
+            'questions'      => $omrQs->map(function ($q) {
                 return [
-                    'id' => $q->id,
-                    'question_text' => $q->question_text,
+                    'id'                     => $q->id,
+                    'question_text'          => $q->question_text,
                     'question_text_malayalam' => $q->question_text_malayalam,
-                    'option_a' => $q->option_a,
-                    'option_b' => $q->option_b,
-                    'option_c' => $q->option_c,
-                    'option_d' => $q->option_d,
-                    'options' => $q->resolved_options,
-                    'correct_option' => strtoupper(trim($q->correct_option)),
-                    'explanation' => $q->explanation,
-                    'explanation_malayalam' => $q->explanation_malayalam,
-                    'trap_warning' => $q->resolved_trap_warning,
-                    'psc_reference' => $q->psc_exam_reference,
+                    'option_a'               => $q->option_a,
+                    'option_b'               => $q->option_b,
+                    'option_c'               => $q->option_c,
+                    'option_d'               => $q->option_d,
+                    'options'                => method_exists($q, 'getResolvedOptionsAttribute') ? $q->resolved_options : null,
+                    'correct_option'         => strtoupper(trim($q->correct_option)),
+                    'explanation'            => $q->explanation,
+                    'explanation_malayalam'  => $q->explanation_malayalam,
+                    'trap_warning'           => method_exists($q, 'getResolvedTrapWarningAttribute') ? $q->resolved_trap_warning : ($q->trap_warning ?? null),
+                    'psc_reference'          => $q->psc_exam_reference ?? null,
                 ];
             })->values()->all(),
             'blocks' => [],
