@@ -335,17 +335,17 @@
                                             :disabled="hookAnswers[block.id]?.answered"
                                             :class="{
                                                 'border-slate-300 hover:border-purple-400 bg-white hover:bg-purple-50/50 text-slate-800': !hookAnswers[block.id]?.answered,
-                                                'border-emerald-500 bg-emerald-50 text-emerald-950 ring-2 ring-emerald-400 font-bold': hookAnswers[block.id]?.answered && opt.key === block.content_data.correct_option,
-                                                'border-red-400 bg-red-50 text-red-950 font-bold': hookAnswers[block.id]?.answered && hookAnswers[block.id]?.selected === opt.key && opt.key !== block.content_data.correct_option,
-                                                'border-slate-200 bg-slate-50 text-slate-400 opacity-60': hookAnswers[block.id]?.answered && hookAnswers[block.id]?.selected !== opt.key && opt.key !== block.content_data.correct_option
+                                                'border-emerald-500 bg-emerald-50 text-emerald-950 ring-2 ring-emerald-400 font-bold': hookAnswers[block.id]?.answered && opt.key === block.content_data?.correct_option,
+                                                'border-red-400 bg-red-50 text-red-950 font-bold': hookAnswers[block.id]?.answered && hookAnswers[block.id]?.selected === opt.key && opt.key !== block.content_data?.correct_option,
+                                                'border-slate-200 bg-slate-50 text-slate-400 opacity-60': hookAnswers[block.id]?.answered && hookAnswers[block.id]?.selected !== opt.key && opt.key !== block.content_data?.correct_option
                                             }"
                                             class="p-3 rounded-xl border-2 text-left text-xs font-medium transition flex items-center gap-3 cursor-pointer"
                                         >
                                             <span 
                                                 :class="{
                                                     'bg-slate-100 text-slate-800 border-slate-300': !hookAnswers[block.id]?.answered,
-                                                    'bg-emerald-600 text-white border-emerald-600': hookAnswers[block.id]?.answered && opt.key === block.content_data.correct_option,
-                                                    'bg-red-600 text-white border-red-600': hookAnswers[block.id]?.answered && hookAnswers[block.id]?.selected === opt.key && opt.key !== block.content_data.correct_option
+                                                    'bg-emerald-600 text-white border-emerald-600': hookAnswers[block.id]?.answered && opt.key === block.content_data?.correct_option,
+                                                    'bg-red-600 text-white border-red-600': hookAnswers[block.id]?.answered && hookAnswers[block.id]?.selected === opt.key && opt.key !== block.content_data?.correct_option
                                                 }"
                                                 class="w-6 h-6 rounded-full border flex items-center justify-center font-black text-[11px] shrink-0"
                                                 x-text="opt.key"
@@ -567,17 +567,17 @@
                                             :disabled="practiceAnswers[block.id]?.answered"
                                             :class="{
                                                 'border-slate-300 hover:border-blue-500 bg-white hover:bg-blue-50/50 text-slate-800': !practiceAnswers[block.id]?.answered,
-                                                'border-emerald-500 bg-emerald-50 text-emerald-950 ring-2 ring-emerald-400 font-bold': practiceAnswers[block.id]?.answered && opt.key === block.content_data.correct_option,
-                                                'border-red-400 bg-red-50 text-red-950 font-bold': practiceAnswers[block.id]?.answered && practiceAnswers[block.id]?.selected === opt.key && opt.key !== block.content_data.correct_option,
-                                                'border-slate-200 bg-slate-50 text-slate-400 opacity-60': practiceAnswers[block.id]?.answered && practiceAnswers[block.id]?.selected !== opt.key && opt.key !== block.content_data.correct_option
+                                                'border-emerald-500 bg-emerald-50 text-emerald-950 ring-2 ring-emerald-400 font-bold': practiceAnswers[block.id]?.answered && opt.key === block.content_data?.correct_option,
+                                                'border-red-400 bg-red-50 text-red-950 font-bold': practiceAnswers[block.id]?.answered && practiceAnswers[block.id]?.selected === opt.key && opt.key !== block.content_data?.correct_option,
+                                                'border-slate-200 bg-slate-50 text-slate-400 opacity-60': practiceAnswers[block.id]?.answered && practiceAnswers[block.id]?.selected !== opt.key && opt.key !== block.content_data?.correct_option
                                             }"
                                             class="p-3.5 rounded-xl border-2 text-left text-xs font-medium transition flex items-center gap-3 cursor-pointer shadow-2xs"
                                         >
                                             <span 
                                                 :class="{
                                                     'bg-slate-100 text-slate-800 border-slate-300': !practiceAnswers[block.id]?.answered,
-                                                    'bg-emerald-600 text-white border-emerald-600': practiceAnswers[block.id]?.answered && opt.key === block.content_data.correct_option,
-                                                    'bg-red-600 text-white border-red-600': practiceAnswers[block.id]?.answered && practiceAnswers[block.id]?.selected === opt.key && opt.key !== block.content_data.correct_option
+                                                    'bg-emerald-600 text-white border-emerald-600': practiceAnswers[block.id]?.answered && opt.key === block.content_data?.correct_option,
+                                                    'bg-red-600 text-white border-red-600': practiceAnswers[block.id]?.answered && practiceAnswers[block.id]?.selected === opt.key && opt.key !== block.content_data?.correct_option
                                                 }"
                                                 class="w-6 h-6 rounded-full border flex items-center justify-center font-black text-[11px] shrink-0"
                                                 x-text="opt.key"
@@ -1133,7 +1133,7 @@ function modularTrackEngine(config) {
 
         selectHookAnswer(block, optKey) {
             if (this.hookAnswers[block.id]?.answered) return;
-            const correctOpt = (block.content_data.correct_option || 'A').toUpperCase().trim();
+            const correctOpt = (block.content_data?.correct_option || 'A').toUpperCase().trim();
             const isCorrect = (optKey.toUpperCase().trim() === correctOpt);
             
             // Force reactivity by re-assigning the object
@@ -1154,7 +1154,7 @@ function modularTrackEngine(config) {
 
         selectPracticeAnswer(block, optKey) {
             if (this.practiceAnswers[block.id]?.answered) return;
-            const correctOpt = (block.content_data.correct_option || 'A').toUpperCase().trim();
+            const correctOpt = (block.content_data?.correct_option || 'A').toUpperCase().trim();
             const isCorrect = (optKey.toUpperCase().trim() === correctOpt);
             
             // Force reactivity by re-assigning the object
