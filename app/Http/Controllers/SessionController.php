@@ -146,8 +146,10 @@ class SessionController extends Controller
                 }
             })->first();
 
-        $previewMode = $request->query('preview'); // 'finished' or null
-
+        $previewMode = null;
+        if ($user && method_exists($user, 'isAdmin') && $user->isAdmin()) {
+            $previewMode = $request->query('preview'); // 'finished' or null
+        }
         return view('pages.session-runner', compact(
             'session',
             'previousSession',
