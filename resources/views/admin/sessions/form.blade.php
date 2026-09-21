@@ -917,8 +917,8 @@
                                                         <input type="text" x-model="block.content_data.title" placeholder="Aruvipuram Shiva Temple Timeline" class="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white">
                                                     </div>
                                                     <div class="sm:col-span-2">
-                                                        <label class="font-bold text-slate-700 block mb-1">Caption / Explanatory Note</label>
-                                                        <input type="text" x-model="block.content_data.caption" placeholder="1888 Aruvipuram Prathishta consecrated on Shivaratri..." class="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white">
+                                                        <label class="font-bold text-slate-700 block mb-1">Image Description / Notes</label>
+                                                        <textarea x-model="block.content_data.caption" placeholder="Detailed notes about this image... (Line breaks are supported)" rows="3" class="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-sm"></textarea>
                                                     </div>
                                                 </div>
 

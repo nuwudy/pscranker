@@ -410,8 +410,12 @@
                                     <img :src="block.content_data.url" class="max-h-96 w-full object-contain rounded-xl" :alt="block.content_data.title || 'Infographic'">
                                 </div>
                                 <template x-if="block.content_data.caption">
-                                    <div class="flex justify-center pt-2">
-                                        <p class="inline-block px-3 py-1.5 bg-slate-100 border border-slate-200 text-[11px] text-slate-600 font-bold font-['Noto_Sans_Malayalam'] text-center rounded-full shadow-2xs" x-html="block.content_data.caption"></p>
+                                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 shadow-sm w-full">
+                                        <div class="flex items-center gap-2 mb-2 text-[10px] font-black uppercase tracking-wider text-blue-600">
+                                            <span>📝</span>
+                                            <span>Image Notes & Description</span>
+                                        </div>
+                                        <p class="text-xs sm:text-sm text-slate-700 leading-relaxed font-['Noto_Sans_Malayalam'] whitespace-pre-wrap font-medium" x-html="block.content_data.caption"></p>
                                     </div>
                                 </template>
                             </div>
