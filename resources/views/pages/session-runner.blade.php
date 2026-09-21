@@ -3,6 +3,22 @@
 @section('title', ($session->title_malayalam ?? $session->title) . ' — Modular Learning Track & OMR Assessment | PSCRanker')
 
 @section('content')
+
+<!-- Markdown Parser & Styles -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+    .psc-text-block p { margin-bottom: 1em; }
+    .psc-text-block p:last-child { margin-bottom: 0; }
+    .psc-text-block h2 { font-size: 1.25rem; font-weight: 800; margin-top: 1.5em; margin-bottom: 0.5em; color: #1e293b; }
+    .psc-text-block h3 { font-size: 1.125rem; font-weight: 700; margin-top: 1.25em; margin-bottom: 0.5em; color: #334155; }
+    .psc-text-block ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1em; }
+    .psc-text-block ol { list-style-type: decimal; padding-left: 1.5em; margin-bottom: 1em; }
+    .psc-text-block li { margin-bottom: 0.25em; }
+    .psc-text-block strong { font-weight: 800; color: #0f172a; }
+    .psc-text-block em { font-style: italic; }
+    .psc-text-block a { color: #2563eb; text-decoration: underline; }
+</style>
+
 <div 
     x-data="modularTrackEngine({
         sessionId: {{ $session->id }},
@@ -398,7 +414,7 @@
                                         <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-200" x-text="block.content_data.scert_reference"></span>
                                     </template>
                                 </div>
-                                <div class="psc-text-block text-xs sm:text-sm leading-relaxed text-slate-800 font-['Noto_Sans_Malayalam']" x-html="block.content_data.body"></div>
+                                <div class="psc-text-block text-xs sm:text-sm leading-relaxed text-slate-800 font-['Noto_Sans_Malayalam']" x-html="window.marked ? marked.parse(block.content_data.body || '') : block.content_data.body"></div>
                             </div>
                         </template>
 
