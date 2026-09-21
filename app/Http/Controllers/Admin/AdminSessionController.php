@@ -610,6 +610,9 @@ class AdminSessionController extends Controller
 
         if ($creationMode === 'manual') {
             $this->syncContentsAndQuestions($session, $request);
+            
+            // Clear all user progress for this session when content is updated to prevent stale OMR scorecards
+            \App\Models\UserSessionProgress::where('session_id', $session->id)->delete();
         }
 
         $fresh = $session->fresh();
