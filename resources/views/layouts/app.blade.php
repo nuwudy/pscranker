@@ -94,7 +94,7 @@
                         <span class="text-xs">🌐</span>
                     </a>
                     <a href="{{ route('pricing') }}" class="px-3.5 py-2 rounded-xl transition {{ request()->routeIs('pricing') ? 'text-[#0052FF] bg-blue-50 font-extrabold' : 'hover:text-[#0052FF] hover:bg-slate-50' }}">
-                        Pro Pass 👑
+                        Pricing
                     </a>
                     <a href="{{ route('leaderboard') }}" class="px-3.5 py-2 rounded-xl transition {{ request()->routeIs('leaderboard') ? 'text-[#0052FF] bg-blue-50 font-extrabold' : 'hover:text-[#0052FF] hover:bg-slate-50 text-slate-600' }}">
                         Leaderboard 🏆
@@ -194,8 +194,8 @@
                             <span class="text-[10px] bg-blue-100 text-[#0052FF] px-2 py-0.5 rounded-full font-bold uppercase">Spatial</span>
                         </a>
                         <a href="{{ route('pricing') }}" class="px-4 py-2.5 rounded-xl hover:bg-blue-50 text-slate-800 flex items-center justify-between">
-                            <span>👑 Pro Pass &amp; Pricing</span>
-                            <span class="text-xs text-amber-600 font-black">Save up to 30%</span>
+                            <span>⚡ Pricing</span>
+                            <span class="text-xs text-amber-600 font-black">From ₹10/day</span>
                         </a>
                         <a href="{{ route('leaderboard') }}" class="px-4 py-2.5 rounded-xl hover:bg-blue-50 text-slate-800">🏆 Daily Leaderboard</a>
                         

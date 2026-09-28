@@ -62,75 +62,83 @@
 
                             <div class="pt-1">
                                 <!-- Top Row: Duration Title & Selection Indicator -->
-                                <div class="flex items-start justify-between gap-1 mb-1 sm:mb-2">
+                                <div class="flex items-start justify-between gap-1 mb-1">
                                     <div class="min-w-0">
                                         <div class="flex items-center gap-1.5">
                                             <span 
                                                 class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full shrink-0"
                                                 :style="'background-color: ' + tier.color"
                                             ></span>
-                                            <h3 class="text-xs sm:text-lg font-black text-slate-950 tracking-tight truncate" x-text="tier.name"></h3>
+                                            <h3 class="text-xs sm:text-base font-black text-slate-950 tracking-tight truncate" x-text="tier.name"></h3>
                                         </div>
-                                        <div class="text-[10px] sm:text-xs font-bold text-slate-500 font-['Noto_Sans_Malayalam'] mt-0.5 truncate" x-text="tier.name_malayalam"></div>
                                     </div>
 
                                     <!-- Selected Checkmark / Radio Indicator -->
                                     <div 
                                         x-show="selectedDays === tier.days"
-                                        class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#0052FF] text-white text-[10px] sm:text-xs font-black flex items-center justify-center shrink-0 shadow-xs"
+                                        class="w-5 h-5 rounded-full bg-[#0052FF] text-white text-[10px] font-black flex items-center justify-center shrink-0 shadow-xs"
                                     >
                                         ✓
                                     </div>
                                     <div 
                                         x-show="selectedDays !== tier.days"
-                                        class="w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 border-slate-300 group-hover:border-[#0052FF] shrink-0 transition"
+                                        class="w-5 h-5 rounded-full border-2 border-slate-300 group-hover:border-[#0052FF] shrink-0 transition"
                                     ></div>
                                 </div>
 
                                 <!-- Popular / Best Value / Rebate Badges -->
-                                <div class="flex flex-wrap items-center gap-1 my-1.5 sm:my-2.5">
+                                <div class="flex flex-wrap items-center gap-1 my-1">
                                     <span 
                                         x-show="tier.is_popular"
-                                        class="px-1.5 sm:px-2 py-0.5 rounded-md text-[9px] sm:text-[10px] font-black uppercase tracking-wider bg-orange-100 text-orange-700 border border-orange-200"
+                                        class="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-orange-100 text-orange-700 border border-orange-200"
                                     >
                                         🔥 Popular
                                     </span>
                                     <span 
                                         x-show="tier.is_best_value"
-                                        class="px-1.5 sm:px-2 py-0.5 rounded-md text-[9px] sm:text-[10px] font-black uppercase tracking-wider bg-pink-100 text-pink-700 border border-pink-200"
+                                        class="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-pink-100 text-pink-700 border border-pink-200"
                                     >
                                         👑 Best Value
                                     </span>
                                     <span 
                                         x-show="tier.rebate_percent > 0"
-                                        class="px-1.5 sm:px-2 py-0.5 rounded-md text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-white"
+                                        class="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider text-white"
                                         :style="'background-color: ' + tier.color"
                                         x-text="tier.rebate_percent + '% OFF'"
                                     ></span>
                                 </div>
 
                                 <!-- Main Price & Daily Breakdown Display -->
-                                <div class="my-2 sm:my-3 pt-2 border-t border-slate-100">
+                                <div class="my-1.5 pt-1.5 border-t border-slate-100">
                                     <div class="flex items-baseline gap-1.5">
-                                        <span class="text-2xl sm:text-4xl font-black text-slate-950 font-mono tracking-tight" x-text="'₹' + tier.final_price"></span>
+                                        <span class="text-2xl sm:text-3xl font-black text-slate-950 font-mono tracking-tight" x-text="'₹' + tier.final_price"></span>
                                         <span 
                                             x-show="tier.discount_amount > 0"
-                                            class="text-[11px] sm:text-sm font-bold text-slate-400 line-through font-mono"
+                                            class="text-[11px] sm:text-xs font-bold text-slate-400 line-through font-mono"
                                             x-text="'₹' + tier.base_total"
                                         ></span>
                                     </div>
 
                                     <!-- Prominent Per-Day Cost Anchor -->
-                                    <div class="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg bg-slate-100 border border-slate-200 text-[10px] sm:text-xs">
+                                    <div class="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 border border-slate-200 text-[10px] sm:text-xs">
                                         <span class="font-bold text-slate-500">₹<span class="text-emerald-600 font-black font-mono" x-text="tier.per_day_cost"></span>/day</span>
-                                    </div>
-
-                                    <div x-show="tier.discount_amount > 0" class="text-[10px] sm:text-xs font-bold text-emerald-600 mt-1">
-                                        Save ₹<span x-text="tier.discount_amount"></span>
                                     </div>
                                 </div>
 
-                                <p class="text-[10px] sm:text-xs text-slate-500 leading-tight mt-1 line-clamp-2 hidden sm:block" x-text="tier.description"></p>
+                                <!-- Expandable 'More Info' on Hover (Desktop) or Selected (Mobile/Desktop) -->
+                                <div 
+                                    :class="{
+                                        'max-h-40 opacity-100 mt-2 pt-1.5 border-t border-dashed border-slate-200': selectedDays === tier.days,
+                                        'max-h-0 sm:group-hover:max-h-40 opacity-0 sm:group-hover:opacity-100 overflow-hidden transition-all duration-300 sm:group-hover:mt-2 sm:group-hover:pt-1.5 sm:group-hover:border-t sm:group-hover:border-dashed sm:group-hover:border-slate-200': selectedDays !== tier.days
+                                    }"
+                                    class="text-[10px] sm:text-xs space-y-1 transition-all duration-300"
+                                >
+                                    <div class="font-bold text-slate-600 font-['Noto_Sans_Malayalam'] truncate" x-text="tier.name_malayalam"></div>
+                                    <div x-show="tier.discount_amount > 0" class="font-bold text-emerald-600">
+                                        🎉 Total Savings: ₹<span x-text="tier.discount_amount"></span>
+                                    </div>
+                                    <p class="text-slate-500 leading-tight line-clamp-2" x-text="tier.description"></p>
+                                </div>
                             </div>
 
                             <!-- Direct Buy / Pay Action Button on Every Card -->
