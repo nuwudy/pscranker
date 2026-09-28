@@ -540,7 +540,11 @@ function pricingEngine(tiers, razorpayKey) {
 
                 const rzp = new window.Razorpay(options);
                 rzp.on('payment.failed', (response) => {
-                    alert('Payment could not be completed: ' + (response.error?.description || 'Gateway error'));
+                    let desc = response.error?.description || 'Payment Failed';
+                    if (window.location.protocol === 'http:' && data.key.startsWith('rzp_live_')) {
+                        desc += '. (Razorpay Live Mode requires HTTPS. It will work smoothly on the live website https://pscranker.com)';
+                    }
+                    alert('Payment could not be completed: ' + desc);
                     this.loading = false;
                 });
                 rzp.open();
