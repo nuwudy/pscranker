@@ -122,12 +122,22 @@
                                     </span>
                                 </div>
 
-                                <!-- Desktop Hover Quick Pay Button -->
-                                <div class="hidden sm:block mt-2 pt-1 border-t border-dashed border-slate-200 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                <!-- Quick Pay Button (Always visible on mobile & selected card, hoverable on desktop) -->
+                                <div 
+                                    class="mt-2 pt-1 border-t border-dashed border-slate-200 transition-all duration-200"
+                                    :class="{
+                                        'opacity-100': selectedDays === tier.days,
+                                        'opacity-100 sm:opacity-0 sm:group-hover:opacity-100': selectedDays !== tier.days
+                                    }"
+                                >
                                     <button 
                                         type="button"
                                         @click.stop="buyPlan(tier.days)"
-                                        class="w-full py-1 px-2 bg-slate-900 hover:bg-[#0052FF] text-white rounded-lg text-[11px] font-black uppercase tracking-wider transition flex items-center justify-center gap-1 shadow-xs cursor-pointer"
+                                        class="w-full py-1.5 px-2 rounded-lg text-[11px] font-black uppercase tracking-wider transition flex items-center justify-center gap-1 shadow-xs cursor-pointer"
+                                        :class="{
+                                            'bg-[#0052FF] text-white shadow-md shadow-blue-500/30': selectedDays === tier.days,
+                                            'bg-slate-900 hover:bg-[#0052FF] text-white': selectedDays !== tier.days
+                                        }"
                                     >
                                         <span>Pay ₹<span x-text="tier.final_price"></span> ⚡</span>
                                     </button>
