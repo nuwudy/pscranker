@@ -481,11 +481,12 @@
         <!-- ============================================================= -->
         <div 
             x-data="adminPricingSettings({
-                baseFee: {{ $pricingSettings['course_base_monthly_fee'] }},
-                r2: {{ $pricingSettings['rebate_2m'] }},
-                r3: {{ $pricingSettings['rebate_3m'] }},
-                r6: {{ $pricingSettings['rebate_6m'] }},
-                r12: {{ $pricingSettings['rebate_12m'] }}
+                dailyFee: {{ $pricingSettings['course_base_daily_fee'] }},
+                r1w: {{ $pricingSettings['rebate_1w'] }},
+                r1m: {{ $pricingSettings['rebate_1m'] }},
+                r3m: {{ $pricingSettings['rebate_3m'] }},
+                r6m: {{ $pricingSettings['rebate_6m'] }},
+                r1y: {{ $pricingSettings['rebate_1y'] }}
             })"
             class="bg-white rounded-3xl border-2 border-yellow-400/90 shadow-md p-6 sm:p-8 mb-8 relative overflow-hidden"
         >
@@ -496,11 +497,11 @@
                     </div>
                     <div>
                         <div class="flex items-center gap-2">
-                            <h2 class="text-lg sm:text-xl font-black text-slate-900">Prepaid Subscription Engine &amp; Progressive Rebates</h2>
+                            <h2 class="text-lg sm:text-xl font-black text-slate-900">Prepaid Subscription Engine &amp; Daily-Anchored Rebates</h2>
                             <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-yellow-400 text-slate-950">Active</span>
                         </div>
                         <p class="text-xs text-slate-500 font-medium mt-0.5">
-                            Set the base monthly fee and progressive rebates. Changes are dynamically computed across the candidate dropdown instantly.
+                            Set the base daily fee (e.g. ₹10 or ₹5) and progressive commitment rebates. All 6 candidate plan cards update immediately!
                         </p>
                     </div>
                 </div>
@@ -516,65 +517,42 @@
                 </div>
             </div>
 
-            <!-- Form: Base Fee, Rebates & Gateway Keys -->
+            <!-- Form: Daily Base Fee, Rebates & Gateway Keys -->
             <form action="{{ route('admin.settings.pricing') }}" method="POST" class="mt-6">
                 @csrf
                 
-                <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-4 mb-6">
                     
-                    <!-- Base Fee Input -->
-                    <div class="md:col-span-1 p-4 rounded-2xl bg-yellow-50/60 border border-yellow-300">
+                    <!-- Base Daily Rate Input -->
+                    <div class="p-4 rounded-2xl bg-yellow-50/70 border-2 border-yellow-400 shadow-xs">
                         <label class="block text-xs font-black text-slate-900 uppercase tracking-wider mb-1">
-                            Base Monthly Fee (₹)
+                            Daily Base Rate (₹)
                         </label>
                         <div class="relative">
                             <span class="absolute inset-y-0 left-3 flex items-center text-slate-500 font-bold text-sm">₹</span>
                             <input 
                                 type="number" 
-                                name="course_base_monthly_fee" 
-                                x-model.number="baseFee" 
-                                min="1" 
-                                step="1" 
+                                name="course_base_daily_fee" 
+                                x-model.number="dailyFee" 
+                                min="0.5" 
+                                step="0.5" 
                                 required 
-                                class="w-full pl-7 pr-3 py-2.5 rounded-xl border-2 border-yellow-400 bg-white font-black text-slate-900 text-base focus:outline-hidden"
+                                class="w-full pl-7 pr-3 py-2.5 rounded-xl border border-yellow-400 bg-white font-black text-slate-900 text-base focus:outline-hidden"
                             >
                         </div>
-                        <span class="text-[10px] text-slate-500 mt-1 block">1 Month standard fee</span>
+                        <span class="text-[10px] text-slate-600 font-bold mt-1 block">Baseline: ₹<span x-text="dailyFee"></span>/day</span>
                     </div>
 
-                    <!-- 2 Months Rebate -->
-                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                            2-Mo Rebate (%)
+                    <!-- 1 Week Rebate -->
+                    <div class="p-4 rounded-2xl bg-blue-50/60 border border-blue-200">
+                        <label class="block text-xs font-bold text-blue-950 uppercase tracking-wider mb-1">
+                            1-Wk Rebate (%)
                         </label>
                         <div class="relative">
                             <input 
                                 type="number" 
-                                name="rebate_2m" 
-                                x-model.number="r2" 
-                                min="0" 
-                                max="100" 
-                                required 
-                                class="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-white font-black text-slate-900 text-sm focus:outline-hidden focus:border-[#0052FF]"
-                            >
-                            <span class="absolute inset-y-0 right-3 flex items-center text-slate-400 font-bold text-xs">%</span>
-                        </div>
-                        <span class="text-[10px] text-slate-500 mt-1 block">Crash revision track</span>
-                    </div>
-
-                    <!-- 3 Months Rebate -->
-                    <div class="p-4 rounded-2xl bg-blue-50/60 border border-blue-200">
-                        <div class="flex items-center justify-between mb-1">
-                            <label class="block text-xs font-black text-blue-950 uppercase tracking-wider">
-                                3-Mo Rebate (%)
-                            </label>
-                            <span class="text-[9px] font-bold text-blue-600 uppercase">Popular</span>
-                        </div>
-                        <div class="relative">
-                            <input 
-                                type="number" 
-                                name="rebate_3m" 
-                                x-model.number="r3" 
+                                name="rebate_1w" 
+                                x-model.number="r1w" 
                                 min="0" 
                                 max="100" 
                                 required 
@@ -582,50 +560,93 @@
                             >
                             <span class="absolute inset-y-0 right-3 flex items-center text-slate-400 font-bold text-xs">%</span>
                         </div>
-                        <span class="text-[10px] text-slate-500 mt-1 block">90-day sprint cycle</span>
+                        <span class="text-[10px] text-slate-500 mt-1 block">7 Days sprint</span>
+                    </div>
+
+                    <!-- 1 Month Rebate -->
+                    <div class="p-4 rounded-2xl bg-amber-50/60 border border-amber-200">
+                        <label class="block text-xs font-bold text-amber-950 uppercase tracking-wider mb-1">
+                            1-Mo Rebate (%)
+                        </label>
+                        <div class="relative">
+                            <input 
+                                type="number" 
+                                name="rebate_1m" 
+                                x-model.number="r1m" 
+                                min="0" 
+                                max="100" 
+                                required 
+                                class="w-full px-3 py-2.5 rounded-xl border border-amber-300 bg-white font-black text-slate-900 text-sm focus:outline-hidden focus:border-[#0052FF]"
+                            >
+                            <span class="absolute inset-y-0 right-3 flex items-center text-slate-400 font-bold text-xs">%</span>
+                        </div>
+                        <span class="text-[10px] text-slate-500 mt-1 block">30 Days pass</span>
+                    </div>
+
+                    <!-- 3 Months Rebate -->
+                    <div class="p-4 rounded-2xl bg-orange-50/60 border border-orange-200">
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-xs font-black text-orange-950 uppercase tracking-wider">
+                                3-Mo Rebate (%)
+                            </label>
+                            <span class="text-[9px] font-bold text-orange-600 uppercase">Popular</span>
+                        </div>
+                        <div class="relative">
+                            <input 
+                                type="number" 
+                                name="rebate_3m" 
+                                x-model.number="r3m" 
+                                min="0" 
+                                max="100" 
+                                required 
+                                class="w-full px-3 py-2.5 rounded-xl border border-orange-300 bg-white font-black text-slate-900 text-sm focus:outline-hidden focus:border-[#0052FF]"
+                            >
+                            <span class="absolute inset-y-0 right-3 flex items-center text-slate-400 font-bold text-xs">%</span>
+                        </div>
+                        <span class="text-[10px] text-slate-500 mt-1 block">90 Days exam cycle</span>
                     </div>
 
                     <!-- 6 Months Rebate -->
-                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    <div class="p-4 rounded-2xl bg-emerald-50/60 border border-emerald-200">
+                        <label class="block text-xs font-bold text-emerald-950 uppercase tracking-wider mb-1">
                             6-Mo Rebate (%)
                         </label>
                         <div class="relative">
                             <input 
                                 type="number" 
                                 name="rebate_6m" 
-                                x-model.number="r6" 
+                                x-model.number="r6m" 
                                 min="0" 
                                 max="100" 
                                 required 
-                                class="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-white font-black text-slate-900 text-sm focus:outline-hidden focus:border-[#0052FF]"
+                                class="w-full px-3 py-2.5 rounded-xl border border-emerald-300 bg-white font-black text-slate-900 text-sm focus:outline-hidden focus:border-[#0052FF]"
                             >
                             <span class="absolute inset-y-0 right-3 flex items-center text-slate-400 font-bold text-xs">%</span>
                         </div>
-                        <span class="text-[10px] text-slate-500 mt-1 block">Semester pass</span>
+                        <span class="text-[10px] text-slate-500 mt-1 block">180 Days semester</span>
                     </div>
 
-                    <!-- 12 Months Rebate -->
-                    <div class="p-4 rounded-2xl bg-purple-50/60 border border-purple-200">
+                    <!-- 1 Year Rebate -->
+                    <div class="p-4 rounded-2xl bg-pink-50/60 border border-pink-200">
                         <div class="flex items-center justify-between mb-1">
-                            <label class="block text-xs font-black text-purple-950 uppercase tracking-wider">
-                                12-Mo Rebate (%)
+                            <label class="block text-xs font-black text-pink-950 uppercase tracking-wider">
+                                1-Yr Rebate (%)
                             </label>
-                            <span class="text-[9px] font-bold text-purple-600 uppercase">Best Value</span>
+                            <span class="text-[9px] font-bold text-pink-600 uppercase">Best Value</span>
                         </div>
                         <div class="relative">
                             <input 
                                 type="number" 
-                                name="rebate_12m" 
-                                x-model.number="r12" 
+                                name="rebate_1y" 
+                                x-model.number="r1y" 
                                 min="0" 
                                 max="100" 
                                 required 
-                                class="w-full px-3 py-2.5 rounded-xl border border-purple-300 bg-white font-black text-slate-900 text-sm focus:outline-hidden focus:border-[#0052FF]"
+                                class="w-full px-3 py-2.5 rounded-xl border border-pink-300 bg-white font-black text-slate-900 text-sm focus:outline-hidden focus:border-[#0052FF]"
                             >
                             <span class="absolute inset-y-0 right-3 flex items-center text-slate-400 font-bold text-xs">%</span>
                         </div>
-                        <span class="text-[10px] text-slate-500 mt-1 block">Full Year Pass</span>
+                        <span class="text-[10px] text-slate-500 mt-1 block">365 Days all-access</span>
                     </div>
 
                 </div>
@@ -666,60 +687,86 @@
                 <!-- Live Computed Schedule Preview -->
                 <div class="mb-6">
                     <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                        <span>⚡ Live Recalculation Preview (What Students See in Dropdown):</span>
+                        <span>⚡ Live Recalculation Preview (What Students See on Candidate Pricing Grid):</span>
                     </div>
                     <div class="overflow-x-auto rounded-2xl border border-slate-200">
                         <table class="w-full text-left text-xs font-medium">
                             <thead class="bg-slate-100 text-slate-600 font-bold uppercase tracking-wider text-[11px]">
                                 <tr>
-                                    <th class="p-3">Duration</th>
-                                    <th class="p-3">Base Cost</th>
+                                    <th class="p-3">Plan Duration</th>
+                                    <th class="p-3">Linear Base</th>
                                     <th class="p-3">Progressive Rebate</th>
                                     <th class="p-3">Candidate Saves</th>
                                     <th class="p-3">Payable Amount</th>
-                                    <th class="p-3">Effective Rate</th>
+                                    <th class="p-3">Effective Per-Day Cost</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 font-mono text-slate-800">
                                 <tr>
-                                    <td class="p-3 font-sans font-bold">1 Month</td>
+                                    <td class="p-3 font-sans font-bold text-red-600 flex items-center gap-1.5">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span>
+                                        <span>1 Day Pass</span>
+                                    </td>
                                     <td class="p-3">₹<span x-text="calc(1, 0).base"></span></td>
                                     <td class="p-3 font-bold text-slate-500">0%</td>
                                     <td class="p-3 text-slate-400">₹0</td>
                                     <td class="p-3 font-black text-slate-900 text-sm">₹<span x-text="calc(1, 0).final"></span></td>
-                                    <td class="p-3 text-emerald-600 font-bold">₹<span x-text="calc(1, 0).eff"></span> / mo</td>
+                                    <td class="p-3 text-slate-700 font-bold">₹<span x-text="calc(1, 0).perDay"></span> / day</td>
                                 </tr>
                                 <tr>
-                                    <td class="p-3 font-sans font-bold">2 Months</td>
-                                    <td class="p-3">₹<span x-text="calc(2, r2).base"></span></td>
-                                    <td class="p-3 font-bold text-blue-600"><span x-text="r2"></span>%</td>
-                                    <td class="p-3 text-emerald-600">₹<span x-text="calc(2, r2).save"></span></td>
-                                    <td class="p-3 font-black text-slate-900 text-sm">₹<span x-text="calc(2, r2).final"></span></td>
-                                    <td class="p-3 text-emerald-600 font-bold">₹<span x-text="calc(2, r2).eff"></span> / mo</td>
-                                </tr>
-                                <tr class="bg-blue-50/40">
-                                    <td class="p-3 font-sans font-black text-[#0052FF]">3 Months (Popular 🔥)</td>
-                                    <td class="p-3">₹<span x-text="calc(3, r3).base"></span></td>
-                                    <td class="p-3 font-bold text-blue-600"><span x-text="r3"></span>%</td>
-                                    <td class="p-3 text-emerald-600">₹<span x-text="calc(3, r3).save"></span></td>
-                                    <td class="p-3 font-black text-[#0052FF] text-sm">₹<span x-text="calc(3, r3).final"></span></td>
-                                    <td class="p-3 text-emerald-600 font-bold">₹<span x-text="calc(3, r3).eff"></span> / mo</td>
+                                    <td class="p-3 font-sans font-bold text-[#0052FF] flex items-center gap-1.5">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-[#0052FF] inline-block"></span>
+                                        <span>1 Week (7 Days)</span>
+                                    </td>
+                                    <td class="p-3">₹<span x-text="calc(7, r1w).base"></span></td>
+                                    <td class="p-3 font-bold text-blue-600"><span x-text="r1w"></span>%</td>
+                                    <td class="p-3 text-emerald-600">₹<span x-text="calc(7, r1w).save"></span></td>
+                                    <td class="p-3 font-black text-slate-900 text-sm">₹<span x-text="calc(7, r1w).final"></span></td>
+                                    <td class="p-3 text-emerald-600 font-bold">₹<span x-text="calc(7, r1w).perDay"></span> / day</td>
                                 </tr>
                                 <tr>
-                                    <td class="p-3 font-sans font-bold">6 Months</td>
-                                    <td class="p-3">₹<span x-text="calc(6, r6).base"></span></td>
-                                    <td class="p-3 font-bold text-purple-600"><span x-text="r6"></span>%</td>
-                                    <td class="p-3 text-emerald-600">₹<span x-text="calc(6, r6).save"></span></td>
-                                    <td class="p-3 font-black text-slate-900 text-sm">₹<span x-text="calc(6, r6).final"></span></td>
-                                    <td class="p-3 text-emerald-600 font-bold">₹<span x-text="calc(6, r6).eff"></span> / mo</td>
+                                    <td class="p-3 font-sans font-bold text-amber-700 flex items-center gap-1.5">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-[#C89D66] inline-block"></span>
+                                        <span>1 Month (30 Days)</span>
+                                    </td>
+                                    <td class="p-3">₹<span x-text="calc(30, r1m).base"></span></td>
+                                    <td class="p-3 font-bold text-amber-600"><span x-text="r1m"></span>%</td>
+                                    <td class="p-3 text-emerald-600">₹<span x-text="calc(30, r1m).save"></span></td>
+                                    <td class="p-3 font-black text-slate-900 text-sm">₹<span x-text="calc(30, r1m).final"></span></td>
+                                    <td class="p-3 text-emerald-600 font-bold">₹<span x-text="calc(30, r1m).perDay"></span> / day</td>
                                 </tr>
-                                <tr class="bg-yellow-50/40">
-                                    <td class="p-3 font-sans font-black text-amber-700">12 Months (1 Year Pass 👑)</td>
-                                    <td class="p-3">₹<span x-text="calc(12, r12).base"></span></td>
-                                    <td class="p-3 font-bold text-amber-600"><span x-text="r12"></span>%</td>
-                                    <td class="p-3 text-emerald-600 font-bold">₹<span x-text="calc(12, r12).save"></span></td>
-                                    <td class="p-3 font-black text-amber-700 text-sm">₹<span x-text="calc(12, r12).final"></span></td>
-                                    <td class="p-3 text-emerald-600 font-bold">₹<span x-text="calc(12, r12).eff"></span> / mo</td>
+                                <tr class="bg-orange-50/50">
+                                    <td class="p-3 font-sans font-black text-orange-600 flex items-center gap-1.5">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-[#FF6B00] inline-block"></span>
+                                        <span>3 Months (90 Days) 🔥 POPULAR</span>
+                                    </td>
+                                    <td class="p-3">₹<span x-text="calc(90, r3m).base"></span></td>
+                                    <td class="p-3 font-bold text-orange-600"><span x-text="r3m"></span>%</td>
+                                    <td class="p-3 text-emerald-600">₹<span x-text="calc(90, r3m).save"></span></td>
+                                    <td class="p-3 font-black text-orange-600 text-sm">₹<span x-text="calc(90, r3m).final"></span></td>
+                                    <td class="p-3 text-emerald-600 font-bold">₹<span x-text="calc(90, r3m).perDay"></span> / day</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 font-sans font-bold text-emerald-700 flex items-center gap-1.5">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-[#00C853] inline-block"></span>
+                                        <span>6 Months (180 Days)</span>
+                                    </td>
+                                    <td class="p-3">₹<span x-text="calc(180, r6m).base"></span></td>
+                                    <td class="p-3 font-bold text-emerald-600"><span x-text="r6m"></span>%</td>
+                                    <td class="p-3 text-emerald-600">₹<span x-text="calc(180, r6m).save"></span></td>
+                                    <td class="p-3 font-black text-slate-900 text-sm">₹<span x-text="calc(180, r6m).final"></span></td>
+                                    <td class="p-3 text-emerald-600 font-bold">₹<span x-text="calc(180, r6m).perDay"></span> / day</td>
+                                </tr>
+                                <tr class="bg-pink-50/50">
+                                    <td class="p-3 font-sans font-black text-pink-600 flex items-center gap-1.5">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-[#FF4081] inline-block"></span>
+                                        <span>1 Year (365 Days) 👑 BEST VALUE</span>
+                                    </td>
+                                    <td class="p-3">₹<span x-text="calc(365, r1y).base"></span></td>
+                                    <td class="p-3 font-bold text-pink-600"><span x-text="r1y"></span>%</td>
+                                    <td class="p-3 text-emerald-600 font-bold">₹<span x-text="calc(365, r1y).save"></span></td>
+                                    <td class="p-3 font-black text-pink-600 text-sm">₹<span x-text="calc(365, r1y).final"></span></td>
+                                    <td class="p-3 text-emerald-600 font-bold">₹<span x-text="calc(365, r1y).perDay"></span> / day</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -740,18 +787,30 @@
         <script>
         function adminPricingSettings(cfg) {
             return {
-                baseFee: cfg.baseFee,
-                r2: cfg.r2,
-                r3: cfg.r3,
-                r6: cfg.r6,
-                r12: cfg.r12,
+                dailyFee: cfg.dailyFee || 10,
+                r1w: cfg.r1w || 14,
+                r1m: cfg.r1m || 25,
+                r3m: cfg.r3m || 33,
+                r6m: cfg.r6m || 40,
+                r1y: cfg.r1y || 45,
 
-                calc(months, rebate) {
-                    const base = Math.round(this.baseFee * months);
-                    const save = Math.round((base * rebate) / 100);
-                    const finalVal = Math.max(1, base - save);
-                    const eff = Math.round(finalVal / months);
-                    return { base, save, final: finalVal, eff };
+                calc(days, rebate) {
+                    const base = Math.round((this.dailyFee || 1) * days);
+                    let finalVal = base;
+                    if (rebate > 0) {
+                        const raw = base * (1 - (rebate / 100));
+                        if (days === 365) {
+                            finalVal = Math.round(raw / 100) * 100 - 1;
+                        } else if (days === 90) {
+                            finalVal = Math.round(raw / 10) * 10;
+                        } else {
+                            finalVal = Math.round(raw);
+                        }
+                    }
+                    finalVal = Math.max(1, finalVal);
+                    const save = Math.max(0, base - finalVal);
+                    const perDay = (finalVal / days).toFixed(2);
+                    return { base, save, final: finalVal, perDay };
                 }
             };
         }

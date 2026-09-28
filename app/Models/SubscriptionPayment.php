@@ -17,6 +17,7 @@ class SubscriptionPayment extends Model
         'amount',
         'currency',
         'duration_months',
+        'duration_days',
         'rebate_percentage',
         'status',
         'payment_metadata',
@@ -25,6 +26,7 @@ class SubscriptionPayment extends Model
     protected $casts = [
         'amount' => 'decimal:2',
         'duration_months' => 'integer',
+        'duration_days' => 'integer',
         'rebate_percentage' => 'decimal:2',
         'payment_metadata' => 'array',
     ];

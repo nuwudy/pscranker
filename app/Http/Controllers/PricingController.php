@@ -20,10 +20,15 @@ class PricingController extends Controller
     public function index()
     {
         $tiers = SiteSetting::getPricingTiers();
-        $baseMonthlyFee = (float) SiteSetting::get('course_base_monthly_fee', 299);
+        $dailyBaseFee = (float) SiteSetting::get('course_base_daily_fee', null);
+        if ($dailyBaseFee === null || $dailyBaseFee <= 0) {
+            $monthlyFee = (float) SiteSetting::get('course_base_monthly_fee', 300);
+            $dailyBaseFee = $monthlyFee > 0 ? round($monthlyFee / 30, 2) : 10.00;
+        }
+        $baseMonthlyFee = (float) round($dailyBaseFee * 30);
         $razorpayKey = SiteSetting::get('razorpay_key_id') ?: (config('services.razorpay.key') ?: 'rzp_test_demo12345678');
 
-        return view('pages.pricing', compact('tiers', 'baseMonthlyFee', 'razorpayKey'));
+        return view('pages.pricing', compact('tiers', 'dailyBaseFee', 'baseMonthlyFee', 'razorpayKey'));
     }
 
     /**
@@ -32,19 +37,35 @@ class PricingController extends Controller
     public function createOrder(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'months' => 'required|integer|in:1,2,3,6,12',
+            'days' => 'nullable|integer',
+            'months' => 'nullable|integer',
             'name' => 'nullable|string|max:100',
             'email' => 'nullable|email|max:100',
             'phone' => 'nullable|string|max:20',
         ]);
 
-        $months = (int) $validated['months'];
-        $tiers = collect(SiteSetting::getPricingTiers())->keyBy('months');
-        $tier = $tiers->get($months);
+        $tiers = SiteSetting::getPricingTiers();
+        $tier = null;
+
+        if (!empty($validated['days'])) {
+            $days = (int) $validated['days'];
+            $tier = collect($tiers)->firstWhere('days', $days);
+        } elseif (!empty($validated['months'])) {
+            $months = (int) $validated['months'];
+            $tier = collect($tiers)->firstWhere('months', $months);
+            if (!$tier && $months === 1) {
+                $tier = collect($tiers)->firstWhere('days', 30);
+            }
+        } else {
+            $tier = collect($tiers)->firstWhere('is_popular', true) ?: $tiers[0];
+        }
 
         if (!$tier) {
             return response()->json(['error' => 'Invalid plan duration selected.'], 422);
         }
+
+        $days = (int) $tier['days'];
+        $months = (int) ($tier['months'] ?? max(1, round($days / 30)));
 
         $amountInPaise = (int) ($tier['final_price'] * 100);
         $currency = 'INR';
@@ -65,6 +86,7 @@ class PricingController extends Controller
                         'receipt' => $receipt,
                         'notes' => [
                             'plan' => $tier['name'],
+                            'days' => $days,
                             'months' => $months,
                             'customer_email' => $validated['email'] ?? (Auth::user()?->email ?? ''),
                         ],
@@ -92,6 +114,7 @@ class PricingController extends Controller
             'amount' => $tier['final_price'],
             'currency' => $currency,
             'duration_months' => $months,
+            'duration_days' => $days,
             'rebate_percentage' => $tier['rebate_percent'],
             'status' => 'created',
             'payment_metadata' => [
@@ -110,6 +133,7 @@ class PricingController extends Controller
             'amount_inr' => $tier['final_price'],
             'currency' => $currency,
             'plan_name' => $tier['name'],
+            'days' => $days,
             'months' => $months,
             'key' => $razorpayKey ?: 'rzp_test_demo12345678',
             'is_mock' => !$razorpayKey || str_starts_with($razorpayKey, 'rzp_test_demo'),
@@ -159,11 +183,12 @@ class PricingController extends Controller
                 ? $user->subscribed_until
                 : now();
 
-            $newExpiry = (clone $currentExpiry)->addMonths($payment->duration_months);
+            $daysToAdd = $payment->duration_days ?: ($payment->duration_months * 30);
+            $newExpiry = (clone $currentExpiry)->addDays($daysToAdd);
 
             $user->update([
                 'subscribed_until' => $newExpiry,
-                'subscription_plan' => "{$payment->duration_months} Months Plan",
+                'subscription_plan' => $payment->payment_metadata['plan_name'] ?? "{$daysToAdd} Days Plan",
                 'subscription_amount' => $payment->amount,
             ]);
 
@@ -179,10 +204,12 @@ class PricingController extends Controller
             }
         }
 
+        $durationLabel = $payment->duration_days ? ($payment->duration_days . ' days') : ($payment->duration_months . ' months');
+
         return response()->json([
             'success' => true,
-            'message' => "Success! Your {$payment->duration_months}-month access has been activated.",
-            'valid_until' => $user ? $user->subscribed_until->format('d M Y') : now()->addMonths($payment->duration_months)->format('d M Y'),
+            'message' => "Success! Your {$durationLabel} access has been activated.",
+            'valid_until' => $user ? $user->subscribed_until->format('d M Y') : now()->addDays($payment->duration_days ?: 30)->format('d M Y'),
         ]);
     }
 

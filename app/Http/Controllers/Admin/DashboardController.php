@@ -79,10 +79,15 @@ class DashboardController extends Controller
 
         // Current pricing settings & preview tiers
         $pricingSettings = [
-            'course_base_monthly_fee' => (float) \App\Models\SiteSetting::get('course_base_monthly_fee', 299),
+            'course_base_daily_fee' => (float) \App\Models\SiteSetting::get('course_base_daily_fee', 10.00),
+            'course_base_monthly_fee' => (float) \App\Models\SiteSetting::get('course_base_monthly_fee', 300),
+            'rebate_1w' => (float) \App\Models\SiteSetting::get('rebate_1w', 14),
+            'rebate_1m' => (float) \App\Models\SiteSetting::get('rebate_1m', 25),
+            'rebate_3m' => (float) \App\Models\SiteSetting::get('rebate_3m', 33),
+            'rebate_6m' => (float) \App\Models\SiteSetting::get('rebate_6m', 40),
+            'rebate_1y' => (float) \App\Models\SiteSetting::get('rebate_1y', 45),
+            // legacy fallbacks
             'rebate_2m' => (float) \App\Models\SiteSetting::get('rebate_2m', 10),
-            'rebate_3m' => (float) \App\Models\SiteSetting::get('rebate_3m', 15),
-            'rebate_6m' => (float) \App\Models\SiteSetting::get('rebate_6m', 25),
             'rebate_12m' => (float) \App\Models\SiteSetting::get('rebate_12m', 40),
             'razorpay_key_id' => \App\Models\SiteSetting::get('razorpay_key_id', ''),
             'razorpay_key_secret' => \App\Models\SiteSetting::get('razorpay_key_secret', ''),
@@ -110,20 +115,31 @@ class DashboardController extends Controller
     public function updatePricingSettings(\Illuminate\Http\Request $request)
     {
         $validated = $request->validate([
-            'course_base_monthly_fee' => 'required|numeric|min:1',
-            'rebate_2m' => 'required|numeric|min:0|max:100',
-            'rebate_3m' => 'required|numeric|min:0|max:100',
-            'rebate_6m' => 'required|numeric|min:0|max:100',
-            'rebate_12m' => 'required|numeric|min:0|max:100',
+            'course_base_daily_fee' => 'nullable|numeric|min:0.5',
+            'course_base_monthly_fee' => 'nullable|numeric|min:1',
+            'rebate_1w' => 'nullable|numeric|min:0|max:100',
+            'rebate_1m' => 'nullable|numeric|min:0|max:100',
+            'rebate_3m' => 'nullable|numeric|min:0|max:100',
+            'rebate_6m' => 'nullable|numeric|min:0|max:100',
+            'rebate_1y' => 'nullable|numeric|min:0|max:100',
+            'rebate_2m' => 'nullable|numeric|min:0|max:100',
+            'rebate_12m' => 'nullable|numeric|min:0|max:100',
             'razorpay_key_id' => 'nullable|string|max:100',
             'razorpay_key_secret' => 'nullable|string|max:100',
         ]);
 
-        foreach ($validated as $key => $value) {
-            \App\Models\SiteSetting::set($key, $value ?? '');
+        if (isset($validated['course_base_daily_fee']) && $validated['course_base_daily_fee'] > 0) {
+            \App\Models\SiteSetting::set('course_base_daily_fee', $validated['course_base_daily_fee']);
+            \App\Models\SiteSetting::set('course_base_monthly_fee', round($validated['course_base_daily_fee'] * 30));
         }
 
-        return redirect()->back()->with('success', 'Base fee and progressive rebate schedule updated successfully! All student pricing updated.');
+        foreach ($validated as $key => $value) {
+            if ($key !== 'course_base_daily_fee' && $value !== null) {
+                \App\Models\SiteSetting::set($key, $value);
+            }
+        }
+
+        return redirect()->back()->with('success', 'Daily base rate and progressive rebate schedule updated successfully! All candidate plans updated.');
     }
 
     /**

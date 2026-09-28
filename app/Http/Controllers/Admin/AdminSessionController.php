@@ -652,8 +652,44 @@ class AdminSessionController extends Controller
     private function syncContentsAndQuestions(Session $session, Request $request): void
     {
         // Wipe legacy questions table data for this session (clean slate).
-        // Questions are now derived purely from session_contents blocks.
         $session->questions()->delete();
+
+        if ($request->has('questions_json')) {
+            $questionsData = json_decode($request->input('questions_json'), true) ?? [];
+            foreach ($questionsData as $idx => $qData) {
+                Question::create([
+                    'session_id' => $session->id,
+                    'category_id' => $session->category_id,
+                    'phase_type' => $qData['phase_type'] ?? 'reinforcement',
+                    'question_text' => $qData['question_text'] ?? '',
+                    'question_text_malayalam' => $qData['question_text_malayalam'] ?? null,
+                    'option_a' => $qData['option_a'] ?? '',
+                    'option_b' => $qData['option_b'] ?? '',
+                    'option_c' => $qData['option_c'] ?? '',
+                    'option_d' => $qData['option_d'] ?? '',
+                    'correct_option' => $qData['correct_option'] ?? 'A',
+                    'explanation' => $qData['explanation'] ?? null,
+                    'order' => $idx + 1,
+                ]);
+
+                if (($qData['phase_type'] ?? '') === 'reinforcement') {
+                    Question::create([
+                        'session_id' => $session->id,
+                        'category_id' => $session->category_id,
+                        'phase_type' => 'omr',
+                        'question_text' => $qData['question_text'] ?? '',
+                        'question_text_malayalam' => $qData['question_text_malayalam'] ?? null,
+                        'option_a' => $qData['option_a'] ?? '',
+                        'option_b' => $qData['option_b'] ?? '',
+                        'option_c' => $qData['option_c'] ?? '',
+                        'option_d' => $qData['option_d'] ?? '',
+                        'correct_option' => $qData['correct_option'] ?? 'A',
+                        'explanation' => $qData['explanation'] ?? null,
+                        'order' => $idx + 1,
+                    ]);
+                }
+            }
+        }
 
         if (!$request->has('contents_json')) {
             return;

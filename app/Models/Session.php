@@ -252,7 +252,7 @@ class Session extends Model
             });
         }
 
-        return collect();
+        return $this->omrQuestions()->get();
     }
 
     public function getEffectiveReinforcementQuestionsAttribute()
@@ -287,7 +287,7 @@ class Session extends Model
             });
         }
 
-        return collect();
+        return $this->reinforcementQuestions()->get();
     }
 
     public function progress(): HasMany

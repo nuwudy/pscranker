@@ -9,66 +9,95 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-test('pricing page loads successfully with progressive rebate tiers', function () {
+test('pricing page loads successfully with 6 progressive rebate cards and daily pricing framework', function () {
     $response = $this->get('/pricing');
 
     $response->assertStatus(200);
-    $response->assertSee('Prepaid Learning Pass');
-    $response->assertSee('Select Your Prep Duration');
-    $response->assertSee('1 Month Flex Pass');
+    $response->assertSee('Kerala PSC Prep from just');
+    $response->assertSee('Select Your Target Pass');
+    $response->assertSee('1 Day Flex Pass');
+    $response->assertSee('1 Week Crash Pass');
+    $response->assertSee('1 Month Regular Pass');
     $response->assertSee('3 Months Exam Sprint');
+    $response->assertSee('6 Months Semester Pass');
     $response->assertSee('1 Year All-Access Pass');
+    $response->assertSee('Schedule of Progressive Rebates');
     $response->assertSee('Terms &amp; Conditions', false);
     $response->assertSee('Privacy Policy', false);
     $response->assertSee('Cancellation &amp; Refund Policy', false);
-    $response->assertSee('Razorpay Verified');
+    $response->assertSee('Razorpay Gateway');
 });
 
-test('progressive rebate schedule calculates correct discounts from base fee', function () {
-    SiteSetting::set('course_base_monthly_fee', 300);
-    SiteSetting::set('rebate_2m', 10);
-    SiteSetting::set('rebate_3m', 15);
-    SiteSetting::set('rebate_6m', 25);
-    SiteSetting::set('rebate_12m', 40);
+test('progressive rebate schedule calculates correct discounts from daily base fee', function () {
+    // Test Balanced Growth Model at ₹10 base daily rate
+    SiteSetting::set('course_base_daily_fee', 10);
+    SiteSetting::set('rebate_1w', 14);
+    SiteSetting::set('rebate_1m', 25);
+    SiteSetting::set('rebate_3m', 33);
+    SiteSetting::set('rebate_6m', 40);
+    SiteSetting::set('rebate_1y', 45);
 
-    $tiers = collect(SiteSetting::getPricingTiers())->keyBy('months');
+    $tiers = collect(SiteSetting::getPricingTiers())->keyBy('days');
 
-    // 1 Month: 300 * 1 = 300, 0% rebate = 300
-    expect($tiers[1]['base_total'])->toBe(300.0)
+    // 1 Day: ₹10 * 1 = ₹10, 0% off = ₹10 (₹10/day)
+    expect($tiers[1]['base_total'])->toBe(10.0)
         ->and($tiers[1]['discount_amount'])->toBe(0.0)
-        ->and($tiers[1]['final_price'])->toBe(300.0);
+        ->and($tiers[1]['final_price'])->toBe(10.0)
+        ->and($tiers[1]['per_day_cost'])->toBe(10.0);
 
-    // 2 Months: 300 * 2 = 600, 10% rebate = 60 saved, 540 final
-    expect($tiers[2]['base_total'])->toBe(600.0)
-        ->and($tiers[2]['discount_amount'])->toBe(60.0)
-        ->and($tiers[2]['final_price'])->toBe(540.0)
-        ->and($tiers[2]['effective_per_month'])->toBe(270.0);
+    // 1 Week (7 Days): ₹10 * 7 = ₹70, 14% off = ₹60 (₹8.57/day)
+    expect($tiers[7]['base_total'])->toBe(70.0)
+        ->and($tiers[7]['discount_amount'])->toBe(10.0)
+        ->and($tiers[7]['final_price'])->toBe(60.0)
+        ->and($tiers[7]['per_day_cost'])->toBe(8.57);
 
-    // 3 Months: 300 * 3 = 900, 15% rebate = 135 saved, 765 final
-    expect($tiers[3]['base_total'])->toBe(900.0)
-        ->and($tiers[3]['discount_amount'])->toBe(135.0)
-        ->and($tiers[3]['final_price'])->toBe(765.0)
-        ->and($tiers[3]['effective_per_month'])->toBe(255.0);
+    // 1 Month (30 Days): ₹10 * 30 = ₹300, 25% off = ₹225 (₹7.50/day)
+    expect($tiers[30]['base_total'])->toBe(300.0)
+        ->and($tiers[30]['discount_amount'])->toBe(75.0)
+        ->and($tiers[30]['final_price'])->toBe(225.0)
+        ->and($tiers[30]['per_day_cost'])->toBe(7.50);
 
-    // 6 Months: 300 * 6 = 1800, 25% rebate = 450 saved, 1350 final
-    expect($tiers[6]['base_total'])->toBe(1800.0)
-        ->and($tiers[6]['discount_amount'])->toBe(450.0)
-        ->and($tiers[6]['final_price'])->toBe(1350.0);
+    // 3 Months (90 Days): ₹10 * 90 = ₹900, 33% off = ₹600 (₹6.67/day)
+    expect($tiers[90]['base_total'])->toBe(900.0)
+        ->and($tiers[90]['discount_amount'])->toBe(300.0)
+        ->and($tiers[90]['final_price'])->toBe(600.0)
+        ->and($tiers[90]['per_day_cost'])->toBe(6.67);
 
-    // 12 Months: 300 * 12 = 3600, 40% rebate = 1440 saved, 2160 final
-    expect($tiers[12]['base_total'])->toBe(3600.0)
-        ->and($tiers[12]['discount_amount'])->toBe(1440.0)
-        ->and($tiers[12]['final_price'])->toBe(2160.0)
-        ->and($tiers[12]['effective_per_month'])->toBe(180.0);
+    // 6 Months (180 Days): ₹10 * 180 = ₹1800, 40% off = ₹1080 (₹6.00/day)
+    expect($tiers[180]['base_total'])->toBe(1800.0)
+        ->and($tiers[180]['discount_amount'])->toBe(720.0)
+        ->and($tiers[180]['final_price'])->toBe(1080.0)
+        ->and($tiers[180]['per_day_cost'])->toBe(6.00);
+
+    // 1 Year (365 Days): ₹10 * 365 = ₹3650, 45% off with psychological 99 rounding = ₹1999 (₹5.48/day)
+    expect($tiers[365]['base_total'])->toBe(3650.0)
+        ->and($tiers[365]['final_price'])->toBe(1999.0)
+        ->and($tiers[365]['per_day_cost'])->toBe(5.48);
 });
 
-test('razorpay order creation and payment verification activates subscription', function () {
+test('admin setting daily base rate to ₹5 recalculates all tiers proportionally', function () {
+    SiteSetting::set('course_base_daily_fee', 5);
+
+    $tiers = collect(SiteSetting::getPricingTiers())->keyBy('days');
+
+    // 1 Day at ₹5 = ₹5
+    expect($tiers[1]['final_price'])->toBe(5.0)
+        ->and($tiers[1]['per_day_cost'])->toBe(5.0);
+
+    // 1 Week (7 Days) at ₹5 = ₹35, 14% off = ₹30 (₹4.29/day)
+    expect($tiers[7]['final_price'])->toBe(30.0);
+
+    // 1 Month (30 Days) at ₹5 = ₹150, 25% off = ₹113
+    expect($tiers[30]['final_price'])->toBe(113.0);
+});
+
+test('razorpay order creation and payment verification activates subscription by days', function () {
     $user = User::factory()->create(['email' => 'student@example.com']);
     $this->actingAs($user);
 
-    // 1. Create Order
+    // 1. Create Order with 7 days pass
     $orderResponse = $this->postJson('/subscription/create-order', [
-        'months' => 3,
+        'days' => 7,
         'name' => 'Student Candidate',
         'email' => 'student@example.com',
     ]);
@@ -76,7 +105,7 @@ test('razorpay order creation and payment verification activates subscription', 
     $orderResponse->assertStatus(200)
         ->assertJson([
             'success' => true,
-            'months' => 3,
+            'days' => 7,
         ]);
 
     $orderId = $orderResponse->json('order_id');
@@ -91,23 +120,24 @@ test('razorpay order creation and payment verification activates subscription', 
     $verifyResponse->assertStatus(200)
         ->assertJson(['success' => true]);
 
-    // 3. Check User has been granted subscription
+    // 3. Check User has been granted subscription with duration_days
     $user->refresh();
     expect($user->isSubscribed())->toBeTrue()
         ->and($user->subscribed_until->isFuture())->toBeTrue()
-        ->and($user->subscription_plan)->toBe('3 Months Plan');
+        ->and($user->subscription_plan)->toBe('1 Week Crash Pass');
 });
 
-test('admin can update base monthly fee and rebate percentages from dashboard', function () {
+test('admin can update daily base fee and rebate percentages from dashboard', function () {
     $admin = User::factory()->create(['email' => 'admin@pscranker.com']);
     $this->actingAs($admin);
 
     $response = $this->post('/admin/settings/pricing', [
-        'course_base_monthly_fee' => 399,
-        'rebate_2m' => 12,
-        'rebate_3m' => 18,
-        'rebate_6m' => 28,
-        'rebate_12m' => 45,
+        'course_base_daily_fee' => 5,
+        'rebate_1w' => 15,
+        'rebate_1m' => 25,
+        'rebate_3m' => 35,
+        'rebate_6m' => 42,
+        'rebate_1y' => 50,
         'razorpay_key_id' => 'rzp_test_customKey123',
         'razorpay_key_secret' => 'customSecret456',
     ]);
@@ -115,8 +145,8 @@ test('admin can update base monthly fee and rebate percentages from dashboard', 
     $response->assertRedirect();
     $response->assertSessionHas('success');
 
-    expect(SiteSetting::get('course_base_monthly_fee'))->toBe('399')
-        ->and(SiteSetting::get('rebate_12m'))->toBe('45')
+    expect(SiteSetting::get('course_base_daily_fee'))->toBe('5')
+        ->and(SiteSetting::get('rebate_1y'))->toBe('50')
         ->and(SiteSetting::get('razorpay_key_id'))->toBe('rzp_test_customKey123');
 });
 
