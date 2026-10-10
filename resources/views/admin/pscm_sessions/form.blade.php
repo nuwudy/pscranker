@@ -41,12 +41,12 @@
                         <div>
                             <div class="mb-4">
                                 <label class="block text-gray-700 text-sm font-bold mb-2">Lesson Content (Markdown)</label>
-                                <textarea name="lesson_content" rows="10" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">{{ old('lesson_content', $session->lesson_content ?? '') }}</textarea>
+                                <textarea name="lesson_content" x-model="lessonContent" rows="10" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700"></textarea>
                             </div>
                             
                             <div class="mb-4">
                                 <label class="block text-gray-700 text-sm font-bold mb-2">Practice MCQs (JSON)</label>
-                                <textarea name="practice_mcqs" rows="6" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">{{ old('practice_mcqs', json_encode($session->practice_mcqs ?? [])) }}</textarea>
+                                <textarea name="practice_mcqs" x-model="practiceMcqs" rows="6" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700"></textarea>
                             </div>
                             
                             <div class="mb-4">
@@ -120,9 +120,9 @@
                         const data = await response.json();
                         
                         if (data.success) {
-                            // Populate manual fields
-                            document.querySelector('textarea[name="lesson_content"]').value = data.lesson_content;
-                            document.querySelector('textarea[name="practice_mcqs"]').value = JSON.stringify(data.practice_mcqs, null, 2);
+                            // Update alpine models directly
+                            this.lessonContent = data.lesson_content;
+                            this.practiceMcqs = JSON.stringify(data.practice_mcqs, null, 2);
                             
                             // Switch to manual mode to review
                             this.mode = 'manual';
