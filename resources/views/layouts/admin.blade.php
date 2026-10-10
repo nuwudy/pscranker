@@ -83,6 +83,14 @@
                         </a>
 
                         <a 
+                            href="{{ route('admin.pscm.index') }}" 
+                            class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.pscm.*') ? 'bg-[#0052FF] text-white font-bold shadow' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}"
+                        >
+                            <span class="text-sm">🧠</span>
+                            <span>AI Micro-Learning</span>
+                        </a>
+
+                        <a 
                             href="{{ route('admin.categories.index') }}" 
                             class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.categories.*') ? 'bg-[#0052FF] text-white font-bold shadow' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}"
                         >
@@ -226,6 +234,7 @@
                     <a href="{{ route('admin.dashboard') }}" class="block px-3 py-2 rounded-xl text-white bg-[#0052FF]">📊 Dashboard</a>
                     <a href="{{ route('admin.sessions.index') }}" class="block px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800">📚 Learning Sessions</a>
                     <a href="{{ route('admin.sessions.create') }}" class="block px-3 py-2 rounded-xl text-amber-300 bg-amber-400/10 font-black">+ Create Session</a>
+                    <a href="{{ route('admin.pscm.index') }}" class="block px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800">🧠 AI Micro-Learning</a>
                     <a href="{{ route('admin.categories.index') }}" class="block px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800">🏷️ Subject Tracks</a>
                     <a href="{{ route('admin.media.index') }}" class="block px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800">📁 Media Library</a>
                     <a href="{{ route('admin.users.index') }}" class="block px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800">👥 Candidates &amp; Subs</a>
