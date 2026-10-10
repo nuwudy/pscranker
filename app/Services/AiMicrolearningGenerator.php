@@ -20,12 +20,21 @@ class AiMicrolearningGenerator
             throw new \Exception('GEMINI_API_KEY is not set in .env');
         }
 
+        // Handle if user pasted an array of objects instead of a single object
+        if (isset($hookQuestion[0]) && is_array($hookQuestion[0])) {
+            $hookQuestion = $hookQuestion[0];
+        }
+
+        $question = $hookQuestion['question'] ?? 'Unknown question';
+        $options = isset($hookQuestion['options']) && is_array($hookQuestion['options']) ? implode(', ', $hookQuestion['options']) : 'Unknown options';
+        $correctIndex = $hookQuestion['correct_index'] ?? 0;
+
         $prompt = "You are an expert Kerala PSC exam content creator.
         
 Given this previous PSC question:
-Question: " . $hookQuestion['question'] . "
-Options: " . implode(', ', $hookQuestion['options']) . "
-Correct Answer Index: " . $hookQuestion['correct_index'] . "
+Question: " . $question . "
+Options: " . $options . "
+Correct Answer Index: " . $correctIndex . "
 
 Please generate two things in strict JSON format:
 1. 'lesson_content': A high-yield, structured micro-lesson in Markdown format. It should focus on the core topic of the question and include standard facts (SCERT/NCERT base) relevant to Kerala PSC. Use scannable bullet points and bold key facts. Do not make it too long.
