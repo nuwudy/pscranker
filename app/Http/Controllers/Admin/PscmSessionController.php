@@ -65,11 +65,11 @@ class PscmSessionController extends Controller
     public function generate(Request $request, \App\Services\AiMicrolearningGenerator $aiService)
     {
         $request->validate([
-            'hook_question' => 'required|json'
+            'hook_question' => 'required|string'
         ]);
 
         try {
-            $hookQuestion = json_decode($request->hook_question, true);
+            $hookQuestion = $request->hook_question;
             $generated = $aiService->generate($hookQuestion);
             
             return response()->json([

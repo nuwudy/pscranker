@@ -22,8 +22,8 @@
                     </div>
 
                     <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Hook Question (JSON)</label>
-                        <textarea name="hook_question" x-model="hookQuestion" rows="4" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" placeholder='{"question": "...", "options": ["A", "B", "C", "D"], "correct_index": 0}'>{{ old('hook_question', json_encode($session->hook_question ?? [])) }}</textarea>
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Hook Question (Paste raw text or type here)</label>
+                        <textarea name="hook_question" x-model="hookQuestion" rows="4" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" placeholder='Type or paste the PSC question here... (e.g. Which of the following is not a tributary... A) X B) Y)'>{{ old('hook_question', is_array($session->hook_question ?? null) ? json_encode($session->hook_question) : ($session->hook_question ?? '')) }}</textarea>
                     </div>
 
                     <template x-if="mode === 'auto'">
@@ -100,7 +100,7 @@
 
                 async generateAI() {
                     if (!this.hookQuestion) {
-                        this.errorMsg = 'Please enter a hook question JSON first.';
+                        this.errorMsg = 'Please enter a hook question first.';
                         return;
                     }
                     
