@@ -121,3 +121,21 @@ Route::get('/courses', [SessionController::class, 'index'])->name('courses');
 Route::get('/profile', function () {
     return redirect()->route('leaderboard');
 })->name('profile');
+
+// PSCM Micro-Learning Engine Routes
+use App\Http\Controllers\Admin\PscmSessionController as AdminPscmSessionController;
+use App\Http\Controllers\Learner\PscmSessionController as LearnerPscmSessionController;
+
+Route::prefix('admin/micro-learning')->name('admin.pscm.')->middleware('auth')->group(function () {
+    Route::get('/', [AdminPscmSessionController::class, 'index'])->name('index');
+    Route::get('/create', [AdminPscmSessionController::class, 'create'])->name('create');
+    Route::post('/generate', [AdminPscmSessionController::class, 'generate'])->name('generate');
+    Route::post('/', [AdminPscmSessionController::class, 'store'])->name('store');
+    Route::get('/{pscmSession}/edit', [AdminPscmSessionController::class, 'edit'])->name('edit');
+    Route::put('/{pscmSession}', [AdminPscmSessionController::class, 'update'])->name('update');
+});
+
+Route::prefix('micro-learning')->name('learner.pscm.')->group(function () {
+    Route::get('/{slug}', [LearnerPscmSessionController::class, 'show'])->name('show');
+    Route::post('/{session_id}/attempt', [LearnerPscmSessionController::class, 'storeAttempt'])->name('attempt');
+});
