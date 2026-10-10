@@ -47,7 +47,7 @@ IMPORTANT: Return ONLY raw JSON. No markdown wrappers, no backticks. The schema 
 
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
-        ])->post($this->baseUrl . '?key=' . $this->apiKey, [
+        ])->timeout(120)->post($this->baseUrl . '?key=' . $this->apiKey, [
             'contents' => [
                 [
                     'parts' => [
