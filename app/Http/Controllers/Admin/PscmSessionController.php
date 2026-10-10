@@ -25,12 +25,11 @@ class PscmSessionController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:255',
-            'hook_question' => 'required|json',
+            'hook_question' => 'required|string',
         ]);
 
         $data = $request->all();
         $data['slug'] = Str::slug($data['title']) . '-' . uniqid();
-        $data['hook_question'] = json_decode($data['hook_question'], true);
         
         if (isset($data['media'])) $data['media'] = json_decode($data['media'], true);
         if (isset($data['practice_mcqs'])) $data['practice_mcqs'] = json_decode($data['practice_mcqs'], true);
@@ -49,11 +48,11 @@ class PscmSessionController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:255',
-            'hook_question' => 'required|json',
+            'hook_question' => 'required|string',
         ]);
 
         $data = $request->all();
-        $data['hook_question'] = json_decode($data['hook_question'], true);
+        
         if (isset($data['media'])) $data['media'] = json_decode($data['media'], true);
         if (isset($data['practice_mcqs'])) $data['practice_mcqs'] = json_decode($data['practice_mcqs'], true);
         
