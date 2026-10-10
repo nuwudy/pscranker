@@ -35,19 +35,19 @@ Then, please generate three things in strict JSON format:
 
 IMPORTANT: Return ONLY raw JSON. No markdown wrappers, no backticks. The schema must be exactly:
 {
-  "hook_question": {
-    "question": "...",
-    "options": ["...", "...", "...", "..."],
-    "correct_index": 0,
-    "explanation": "..."
+  \"hook_question\": {
+    \"question\": \"...\",
+    \"options\": [\"...\", \"...\", \"...\", \"...\"],
+    \"correct_index\": 0,
+    \"explanation\": \"...\"
   },
-  "lesson_content": "markdown string here",
-  "practice_mcqs": [
+  \"lesson_content\": \"markdown string here\",
+  \"practice_mcqs\": [
     {
-      "question": "...",
-      "options": ["...", "...", "...", "..."],
-      "correct_index": 0,
-      "explanation": "..."
+      \"question\": \"...\",
+      \"options\": [\"...\", \"...\", \"...\", \"...\"],
+      \"correct_index\": 0,
+      \"explanation\": \"...\"
     }
   ]
 }";
