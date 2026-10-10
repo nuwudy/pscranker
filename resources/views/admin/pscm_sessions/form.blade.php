@@ -5,14 +5,19 @@
     <div class="py-12" x-data="pscmAdminForm()" x-init="initData('{{ isset($session) ? $session->status : 'draft' }}', '{{ route('admin.pscm.generate') }}')">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
-            <div class="mb-4 flex space-x-4">
-                <button @click="mode = 'auto'" :class="{'bg-blue-600 text-white': mode === 'auto', 'bg-gray-200': mode !== 'auto'}" class="px-4 py-2 rounded">Auto-Generate (AI)</button>
-                <button @click="mode = 'manual'" :class="{'bg-blue-600 text-white': mode === 'manual', 'bg-gray-200': mode !== 'manual'}" class="px-4 py-2 rounded">Manual Override</button>
+            <div class="mb-4 flex justify-between items-center">
+                <div class="flex space-x-4">
+                    <button type="button" @click="mode = 'auto'" :class="{'bg-blue-600 text-white': mode === 'auto', 'bg-gray-200': mode !== 'auto'}" class="px-4 py-2 rounded">Auto-Generate (AI)</button>
+                    <button type="button" @click="mode = 'manual'" :class="{'bg-blue-600 text-white': mode === 'manual', 'bg-gray-200': mode !== 'manual'}" class="px-4 py-2 rounded">Manual Override</button>
+                </div>
+                <button type="button" onclick="document.getElementById('sessionForm').submit();" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded shadow-lg text-lg animate-pulse">
+                    💾 Save Session
+                </button>
             </div>
 
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mb-20">
                 
-                <form action="{{ isset($session) ? route('admin.pscm.update', $session->id) : route('admin.pscm.store') }}" method="POST">
+                <form id="sessionForm" action="{{ isset($session) ? route('admin.pscm.update', $session->id) : route('admin.pscm.store') }}" method="POST">
                     @csrf
                     @if(isset($session)) @method('PUT') @endif
 
