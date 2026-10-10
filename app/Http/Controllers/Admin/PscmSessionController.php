@@ -43,6 +43,10 @@ class PscmSessionController extends Controller
             $data['practice_mcqs'] = [];
         }
         
+        if (!empty($data['hook_question'])) {
+            $data['hook_question'] = json_decode($data['hook_question'], true) ?? [];
+        }
+        
         PscmSession::create($data);
 
         return redirect()->route('admin.pscm.index')->with('success', 'Session created successfully.');
@@ -73,6 +77,10 @@ class PscmSessionController extends Controller
         } else {
             $data['practice_mcqs'] = [];
         }
+
+        if (!empty($data['hook_question'])) {
+            $data['hook_question'] = json_decode($data['hook_question'], true) ?? [];
+        }
         
         $pscmSession->update($data);
 
@@ -92,7 +100,8 @@ class PscmSessionController extends Controller
             return response()->json([
                 'success' => true,
                 'lesson_content' => $generated['lesson_content'] ?? '',
-                'practice_mcqs' => $generated['practice_mcqs'] ?? []
+                'practice_mcqs' => $generated['practice_mcqs'] ?? [],
+                'hook_question_json' => $generated['hook_question'] ?? null
             ]);
         } catch (\Exception $e) {
             return response()->json([

@@ -36,14 +36,11 @@
                         <input type="text" name="title" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" value="{{ old('title', $session->title ?? '') }}" required>
                     </div>
 
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Hook Question (Paste raw text or type here)</label>
-                        <textarea name="hook_question" x-model="hookQuestion" rows="4" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" placeholder='Type or paste the PSC question here... (e.g. Which of the following is not a tributary... A) X B) Y)'>{{ old('hook_question', is_array($session->hook_question ?? null) ? json_encode($session->hook_question) : ($session->hook_question ?? '')) }}</textarea>
-                    </div>
-
                     <template x-if="mode === 'auto'">
-                        <div class="bg-blue-50 p-4 rounded mb-4">
-                            <p class="text-sm text-blue-700 mb-2">Enter the hook question above and AI will generate the lesson and MCQs.</p>
+                        <div class="bg-blue-50 p-4 rounded mb-4 border border-blue-200">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Raw Question Text (Paste here)</label>
+                            <textarea x-model="rawHookQuestion" rows="4" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" placeholder='Type or paste the raw PSC question here...'></textarea>
+                            <p class="text-sm text-blue-700 mt-2 mb-2">Enter the hook question above and AI will generate the lesson and MCQs.</p>
                             <button type="button" @click="generateAI" :disabled="loading" class="bg-purple-600 text-white px-4 py-2 rounded disabled:opacity-50 flex items-center">
                                 <span x-show="!loading">Generate with AI (Gemini)</span>
                                 <span x-show="loading">Generating... Please wait...</span>
@@ -52,8 +49,14 @@
                         </div>
                     </template>
 
+
+
                     <div x-show="mode === 'manual'" style="display: none;">
                         <div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700 text-sm font-bold mb-2">Hook Question (JSON)</label>
+                                <textarea name="hook_question" x-model="hookQuestion" rows="4" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">{{ old('hook_question', is_array($session->hook_question ?? null) ? json_encode($session->hook_question, JSON_PRETTY_PRINT) : ($session->hook_question ?? '')) }}</textarea>
+                            </div>
                             <div class="mb-4">
                                 <label class="block text-gray-700 text-sm font-bold mb-2">Lesson Content (Markdown)</label>
                                 <textarea name="lesson_content" x-model="lessonContent" rows="10" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700"></textarea>
@@ -96,7 +99,8 @@
             return {
                 mode: 'auto',
                 status: 'draft',
-                hookQuestion: '',
+                rawHookQuestion: '',
+                hookQuestion: `{!! addslashes(old('hook_question', is_array($session->hook_question ?? null) ? json_encode($session->hook_question, JSON_PRETTY_PRINT) : ($session->hook_question ?? ''))) !!}`,
                 lessonContent: `{!! addslashes(old('lesson_content', $session->lesson_content ?? '')) !!}`,
                 practiceMcqs: `{!! addslashes(old('practice_mcqs', json_encode($session->practice_mcqs ?? []))) !!}`,
                 generateUrl: '',
@@ -107,15 +111,16 @@
                     this.status = status;
                     this.generateUrl = generateUrl;
                     
-                    const textArea = document.querySelector('textarea[name="hook_question"]');
-                    if(textArea) {
-                        this.hookQuestion = textArea.value;
+                    // If editing an existing session, switch to manual mode by default
+                    const hookVal = this.hookQuestion.trim();
+                    if(hookVal && hookVal.startsWith('{')) {
+                        this.mode = 'manual';
                     }
                 },
 
                 async generateAI() {
-                    if (!this.hookQuestion) {
-                        this.errorMsg = 'Please enter a hook question first.';
+                    if (!this.rawHookQuestion) {
+                        this.errorMsg = 'Please enter a raw hook question first.';
                         return;
                     }
                     
@@ -129,7 +134,7 @@
                                 'Content-Type': 'application/json',
                                 'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
                             },
-                            body: JSON.stringify({ hook_question: this.hookQuestion })
+                            body: JSON.stringify({ hook_question: this.rawHookQuestion })
                         });
                         
                         const data = await response.json();
@@ -138,6 +143,9 @@
                             // Update alpine models directly
                             this.lessonContent = data.lesson_content;
                             this.practiceMcqs = JSON.stringify(data.practice_mcqs, null, 2);
+                            if(data.hook_question_json) {
+                                this.hookQuestion = JSON.stringify(data.hook_question_json, null, 2);
+                            }
                             
                             // Switch to manual mode to review
                             this.mode = 'manual';

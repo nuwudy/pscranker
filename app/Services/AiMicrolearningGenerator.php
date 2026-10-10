@@ -28,19 +28,26 @@ Given this raw input which contains a PSC question:
 " . $rawInput . "
 
 First, identify the main question and its correct answer.
-Then, please generate two things in strict JSON format:
-1. 'lesson_content': A high-yield, structured micro-lesson in Markdown format. It should focus on the core topic of the question and include standard facts (SCERT/NCERT base) relevant to Kerala PSC. Use scannable bullet points and bold key facts. Do not make it too long.
-2. 'practice_mcqs': An array of 4 relevant, PSC-standard practice MCQs derived from the lesson. Each MCQ must have 'question' (string), 'options' (array of 4 strings), 'correct_index' (integer 0-3), and 'explanation' (string).
+Then, please generate three things in strict JSON format:
+1. 'hook_question': A parsed JSON object of the provided question containing 'question' (string), 'options' (array of 4 strings), 'correct_index' (integer 0-3), and 'explanation' (string).
+2. 'lesson_content': A high-yield, structured micro-lesson in Markdown format. It should focus on the core topic of the question and include standard facts (SCERT/NCERT base) relevant to Kerala PSC. Use scannable bullet points and bold key facts. Do not make it too long.
+3. 'practice_mcqs': An array of 4 relevant, PSC-standard practice MCQs derived from the lesson. Each MCQ must have 'question' (string), 'options' (array of 4 strings), 'correct_index' (integer 0-3), and 'explanation' (string).
 
 IMPORTANT: Return ONLY raw JSON. No markdown wrappers, no backticks. The schema must be exactly:
 {
-  \"lesson_content\": \"markdown string here\",
-  \"practice_mcqs\": [
+  "hook_question": {
+    "question": "...",
+    "options": ["...", "...", "...", "..."],
+    "correct_index": 0,
+    "explanation": "..."
+  },
+  "lesson_content": "markdown string here",
+  "practice_mcqs": [
     {
-      \"question\": \"...\",
-      \"options\": [\"...\", \"...\", \"...\", \"...\"],
-      \"correct_index\": 0,
-      \"explanation\": \"...\"
+      "question": "...",
+      "options": ["...", "...", "...", "..."],
+      "correct_index": 0,
+      "explanation": "..."
     }
   ]
 }";
