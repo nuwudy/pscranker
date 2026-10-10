@@ -31,8 +31,17 @@ class PscmSessionController extends Controller
         $data = $request->all();
         $data['slug'] = Str::slug($data['title']) . '-' . uniqid();
         
-        if (isset($data['media'])) $data['media'] = json_decode($data['media'], true);
-        if (isset($data['practice_mcqs'])) $data['practice_mcqs'] = json_decode($data['practice_mcqs'], true);
+        if (!empty($data['media'])) {
+            $data['media'] = json_decode($data['media'], true) ?? [];
+        } else {
+            $data['media'] = [];
+        }
+
+        if (!empty($data['practice_mcqs'])) {
+            $data['practice_mcqs'] = json_decode($data['practice_mcqs'], true) ?? [];
+        } else {
+            $data['practice_mcqs'] = [];
+        }
         
         PscmSession::create($data);
 
@@ -53,8 +62,17 @@ class PscmSessionController extends Controller
 
         $data = $request->all();
         
-        if (isset($data['media'])) $data['media'] = json_decode($data['media'], true);
-        if (isset($data['practice_mcqs'])) $data['practice_mcqs'] = json_decode($data['practice_mcqs'], true);
+        if (!empty($data['media'])) {
+            $data['media'] = json_decode($data['media'], true) ?? [];
+        } else {
+            $data['media'] = [];
+        }
+
+        if (!empty($data['practice_mcqs'])) {
+            $data['practice_mcqs'] = json_decode($data['practice_mcqs'], true) ?? [];
+        } else {
+            $data['practice_mcqs'] = [];
+        }
         
         $pscmSession->update($data);
 

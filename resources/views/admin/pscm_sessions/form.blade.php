@@ -52,7 +52,7 @@
                         </div>
                     </template>
 
-                    <template x-if="mode === 'manual'">
+                    <div x-show="mode === 'manual'" style="display: none;">
                         <div>
                             <div class="mb-4">
                                 <label class="block text-gray-700 text-sm font-bold mb-2">Lesson Content (Markdown)</label>
@@ -69,7 +69,7 @@
                                 <textarea name="media" rows="2" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">{{ old('media', json_encode($session->media ?? [])) }}</textarea>
                             </div>
                         </div>
-                    </template>
+                    </div>
 
                     <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2">Status</label>
