@@ -91,16 +91,29 @@
                 
                 <div class="space-y-3 mb-6">
                     <template x-for="(opt, idx) in session.hook_question?.options" :key="idx">
-                        <button class="w-full text-left p-4 rounded-2xl border-2 border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/50 transition-all font-semibold text-slate-800 text-sm shadow-sm flex items-start gap-3 group">
-                            <span class="w-6 h-6 rounded-lg bg-slate-100 text-slate-600 group-hover:bg-indigo-600 group-hover:text-white font-bold text-xs flex items-center justify-center shrink-0 transition" x-text="['A','B','C','D'][idx]"></span>
+                        <button @click="selectHookAnswer(idx)"
+                            :class="getHookBtnClass(idx)"
+                            class="w-full text-left p-4 rounded-2xl border-2 transition-all font-semibold text-sm shadow-sm flex items-start gap-3 cursor-pointer">
+                            <span class="w-6 h-6 rounded-lg font-bold text-xs flex items-center justify-center shrink-0 border transition"
+                                  :class="hookAnswer === idx ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-slate-100 text-slate-600 border-slate-200'"
+                                  x-text="['A','B','C','D'][idx]"></span>
                             <span class="flex-1" x-text="opt"></span>
                         </button>
                     </template>
                 </div>
 
+                <!-- Instant feedback for Hook Question -->
+                <div x-show="hookAnswer !== null" class="mb-6 p-4 rounded-2xl border transition-all animate-fade-in" 
+                     :class="hookAnswer === session.hook_question?.correct_index ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-rose-50 border-rose-200 text-rose-900'">
+                    <div class="flex items-center gap-2 font-bold text-sm mb-1">
+                        <span x-text="hookAnswer === session.hook_question?.correct_index ? '✅ Correct Answer!' : '❌ Incorrect.'"></span>
+                    </div>
+                    <p class="text-xs leading-relaxed opacity-90" x-text="session.hook_question?.explanation || (hookAnswer === session.hook_question?.correct_index ? 'Great job! Let\'s break down the concepts behind this PSC question.' : 'Don\'t worry! Let\'s analyze this question and master the concept.')"></p>
+                </div>
+
                 <div class="mt-auto pt-4">
                     <button @click="nextStep" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-200 transition-all transform active:scale-95 flex items-center justify-center gap-2">
-                        <span>Analyze This Question</span>
+                        <span x-text="hookAnswer !== null ? 'Continue to Analysis' : 'Analyze This Question'"></span>
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                     </button>
                 </div>
@@ -341,6 +354,7 @@
             return {
                 session: {},
                 currentStep: 0,
+                hookAnswer: null,
                 practiceAnswers: [null, null, null, null],
                 
                 // OMR state
@@ -422,6 +436,29 @@
                                .replace(/\*(.*?)\*/g, '<em>$1</em>')
                                .replace(/^- (.*$)/gim, '<li class="ml-4 list-disc">$1</li>')
                                .replace(/\n/g, '<br>');
+                },
+
+                selectHookAnswer(optIdx) {
+                    if (this.hookAnswer !== null) return;
+                    this.hookAnswer = optIdx;
+                },
+
+                getHookBtnClass(optIdx) {
+                    const ans = this.hookAnswer;
+                    const correctIdx = this.session.hook_question?.correct_index;
+                    
+                    if (ans === null) {
+                        return 'border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/50 bg-white text-slate-800';
+                    }
+                    
+                    if (optIdx === correctIdx) {
+                        return 'bg-emerald-50 border-emerald-500 text-emerald-900 shadow-sm';
+                    }
+                    if (optIdx === ans && optIdx !== correctIdx) {
+                        return 'bg-rose-50 border-rose-500 text-rose-900 shadow-sm';
+                    }
+                    
+                    return 'border-slate-200 opacity-40 bg-slate-50 text-slate-500';
                 },
 
                 selectPracticeAnswer(mcqIdx, optIdx) {
