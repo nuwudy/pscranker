@@ -40,9 +40,9 @@
 
                 <!-- Primary and Secondary CTA Buttons -->
                 <div class="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5">
-                    <!-- Primary CTA launching Mixed Practice Train directly -->
+                    <!-- Primary CTA launching Latest Micro-Learning Course Unit -->
                     <a 
-                        href="{{ $firstMixedSession ? route('session.show', ['slug' => $firstMixedSession->slug, 'stream' => 'general']) : route('sessions.index') }}" 
+                        href="{{ $latestPscmSession ? route('learner.pscm.show', $latestPscmSession->slug) : ($firstMixedSession ? route('session.show', ['slug' => $firstMixedSession->slug, 'stream' => 'general']) : route('learner.pscm.index')) }}" 
                         class="px-8 sm:px-10 py-4 sm:py-4.5 bg-[#0052FF] hover:bg-[#003ECC] text-white font-black text-base sm:text-lg rounded-full shadow-xl shadow-blue-500/35 hover:shadow-blue-500/50 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 border-2 border-[#FFD200] group"
                     >
                         <span>START COURSE UNITS</span>

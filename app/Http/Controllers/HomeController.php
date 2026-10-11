@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Quiz;
 use App\Models\Question;
-use App\Models\Session;
+use App\Models\PscmSession;
 use App\Models\DrillAttempt;
 use Illuminate\Http\Request;
 
@@ -23,7 +23,12 @@ class HomeController extends Controller
             ->orderBy('order')
             ->get();
 
-        // Fetch the first unit in the Mixed Practice Train (General Stream)
+        // Fetch latest published micro-learning session (PSCM)
+        $latestPscmSession = PscmSession::where('status', 'published')
+            ->latest()
+            ->first();
+
+        // Fetch the first unit in the Mixed Practice Train (General Stream) as fallback
         $firstMixedSession = Session::where('is_active', true)
             ->where('in_general_stream', true)
             ->orderBy('general_stream_order', 'asc')
@@ -51,6 +56,6 @@ class HomeController extends Controller
             'drills_completed_today' => rand(3200, 3950),
         ];
 
-        return view('pages.home', compact('featuredQuiz', 'categories', 'firstMixedSession', 'leaderboardTop', 'memeQuestions', 'stats'));
+        return view('pages.home', compact('featuredQuiz', 'categories', 'latestPscmSession', 'firstMixedSession', 'leaderboardTop', 'memeQuestions', 'stats'));
     }
 }
