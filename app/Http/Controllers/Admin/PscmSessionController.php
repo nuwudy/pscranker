@@ -34,7 +34,6 @@ class PscmSessionController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:255',
-            'hook_question' => 'required|string',
             'access_level' => 'nullable|string|in:free,registered,premium',
             'price' => 'nullable|numeric|min:0',
         ]);
@@ -49,38 +48,72 @@ class PscmSessionController extends Controller
             $data['media'] = [];
         }
 
-        // Merge discrete media inputs if provided and ensure absolute URLs
-        if ($request->filled('video_url')) {
+        // Direct file upload handling if user submitted files with the form
+        if ($request->hasFile('video_file')) {
+            $file = $request->file('video_file');
+            $path = $file->store('media/videos', 'public');
+            $vUrl = url('/storage/' . $path);
+            $data['media']['video_url'] = $vUrl;
+
+            MediaFile::create([
+                'name' => $file->getClientOriginalName(),
+                'file_path' => $path,
+                'url' => $vUrl,
+                'file_type' => 'video',
+                'mime_type' => $file->getMimeType(),
+                'file_size' => $file->getSize(),
+                'uploaded_by' => auth()->id(),
+            ]);
+        } elseif ($request->filled('video_url')) {
             $vUrl = trim($request->input('video_url'));
             if ($vUrl && !str_starts_with($vUrl, 'http://') && !str_starts_with($vUrl, 'https://')) {
                 $vUrl = url($vUrl);
             }
             $data['media']['video_url'] = $vUrl;
         }
-        if ($request->filled('image_url')) {
+
+        if ($request->hasFile('image_file')) {
+            $file = $request->file('image_file');
+            $path = $file->store('media/images', 'public');
+            $iUrl = url('/storage/' . $path);
+            $data['media']['image_url'] = $iUrl;
+
+            MediaFile::create([
+                'name' => $file->getClientOriginalName(),
+                'file_path' => $path,
+                'url' => $iUrl,
+                'file_type' => 'image',
+                'mime_type' => $file->getMimeType(),
+                'file_size' => $file->getSize(),
+                'uploaded_by' => auth()->id(),
+            ]);
+        } elseif ($request->filled('image_url')) {
             $iUrl = trim($request->input('image_url'));
             if ($iUrl && !str_starts_with($iUrl, 'http://') && !str_starts_with($iUrl, 'https://')) {
                 $iUrl = url($iUrl);
             }
             $data['media']['image_url'] = $iUrl;
         }
+
         if ($request->filled('image_caption')) {
             $data['media']['image_caption'] = trim($request->input('image_caption'));
         }
 
         if (!empty($data['practice_mcqs'])) {
-            $data['practice_mcqs'] = json_decode($data['practice_mcqs'], true) ?? [];
+            $data['practice_mcqs'] = is_array($data['practice_mcqs']) ? $data['practice_mcqs'] : (json_decode($data['practice_mcqs'], true) ?? []);
         } else {
             $data['practice_mcqs'] = [];
         }
         
         if (!empty($data['hook_question'])) {
-            $data['hook_question'] = json_decode($data['hook_question'], true) ?? [];
+            $data['hook_question'] = is_array($data['hook_question']) ? $data['hook_question'] : (json_decode($data['hook_question'], true) ?? []);
+        } else {
+            $data['hook_question'] = [];
         }
         
         PscmSession::create($data);
 
-        return redirect()->route('admin.pscm.index')->with('success', 'Session created successfully.');
+        return redirect()->route('admin.pscm.index')->with('success', 'MicroLearning Session created successfully.');
     }
 
     public function edit(PscmSession $pscmSession)
@@ -102,7 +135,6 @@ class PscmSessionController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:255',
-            'hook_question' => 'required|string',
             'access_level' => 'nullable|string|in:free,registered,premium',
             'price' => 'nullable|numeric|min:0',
         ]);
@@ -112,39 +144,70 @@ class PscmSessionController extends Controller
             $data['access_level'] = $request->input('access_level', 'premium');
         }
         
-        if (!empty($data['media'])) {
-            $data['media'] = is_array($data['media']) ? $data['media'] : (json_decode($data['media'], true) ?? []);
-        } else {
-            $data['media'] = [];
-        }
+        $media = is_array($pscmSession->media) ? $pscmSession->media : [];
 
-        // Merge discrete media inputs if provided and ensure absolute URLs
-        if ($request->has('video_url')) {
+        if ($request->hasFile('video_file')) {
+            $file = $request->file('video_file');
+            $path = $file->store('media/videos', 'public');
+            $vUrl = url('/storage/' . $path);
+            $media['video_url'] = $vUrl;
+
+            MediaFile::create([
+                'name' => $file->getClientOriginalName(),
+                'file_path' => $path,
+                'url' => $vUrl,
+                'file_type' => 'video',
+                'mime_type' => $file->getMimeType(),
+                'file_size' => $file->getSize(),
+                'uploaded_by' => auth()->id(),
+            ]);
+        } elseif ($request->has('video_url')) {
             $vUrl = trim($request->input('video_url', ''));
             if ($vUrl && !str_starts_with($vUrl, 'http://') && !str_starts_with($vUrl, 'https://')) {
                 $vUrl = url($vUrl);
             }
-            $data['media']['video_url'] = $vUrl;
+            $media['video_url'] = $vUrl;
         }
-        if ($request->has('image_url')) {
+
+        if ($request->hasFile('image_file')) {
+            $file = $request->file('image_file');
+            $path = $file->store('media/images', 'public');
+            $iUrl = url('/storage/' . $path);
+            $media['image_url'] = $iUrl;
+
+            MediaFile::create([
+                'name' => $file->getClientOriginalName(),
+                'file_path' => $path,
+                'url' => $iUrl,
+                'file_type' => 'image',
+                'mime_type' => $file->getMimeType(),
+                'file_size' => $file->getSize(),
+                'uploaded_by' => auth()->id(),
+            ]);
+        } elseif ($request->has('image_url')) {
             $iUrl = trim($request->input('image_url', ''));
             if ($iUrl && !str_starts_with($iUrl, 'http://') && !str_starts_with($iUrl, 'https://')) {
                 $iUrl = url($iUrl);
             }
-            $data['media']['image_url'] = $iUrl;
-        }
-        if ($request->has('image_caption')) {
-            $data['media']['image_caption'] = trim($request->input('image_caption', ''));
+            $media['image_url'] = $iUrl;
         }
 
+        if ($request->has('image_caption')) {
+            $media['image_caption'] = trim($request->input('image_caption', ''));
+        }
+
+        $data['media'] = $media;
+
         if (!empty($data['practice_mcqs'])) {
-            $data['practice_mcqs'] = json_decode($data['practice_mcqs'], true) ?? [];
+            $data['practice_mcqs'] = is_array($data['practice_mcqs']) ? $data['practice_mcqs'] : (json_decode($data['practice_mcqs'], true) ?? []);
         } else {
             $data['practice_mcqs'] = [];
         }
 
         if (!empty($data['hook_question'])) {
-            $data['hook_question'] = json_decode($data['hook_question'], true) ?? [];
+            $data['hook_question'] = is_array($data['hook_question']) ? $data['hook_question'] : (json_decode($data['hook_question'], true) ?? []);
+        } else {
+            $data['hook_question'] = [];
         }
         
         $pscmSession->update($data);
