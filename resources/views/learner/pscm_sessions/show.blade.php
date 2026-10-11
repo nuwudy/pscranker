@@ -6,11 +6,21 @@
     <title>{{ $session->title }} - PSC MicroLearning</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Malayalam:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Plus Jakarta Sans', 'Noto Sans Malayalam', sans-serif; }
+        .lesson-markdown h1 { font-size: 1.25rem; font-weight: 800; color: #0f172a; margin-top: 1.25rem; margin-bottom: 0.5rem; line-height: 1.3; }
+        .lesson-markdown h2 { font-size: 1.1rem; font-weight: 800; color: #1e293b; margin-top: 1.1rem; margin-bottom: 0.4rem; line-height: 1.3; }
+        .lesson-markdown h3 { font-size: 0.95rem; font-weight: 800; color: #334155; margin-top: 1rem; margin-bottom: 0.35rem; line-height: 1.3; }
+        .lesson-markdown p { margin-bottom: 0.75rem; line-height: 1.6; }
+        .lesson-markdown ul { list-style-type: disc; padding-left: 1.25rem; margin-bottom: 0.75rem; }
+        .lesson-markdown ol { list-style-type: decimal; padding-left: 1.25rem; margin-bottom: 0.75rem; }
+        .lesson-markdown li { margin-bottom: 0.3rem; line-height: 1.5; }
+        .lesson-markdown hr { margin: 1rem 0; border-color: #e2e8f0; }
+        .lesson-markdown strong { font-weight: 800; color: #0f172a; }
     </style>
 </head>
 <body class="bg-gradient-to-br from-slate-100 via-indigo-50/30 to-purple-50/20 min-h-screen text-slate-800 antialiased flex flex-col items-center justify-center sm:py-6"
@@ -155,7 +165,7 @@
                         📖 High-Yield SCERT/NCERT Lesson
                     </div>
                     <h2 class="text-xl font-black text-slate-900 mb-4 leading-tight">{{ $session->title }}</h2>
-                    <div class="prose prose-sm prose-slate max-w-none text-slate-700 leading-relaxed font-medium bg-slate-50/70 p-4 rounded-2xl border border-slate-200" x-html="renderMarkdown(session.lesson_content)"></div>
+                    <div class="lesson-markdown text-slate-700 text-sm font-medium bg-slate-50/70 p-4 rounded-2xl border border-slate-200" x-html="renderMarkdown(session.lesson_content)"></div>
                 </div>
                 <div class="pt-6">
                     <button @click="nextStep" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-emerald-100 transition-all transform active:scale-95 flex items-center justify-center gap-2">
@@ -431,11 +441,22 @@
                 },
 
                 renderMarkdown(text) {
-                    if(!text) return '';
-                    return text.replace(/\*\*(.*?)\*\*/g, '<strong class="font-extrabold text-slate-900">$1</strong>')
-                               .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                               .replace(/^- (.*$)/gim, '<li class="ml-4 list-disc">$1</li>')
-                               .replace(/\n/g, '<br>');
+                    if (!text) return '';
+                    if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
+                        return marked.parse(text);
+                    }
+                    // Comprehensive Regex Fallback if marked is loading
+                    let html = text
+                        .replace(/^### (.*$)/gim, '<h3 class="text-sm font-bold text-slate-800 mt-3 mb-1">$1</h3>')
+                        .replace(/^## (.*$)/gim, '<h2 class="text-base font-extrabold text-slate-900 mt-4 mb-1.5">$1</h2>')
+                        .replace(/^# (.*$)/gim, '<h1 class="text-lg font-black text-slate-900 mt-4 mb-2">$1</h1>')
+                        .replace(/\*\*(.*?)\*\*/g, '<strong class="font-extrabold text-slate-900">$1</strong>')
+                        .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
+                        .replace(/^---$/gim, '<hr class="my-3 border-slate-200">')
+                        .replace(/^[\*\-] (.*$)/gim, '<li class="ml-4 list-disc mb-1">$1</li>')
+                        .replace(/\n\n/g, '<div class="h-2"></div>')
+                        .replace(/\n/g, '<br>');
+                    return html;
                 },
 
                 selectHookAnswer(optIdx) {
