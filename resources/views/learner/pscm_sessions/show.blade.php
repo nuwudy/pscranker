@@ -27,7 +27,7 @@
     x-data="pscmSessionData()" x-init="initData({{ json_encode($session) }})">
 
     {{-- Main Mobile Container Container --}}
-    <div class="w-full max-w-md bg-white min-h-screen sm:min-h-[820px] sm:max-h-[90vh] sm:rounded-3xl shadow-2xl flex flex-col relative overflow-hidden border border-slate-100 sm:my-auto">
+    <div class="w-full max-w-md bg-white min-h-screen sm:min-h-0 sm:max-h-[92vh] sm:rounded-3xl shadow-2xl flex flex-col relative overflow-hidden border border-slate-100 sm:my-auto">
         
         <!-- Header / Progress & Quick Actions -->
         <div class="px-5 py-3.5 bg-white/90 backdrop-blur-md border-b border-slate-100 sticky top-0 z-20 flex items-center justify-between gap-3">
@@ -90,10 +90,10 @@
         </div>
 
         <!-- Main Content Scrollable Area -->
-        <div class="flex-1 overflow-y-auto p-6 flex flex-col justify-between">
+        <div class="flex-1 overflow-y-auto p-5 sm:p-6 flex flex-col">
             
             <!-- Screen 0: Hook Question -->
-            <div x-show="currentStep === 0" class="flex-1 flex flex-col justify-center animate-fade-in">
+            <div x-show="currentStep === 0" class="flex-1 flex flex-col animate-fade-in">
                 <div class="inline-block px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-bold uppercase tracking-wider mb-3 w-fit border border-blue-100">
                     🎯 Previous PSC Question
                 </div>
@@ -121,7 +121,7 @@
                     <p class="text-xs leading-relaxed opacity-90" x-text="session.hook_question?.explanation || (hookAnswer === session.hook_question?.correct_index ? 'Great job! Let\'s break down the concepts behind this PSC question.' : 'Don\'t worry! Let\'s analyze this question and master the concept.')"></p>
                 </div>
 
-                <div class="mt-auto pt-4">
+                <div class="mt-4 pt-2">
                     <button @click="nextStep" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-200 transition-all transform active:scale-95 flex items-center justify-center gap-2">
                         <span x-text="hookAnswer !== null ? 'Continue to Analysis' : 'Analyze This Question'"></span>
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
@@ -130,7 +130,7 @@
             </div>
 
             <!-- Screen 1: Explainer Video (Optional) -->
-            <div x-show="currentStep === 1" class="flex-1 flex flex-col justify-between animate-fade-in">
+            <div x-show="currentStep === 1" class="flex-1 flex flex-col animate-fade-in">
                 <div>
                     <span class="text-xs font-bold text-indigo-600 uppercase tracking-wider mb-2 block">🎬 Video Insight</span>
                     <h2 class="text-xl font-black text-slate-900 mb-4">Core Explanation</h2>
@@ -147,7 +147,7 @@
                         </template>
                     </div>
                 </div>
-                <div class="pt-6 flex items-center gap-3">
+                <div class="mt-6 flex items-center gap-3">
                     <button @click="prevStep" type="button" class="px-5 py-4 rounded-2xl border-2 border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition text-sm">
                         &larr; Back
                     </button>
@@ -158,7 +158,7 @@
             </div>
 
             <!-- Screen 2: Visual Concept (Optional) -->
-            <div x-show="currentStep === 2" class="flex-1 flex flex-col justify-between animate-fade-in">
+            <div x-show="currentStep === 2" class="flex-1 flex flex-col animate-fade-in">
                 <div>
                     <span class="text-xs font-bold text-indigo-600 uppercase tracking-wider mb-2 block">🖼️ Concept Anchor</span>
                     <h2 class="text-xl font-black text-slate-900 mb-4">Visual Memory Hook</h2>
@@ -174,7 +174,7 @@
                     
                     <p class="mt-3 text-xs text-slate-600 text-center font-semibold bg-slate-50 p-2 rounded-xl border border-slate-100" x-show="session.media?.image_caption" x-text="session.media?.image_caption"></p>
                 </div>
-                <div class="pt-6 flex items-center gap-3">
+                <div class="mt-6 flex items-center gap-3">
                     <button @click="prevStep" type="button" class="px-5 py-4 rounded-2xl border-2 border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition text-sm">
                         &larr; Back
                     </button>
@@ -185,7 +185,7 @@
             </div>
 
             <!-- Screen 3: Core Lesson -->
-            <div x-show="currentStep === 3" class="flex-1 flex flex-col justify-between animate-fade-in">
+            <div x-show="currentStep === 3" class="flex-1 flex flex-col animate-fade-in">
                 <div>
                     <div class="inline-block px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold uppercase tracking-wider mb-3 border border-emerald-100">
                         📖 High-Yield SCERT/NCERT Lesson
@@ -193,7 +193,7 @@
                     <h2 class="text-xl font-black text-slate-900 mb-4 leading-tight">{{ $session->title }}</h2>
                     <div class="lesson-markdown text-slate-700 text-sm font-medium bg-slate-50/70 p-4 rounded-2xl border border-slate-200" x-html="renderMarkdown(session.lesson_content)"></div>
                 </div>
-                <div class="pt-6 flex items-center gap-3">
+                <div class="mt-6 flex items-center gap-3">
                     <button @click="prevStep" type="button" class="px-5 py-4 rounded-2xl border-2 border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition text-sm">
                         &larr; Back
                     </button>
@@ -206,7 +206,7 @@
 
             <!-- Screens 4-7: Practice MCQs -->
             <template x-for="(mcq, idx) in session.practice_mcqs" :key="idx">
-                <div x-show="currentStep === (4 + idx)" class="flex-1 flex flex-col justify-between animate-fade-in">
+                <div x-show="currentStep === (4 + idx)" class="flex-1 flex flex-col animate-fade-in">
                     <div>
                         <div class="flex items-center justify-between mb-3">
                             <span class="text-xs font-bold text-indigo-600 uppercase tracking-wider bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100" x-text="`Practice MCQ ${idx + 1} of 4`"></span>
@@ -235,7 +235,7 @@
                         </div>
                     </div>
 
-                    <div class="pt-6 flex items-center gap-3">
+                    <div class="mt-5 flex items-center gap-3">
                         <button @click="prevStep" type="button" class="px-5 py-4 rounded-2xl border-2 border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition text-sm">
                             &larr; Back
                         </button>
@@ -277,7 +277,7 @@
             </div>
 
             <!-- Screen 9: OMR Interface -->
-            <div x-show="currentStep === 9" class="flex-1 flex flex-col justify-between animate-fade-in">
+            <div x-show="currentStep === 9" class="flex-1 flex flex-col animate-fade-in">
                 <div>
                     <div class="flex items-center justify-between mb-3">
                         <span class="text-xs font-bold text-rose-600 uppercase tracking-wider" x-text="`Question ${currentOmrQ + 1} of ${omrQuestions.length}`"></span>
@@ -304,7 +304,7 @@
                 </div>
 
                 <!-- Navigation grid & Submit -->
-                <div class="pt-4 border-t border-slate-100">
+                <div class="mt-4 pt-4 border-t border-slate-100">
                     <div class="flex justify-between items-center mb-4 gap-2">
                         <button @click="currentOmrQ = Math.max(0, currentOmrQ - 1)" 
                                 class="px-4 py-2 border border-slate-300 rounded-xl font-bold text-xs text-slate-700 hover:bg-slate-50 transition disabled:opacity-40" 

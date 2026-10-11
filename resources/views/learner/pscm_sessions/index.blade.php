@@ -30,9 +30,11 @@
             </div>
 
             <div class="flex items-center gap-3">
-                <a href="{{ route('dashboard') }}" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
-                    Dashboard
-                </a>
+                @if(auth()->check() && auth()->user()->is_admin)
+                    <a href="{{ route('admin.dashboard') }}" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+                        Admin Dashboard
+                    </a>
+                @endif
                 <a href="{{ route('courses') }}" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
                     All Courses
                 </a>
