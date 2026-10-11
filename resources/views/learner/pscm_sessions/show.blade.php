@@ -103,11 +103,11 @@
                     <template x-for="(opt, idx) in session.hook_question?.options" :key="idx">
                         <button @click="selectHookAnswer(idx)"
                             :class="getHookBtnClass(idx)"
-                            class="w-full text-left p-4 rounded-2xl border-2 transition-all font-semibold text-sm shadow-sm flex items-start gap-3 cursor-pointer">
-                            <span class="w-6 h-6 rounded-lg font-bold text-xs flex items-center justify-center shrink-0 border transition"
+                            class="w-full text-left p-4 rounded-2xl border-2 transition-all font-semibold text-sm shadow-sm flex items-center gap-4 cursor-pointer">
+                            <span class="w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center shrink-0 border transition"
                                   :class="hookAnswer === idx ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-slate-100 text-slate-600 border-slate-200'"
                                   x-text="['A','B','C','D'][idx]"></span>
-                            <span class="flex-1" x-text="opt"></span>
+                            <span class="flex-1 pl-1 leading-relaxed" x-text="opt"></span>
                         </button>
                     </template>
                 </div>
@@ -217,11 +217,11 @@
                             <template x-for="(opt, optIdx) in mcq.options" :key="optIdx">
                                 <button @click="selectPracticeAnswer(idx, optIdx)" 
                                     :class="getPracticeBtnClass(idx, optIdx)"
-                                    class="w-full text-left p-4 rounded-2xl border-2 transition-all font-semibold text-sm shadow-sm flex items-start gap-3">
-                                    <span class="w-6 h-6 rounded-lg font-bold text-xs flex items-center justify-center shrink-0 border"
+                                    class="w-full text-left p-4 rounded-2xl border-2 transition-all font-semibold text-sm shadow-sm flex items-center gap-4">
+                                    <span class="w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center shrink-0 border"
                                           :class="practiceAnswers[idx] === optIdx ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-slate-100 text-slate-600 border-slate-200'"
                                           x-text="['A','B','C','D'][optIdx]"></span>
-                                    <span class="flex-1" x-text="opt"></span>
+                                    <span class="flex-1 pl-1 leading-relaxed" x-text="opt"></span>
                                 </button>
                             </template>
                         </div>
@@ -286,18 +286,18 @@
                     
                     <h3 class="font-bold text-slate-900 text-base mb-4 leading-snug" x-text="omrQuestions[currentOmrQ]?.question"></h3>
                     
-                    <div class="space-y-2.5 mb-6">
+                    <div class="space-y-3 mb-6">
                         <template x-for="(opt, oIdx) in omrQuestions[currentOmrQ]?.options" :key="oIdx">
-                            <div class="flex items-center space-x-3 p-3.5 border-2 rounded-2xl bg-slate-50/70 hover:bg-white transition cursor-pointer"
+                            <div class="flex items-center gap-4 p-3.5 border-2 rounded-2xl bg-slate-50/70 hover:bg-white transition cursor-pointer"
                                  @click="omrAnswers[currentOmrQ] = oIdx"
                                  :class="omrAnswers[currentOmrQ] === oIdx ? 'border-indigo-600 bg-indigo-50/30' : 'border-slate-200'">
                                 <!-- OMR Bubble Circle -->
                                 <button type="button"
-                                    :class="omrAnswers[currentOmrQ] === oIdx ? 'bg-slate-900 border-slate-900 text-white ring-2 ring-indigo-400' : 'bg-white border-slate-400 text-slate-500'"
+                                    :class="omrAnswers[currentOmrQ] === oIdx ? 'bg-slate-900 border-slate-900 text-white ring-2 ring-indigo-400' : 'bg-white border-slate-400 text-slate-600'"
                                     class="w-9 h-9 rounded-full border-2 flex items-center justify-center transition-all font-bold text-sm shrink-0">
                                     <span x-text="['A','B','C','D'][oIdx]"></span>
                                 </button>
-                                <span class="text-slate-800 font-semibold text-xs leading-normal select-none" x-text="opt"></span>
+                                <span class="text-slate-800 font-semibold text-sm leading-relaxed select-none pl-1 flex-1" x-text="opt"></span>
                             </div>
                         </template>
                     </div>
