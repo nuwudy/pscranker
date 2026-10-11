@@ -391,35 +391,118 @@
             </div>
 
             <!-- Screen 10: Gamified Evaluation & Completion Screen -->
-            <div x-show="currentStep === 10" class="flex-1 flex flex-col justify-center items-center text-center animate-fade-in">
-                <div class="w-24 h-24 bg-gradient-to-tr from-amber-100 to-yellow-50 rounded-3xl flex items-center justify-center mb-4 shadow-sm border border-amber-200">
-                    <span class="text-5xl">🏆</span>
+            <div x-show="currentStep === 10" class="flex-1 flex flex-col justify-start animate-fade-in">
+                
+                {{-- Score & Trophy Header --}}
+                <div class="text-center py-2">
+                    <div class="w-20 h-20 bg-gradient-to-tr from-amber-100 to-yellow-50 rounded-3xl flex items-center justify-center mx-auto mb-3 shadow-sm border border-amber-200">
+                        <span class="text-4xl">🏆</span>
+                    </div>
+                    
+                    <span class="text-[11px] font-black text-indigo-600 uppercase tracking-widest block mb-1">Session Evaluation</span>
+                    <h2 class="text-2xl sm:text-3xl font-black text-slate-900 mb-2" x-text="`Score: ${score.toFixed(2)} / 5.00`"></h2>
+                    
+                    <div class="flex items-center justify-center gap-2 mb-4 text-xs font-bold flex-wrap">
+                        <span class="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full"><span x-text="correctCount"></span> Correct (+1.00)</span>
+                        <span class="bg-rose-100 text-rose-800 px-3 py-1 rounded-full"><span x-text="wrongCount"></span> Wrong (-0.33)</span>
+                        <span class="bg-slate-100 text-slate-600 px-3 py-1 rounded-full"><span x-text="unattemptedCount"></span> Skipped (0.00)</span>
+                    </div>
                 </div>
                 
-                <span class="text-xs font-bold text-indigo-600 uppercase tracking-wider mb-1">Session Complete!</span>
-                <h2 class="text-3xl font-black text-slate-900 mb-2" x-text="`Score: ${score.toFixed(2)} / 5.00`"></h2>
-                
-                <div class="flex items-center gap-2 mb-6 text-xs font-bold">
-                    <span class="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full"><span x-text="correctCount"></span> Correct</span>
-                    <span class="bg-rose-100 text-rose-800 px-3 py-1 rounded-full"><span x-text="wrongCount"></span> Wrong</span>
-                    <span class="bg-slate-100 text-slate-600 px-3 py-1 rounded-full"><span x-text="unattemptedCount"></span> Skipped</span>
-                </div>
-                
-                {{-- Rewards --}}
-                <div class="w-full bg-gradient-to-br from-indigo-50/80 to-purple-50/80 rounded-2xl p-4 mb-6 text-left border border-indigo-100 text-xs">
-                    <h4 class="font-extrabold text-indigo-950 uppercase tracking-wider mb-2">Rewards Unlocked</h4>
+                {{-- Rewards Pill --}}
+                <div class="w-full bg-gradient-to-br from-indigo-50/80 to-purple-50/80 rounded-2xl p-3.5 mb-5 text-left border border-indigo-100 text-xs">
                     <div class="flex justify-between items-center text-indigo-900 font-semibold mb-1">
-                        <span>XP Earned:</span>
-                        <span class="text-sm font-black text-indigo-700">+150 XP ⚡</span>
+                        <span>⚡ XP Earned:</span>
+                        <span class="font-black text-indigo-700" x-text="`+${Math.max(50, Math.round(score * 30))} XP`"></span>
                     </div>
                     <div class="flex justify-between items-center text-indigo-900 font-semibold">
-                        <span>Daily PSC Streak:</span>
-                        <span class="text-sm font-black text-amber-600">Active 🔥</span>
+                        <span>🔥 Daily PSC Streak:</span>
+                        <span class="font-black text-amber-600">Active</span>
+                    </div>
+                </div>
+
+                {{-- Detailed Question-by-Question OMR Review Section --}}
+                <div class="mb-6">
+                    <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
+                        <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                            <span>📝</span>
+                            <span>Detailed OMR Evaluation</span>
+                        </h3>
+                        <span class="text-[11px] font-semibold text-slate-400">All 5 Questions</span>
+                    </div>
+
+                    <div class="space-y-3.5">
+                        <template x-for="(q, qIdx) in omrQuestions" :key="qIdx">
+                            <div class="p-3.5 rounded-2xl border-2 transition-all text-left text-xs bg-white"
+                                 :class="omrAnswers[qIdx] === q.correct_index 
+                                    ? 'border-emerald-200 bg-emerald-50/20' 
+                                    : (omrAnswers[qIdx] !== null ? 'border-rose-200 bg-rose-50/20' : 'border-slate-200 bg-slate-50/40')">
+                                
+                                {{-- Question number & status tag --}}
+                                <div class="flex items-center justify-between mb-2 gap-2">
+                                    <span class="font-black text-[11px] text-slate-500 uppercase tracking-wider" x-text="`Q${qIdx + 1}`"></span>
+                                    
+                                    <template x-if="omrAnswers[qIdx] === q.correct_index">
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                            <span>✓ Correct</span>
+                                            <span>(+1.00)</span>
+                                        </span>
+                                    </template>
+                                    <template x-if="omrAnswers[qIdx] !== null && omrAnswers[qIdx] !== q.correct_index">
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-800 border border-rose-300">
+                                            <span>✗ Incorrect</span>
+                                            <span>(-0.33)</span>
+                                        </span>
+                                    </template>
+                                    <template x-if="omrAnswers[qIdx] === null">
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-300">
+                                            <span>○ Skipped</span>
+                                            <span>(0.00)</span>
+                                        </span>
+                                    </template>
+                                </div>
+
+                                {{-- Question Text --}}
+                                <p class="font-bold text-slate-900 text-xs leading-snug mb-2.5" x-text="q.question"></p>
+
+                                {{-- Options Review Pills --}}
+                                <div class="space-y-1 mb-2.5">
+                                    <template x-for="(opt, oIdx) in q.options" :key="oIdx">
+                                        <div class="px-2.5 py-1.5 rounded-lg flex items-center justify-between text-[11px] font-medium"
+                                             :class="{
+                                                 'bg-emerald-100 text-emerald-950 font-bold border border-emerald-300': oIdx === q.correct_index,
+                                                 'bg-rose-100 text-rose-950 font-bold border border-rose-300': omrAnswers[qIdx] === oIdx && oIdx !== q.correct_index,
+                                                 'text-slate-500 opacity-60': oIdx !== q.correct_index && omrAnswers[qIdx] !== oIdx
+                                             }">
+                                            <div class="flex items-center gap-2 flex-1">
+                                                <span class="w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold"
+                                                      :class="oIdx === q.correct_index ? 'bg-emerald-600 text-white' : (omrAnswers[qIdx] === oIdx ? 'bg-rose-600 text-white' : 'bg-slate-200 text-slate-600')"
+                                                      x-text="['A','B','C','D'][oIdx]"></span>
+                                                <span x-text="opt"></span>
+                                            </div>
+                                            <div class="shrink-0 text-[10px] font-extrabold ml-2">
+                                                <span x-show="oIdx === q.correct_index" class="text-emerald-700">✓ Correct Answer</span>
+                                                <span x-show="omrAnswers[qIdx] === oIdx && oIdx !== q.correct_index" class="text-rose-700">✗ Your Bubble</span>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+
+                                {{-- Explanation Dropdown/Box --}}
+                                <div x-show="q.explanation" class="mt-2 pt-2 border-t border-slate-100 text-[11px] text-slate-600 leading-relaxed bg-slate-50/80 p-2 rounded-xl">
+                                    <div class="font-bold text-indigo-900 mb-0.5 flex items-center gap-1">
+                                        <span>💡 Explanation:</span>
+                                    </div>
+                                    <span x-text="q.explanation"></span>
+                                </div>
+
+                            </div>
+                        </template>
                     </div>
                 </div>
 
                 {{-- Previous and Next Lesson Navigation Buttons --}}
-                <div class="w-full space-y-3">
+                <div class="w-full space-y-3 pt-3 border-t border-slate-100">
                     @if(isset($nextSession))
                         <a href="{{ route('learner.pscm.show', $nextSession->slug) }}" class="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-100 transition transform active:scale-95">
                             <span>Next Lesson: {{ Str::limit($nextSession->title, 25) }}</span>
