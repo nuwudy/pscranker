@@ -11,8 +11,21 @@ class PscmSession extends Model
 {
     use HasFactory, HasUuids;
 
+    public const CATEGORIES = [
+        'GK' => 'General Knowledge (GK)',
+        'History' => 'History & Kerala Renaissance',
+        'Geography' => 'Geography & Environment',
+        'English' => 'General English',
+        'Malayalam' => 'Malayalam Language',
+        'Constitution' => 'Indian Constitution & Polity',
+        'Science' => 'General Science & Tech',
+        'Maths' => 'Simple Arithmetic & Mental Ability',
+        'Current Affairs' => 'Current Affairs',
+    ];
+
     protected $fillable = [
         'title',
+        'category',
         'slug',
         'topic_id',
         'subject',

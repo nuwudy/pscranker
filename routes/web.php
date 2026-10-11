@@ -133,9 +133,11 @@ Route::prefix('admin/micro-learning')->name('admin.pscm.')->middleware('auth')->
     Route::post('/', [AdminPscmSessionController::class, 'store'])->name('store');
     Route::get('/{pscmSession}/edit', [AdminPscmSessionController::class, 'edit'])->name('edit');
     Route::put('/{pscmSession}', [AdminPscmSessionController::class, 'update'])->name('update');
+    Route::delete('/{pscmSession}', [AdminPscmSessionController::class, 'destroy'])->name('destroy');
 });
 
 Route::prefix('micro-learning')->name('learner.pscm.')->group(function () {
+    Route::get('/', [LearnerPscmSessionController::class, 'index'])->name('index');
     Route::get('/{slug}', [LearnerPscmSessionController::class, 'show'])->name('show');
     Route::post('/{session_id}/attempt', [LearnerPscmSessionController::class, 'storeAttempt'])->name('attempt');
 });

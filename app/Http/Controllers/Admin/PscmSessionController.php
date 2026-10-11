@@ -10,15 +10,24 @@ use Illuminate\Support\Str;
 
 class PscmSessionController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $sessions = PscmSession::latest()->get();
-        return view('admin.pscm_sessions.index', compact('sessions'));
+        $categories = PscmSession::CATEGORIES;
+        $selectedCategory = $request->get('category');
+        
+        $query = PscmSession::latest();
+        if ($selectedCategory) {
+            $query->where('category', $selectedCategory);
+        }
+        $sessions = $query->paginate(15)->withQueryString();
+
+        return view('admin.pscm_sessions.index', compact('sessions', 'categories', 'selectedCategory'));
     }
 
     public function create()
     {
-        return view('admin.pscm_sessions.form');
+        $categories = PscmSession::CATEGORIES;
+        return view('admin.pscm_sessions.form', compact('categories'));
     }
 
     public function store(Request $request)
@@ -54,7 +63,17 @@ class PscmSessionController extends Controller
 
     public function edit(PscmSession $pscmSession)
     {
-        return view('admin.pscm_sessions.form', ['session' => $pscmSession]);
+        $categories = PscmSession::CATEGORIES;
+        return view('admin.pscm_sessions.form', [
+            'session' => $pscmSession,
+            'categories' => $categories
+        ]);
+    }
+
+    public function destroy(PscmSession $pscmSession)
+    {
+        $pscmSession->delete();
+        return redirect()->route('admin.pscm.index')->with('success', 'Session deleted successfully.');
     }
 
     public function update(Request $request, PscmSession $pscmSession)
@@ -101,7 +120,9 @@ class PscmSessionController extends Controller
                 'success' => true,
                 'lesson_content' => $generated['lesson_content'] ?? '',
                 'practice_mcqs' => $generated['practice_mcqs'] ?? [],
-                'hook_question_json' => $generated['hook_question'] ?? null
+                'hook_question_json' => $generated['hook_question'] ?? null,
+                'category' => $generated['category'] ?? null,
+                'suggested_title' => $generated['suggested_title'] ?? null,
             ]);
         } catch (\Exception $e) {
             return response()->json([

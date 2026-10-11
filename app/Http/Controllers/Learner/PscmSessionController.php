@@ -10,10 +10,44 @@ use App\Models\PscmUserAttempt;
 
 class PscmSessionController extends Controller
 {
+    public function index(Request $request)
+    {
+        $categories = PscmSession::CATEGORIES;
+        $selectedCategory = $request->get('category');
+        
+        $query = PscmSession::where('status', 'published')->latest();
+        if ($selectedCategory) {
+            $query->where('category', $selectedCategory);
+        }
+        $sessions = $query->paginate(12)->withQueryString();
+
+        return view('learner.pscm_sessions.index', compact('sessions', 'categories', 'selectedCategory'));
+    }
+
     public function show($slug)
     {
         $session = PscmSession::where('slug', $slug)->where('status', 'published')->firstOrFail();
-        return view('learner.pscm_sessions.show', compact('session'));
+        
+        // Find previous and next published sessions in the same category (or global fallback)
+        $queryNext = PscmSession::where('status', 'published');
+        $queryPrev = PscmSession::where('status', 'published');
+
+        if ($session->category) {
+            $queryNext->where('category', $session->category);
+            $queryPrev->where('category', $session->category);
+        }
+
+        $nextSession = (clone $queryNext)
+            ->where('created_at', '<', $session->created_at)
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        $prevSession = (clone $queryPrev)
+            ->where('created_at', '>', $session->created_at)
+            ->orderBy('created_at', 'asc')
+            ->first();
+
+        return view('learner.pscm_sessions.show', compact('session', 'prevSession', 'nextSession'));
     }
 
     public function storeAttempt(Request $request, $sessionId)

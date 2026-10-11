@@ -2,92 +2,149 @@
 @section('title', isset($session) ? 'Edit MicroLearning Session' : 'Create MicroLearning Session')
 @section('content')
 
-    <div class="py-12" x-data="pscmAdminForm()" x-init="initData('{{ isset($session) ? $session->status : 'draft' }}', '{{ route('admin.pscm.generate') }}')">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-10 bg-slate-50 min-h-screen" x-data="pscmAdminForm()" x-init="initData('{{ isset($session) ? $session->status : 'draft' }}', '{{ route('admin.pscm.generate') }}', '{{ old('category', $session->category ?? 'GK') }}', '{{ addslashes(old('title', $session->title ?? '')) }}')">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             
-            <div class="mb-4 flex justify-between items-center">
-                <div class="flex space-x-4">
-                    <button type="button" @click="mode = 'auto'" :class="{'bg-blue-600 text-white': mode === 'auto', 'bg-gray-200': mode !== 'auto'}" class="px-4 py-2 rounded">Auto-Generate (AI)</button>
-                    <button type="button" @click="mode = 'manual'" :class="{'bg-blue-600 text-white': mode === 'manual', 'bg-gray-200': mode !== 'manual'}" class="px-4 py-2 rounded">Manual Override</button>
+            {{-- Top Header / Navigation --}}
+            <div class="flex items-center justify-between mb-8 pb-4 border-b border-slate-200">
+                <div class="flex items-center gap-3">
+                    <a href="{{ route('admin.pscm.index') }}" class="p-2 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-slate-900 shadow-sm transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    </a>
+                    <div>
+                        <span class="text-xs font-bold text-indigo-600 tracking-wider uppercase">PSC MicroLearning Studio</span>
+                        <h1 class="text-2xl font-black text-slate-900">{{ isset($session) ? 'Edit Micro-Session' : 'Create Micro-Session' }}</h1>
+                    </div>
                 </div>
-                <button type="button" onclick="document.getElementById('sessionForm').submit();" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded shadow-lg text-lg animate-pulse">
-                    💾 Save Session
-                </button>
+
+                <div class="flex items-center gap-3">
+                    <div class="bg-white p-1 rounded-xl border border-slate-200 shadow-sm flex items-center gap-1">
+                        <button type="button" @click="mode = 'auto'" :class="mode === 'auto' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5">
+                            <span>✨ Auto-Generate (AI)</span>
+                        </button>
+                        <button type="button" @click="mode = 'manual'" :class="mode === 'manual' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5">
+                            <span>⚙️ Review / Manual</span>
+                        </button>
+                    </div>
+
+                    <button type="button" onclick="document.getElementById('sessionForm').submit();" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md shadow-emerald-200 transition">
+                        <span>💾 Save Session</span>
+                    </button>
+                </div>
             </div>
 
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mb-20">
+            {{-- Main Form Card --}}
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 mb-16">
                 
                 <form id="sessionForm" action="{{ isset($session) ? route('admin.pscm.update', $session->id) : route('admin.pscm.store') }}" method="POST">
                     @csrf
                     @if(isset($session)) @method('PUT') @endif
 
                     @if ($errors->any())
-                        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
-                            <ul>
+                        <div class="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-xl mb-6 text-sm">
+                            <p class="font-bold mb-1">Please fix the following errors:</p>
+                            <ul class="list-disc list-inside space-y-0.5">
                                 @foreach ($errors->all() as $error)
-                                    <li>- {{ $error }}</li>
+                                    <li>{{ $error }}</li>
                                 @endforeach
                             </ul>
                         </div>
                     @endif
 
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Title</label>
-                        <input type="text" name="title" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" value="{{ old('title', $session->title ?? '') }}" required>
+                    {{-- Category Selection & Status Bar --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                        <div class="sm:col-span-2">
+                            <label class="block text-slate-700 text-xs font-extrabold uppercase tracking-wider mb-2">Subject Category <span class="text-rose-500">*</span></label>
+                            <select name="category" x-model="category" class="w-full border border-slate-200 rounded-xl py-2.5 px-3.5 text-slate-800 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 font-medium text-sm transition">
+                                <option value="">Select Category...</option>
+                                @foreach($categories as $key => $label)
+                                    <option value="{{ $key }}">{{ $label }} ({{ $key }})</option>
+                                @endforeach
+                            </select>
+                            <p class="text-[11px] text-slate-400 mt-1">Learners can filter micro-learning units specifically by this subject category.</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-slate-700 text-xs font-extrabold uppercase tracking-wider mb-2">Publication Status</label>
+                            <select name="status" x-model="status" class="w-full border border-slate-200 rounded-xl py-2.5 px-3.5 text-slate-800 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 font-medium text-sm transition">
+                                <option value="draft">Draft (Admin Only)</option>
+                                <option value="published">Published (Visible to Students)</option>
+                                <option value="archived">Archived</option>
+                            </select>
+                        </div>
                     </div>
 
+                    {{-- Title --}}
+                    <div class="mb-6">
+                        <label class="block text-slate-700 text-xs font-extrabold uppercase tracking-wider mb-2">Session Title <span class="text-rose-500">*</span></label>
+                        <input type="text" name="title" x-model="title" class="w-full border border-slate-200 rounded-xl py-2.5 px-3.5 text-slate-800 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 font-semibold text-sm transition" placeholder="e.g. Writs under Indian Constitution & Supreme Court powers" required>
+                    </div>
+
+                    {{-- AI Auto-Generate Screen --}}
                     <template x-if="mode === 'auto'">
-                        <div class="bg-blue-50 p-4 rounded mb-4 border border-blue-200">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">Raw Question Text (Paste here)</label>
-                            <textarea x-model="rawHookQuestion" rows="4" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" placeholder='Type or paste the raw PSC question here...'></textarea>
-                            <p class="text-sm text-blue-700 mt-2 mb-2">Enter the hook question above and AI will generate the lesson and MCQs.</p>
-                            <button type="button" @click="generateAI" :disabled="loading" class="bg-purple-600 text-white px-4 py-2 rounded disabled:opacity-50 flex items-center">
-                                <span x-show="!loading">Generate with AI (Gemini)</span>
-                                <span x-show="loading">Generating... Please wait...</span>
-                            </button>
-                            <p x-show="errorMsg" x-text="errorMsg" class="text-red-500 mt-2 text-sm"></p>
+                        <div class="mb-6 bg-gradient-to-br from-indigo-50/70 via-purple-50/50 to-pink-50/30 p-5 rounded-2xl border border-indigo-100">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-indigo-950 font-bold text-sm">Paste Previous PSC Question / Screen OCR Text</label>
+                                <span class="text-xs bg-indigo-100 text-indigo-700 font-semibold px-2.5 py-0.5 rounded-full">Gemini 1.5 Flash AI</span>
+                            </div>
+                            
+                            <textarea x-model="rawHookQuestion" rows="5" class="w-full border border-indigo-200 rounded-xl p-3.5 text-slate-800 bg-white placeholder-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-sm transition" placeholder="Paste the raw text of the question here (including options A, B, C, D and Malayalam/English text). The AI will extract the question, parse options, auto-detect the subject category, compose the core lesson, and build 4 practice MCQs!"></textarea>
+                            
+                            <div class="mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <p class="text-xs text-indigo-600 font-medium">✨ Generates formatted lesson + 4 practice questions + OMR exam set in ~5 seconds.</p>
+                                <button type="button" @click="generateAI" :disabled="loading" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl font-bold text-sm shadow-md shadow-indigo-100 disabled:opacity-60 transition">
+                                    <svg x-show="loading" class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                    <span x-show="!loading">✨ Generate with AI (Gemini)</span>
+                                    <span x-show="loading">Generating Lesson & MCQs...</span>
+                                </button>
+                            </div>
+                            <p x-show="errorMsg" x-text="errorMsg" class="text-rose-600 font-medium mt-2 text-xs bg-rose-50 p-2 rounded-lg border border-rose-200"></p>
                         </div>
                     </template>
 
-
-
+                    {{-- Manual / Detailed Fields Screen --}}
                     <div x-show="mode === 'manual'" style="display: none;">
-                        <div>
-                            <div class="mb-4">
-                                <label class="block text-gray-700 text-sm font-bold mb-2">Hook Question (JSON)</label>
-                                <textarea name="hook_question" x-model="hookQuestion" rows="4" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">{{ old('hook_question', is_array($session->hook_question ?? null) ? json_encode($session->hook_question, JSON_PRETTY_PRINT) : ($session->hook_question ?? '')) }}</textarea>
+                        <div class="space-y-6">
+                            
+                            <div class="p-4 rounded-xl bg-amber-50/70 border border-amber-200 flex items-center justify-between">
+                                <div class="text-xs text-amber-800">
+                                    <span class="font-bold">💡 Manual Mode Active:</span> You can review and fine-tune the AI generated lesson content and questions below before saving.
+                                </div>
+                                <button type="button" @click="mode = 'auto'" class="text-xs text-amber-900 underline font-bold">Back to AI input</button>
                             </div>
-                            <div class="mb-4">
-                                <label class="block text-gray-700 text-sm font-bold mb-2">Lesson Content (Markdown)</label>
-                                <textarea name="lesson_content" x-model="lessonContent" rows="10" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700"></textarea>
+
+                            <div>
+                                <label class="block text-slate-700 text-xs font-extrabold uppercase tracking-wider mb-2">Hook Question (Structured JSON)</label>
+                                <textarea name="hook_question" x-model="hookQuestion" rows="4" class="w-full font-mono text-xs border border-slate-200 rounded-xl p-3 text-slate-800 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition">{{ old('hook_question', is_array($session->hook_question ?? null) ? json_encode($session->hook_question, JSON_PRETTY_PRINT) : ($session->hook_question ?? '')) }}</textarea>
+                            </div>
+
+                            <div>
+                                <label class="block text-slate-700 text-xs font-extrabold uppercase tracking-wider mb-2">Core Lesson Content (Markdown)</label>
+                                <textarea name="lesson_content" x-model="lessonContent" rows="10" class="w-full font-sans text-sm border border-slate-200 rounded-xl p-3.5 text-slate-800 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition" placeholder="Write high-yield SCERT/NCERT facts in markdown..."></textarea>
                             </div>
                             
-                            <div class="mb-4">
-                                <label class="block text-gray-700 text-sm font-bold mb-2">Practice MCQs (JSON)</label>
-                                <textarea name="practice_mcqs" x-model="practiceMcqs" rows="6" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700"></textarea>
+                            <div>
+                                <label class="block text-slate-700 text-xs font-extrabold uppercase tracking-wider mb-2">Practice MCQs (JSON Array)</label>
+                                <textarea name="practice_mcqs" x-model="practiceMcqs" rows="8" class="w-full font-mono text-xs border border-slate-200 rounded-xl p-3 text-slate-800 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition">{{ old('practice_mcqs', json_encode($session->practice_mcqs ?? [])) }}</textarea>
                             </div>
                             
-                            <div class="mb-4">
-                                <label class="block text-gray-700 text-sm font-bold mb-2">Media URLs (JSON)</label>
-                                <textarea name="media" rows="2" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">{{ old('media', json_encode($session->media ?? [])) }}</textarea>
+                            <div>
+                                <label class="block text-slate-700 text-xs font-extrabold uppercase tracking-wider mb-2">Media URLs (Optional Video/Anchor JSON)</label>
+                                <textarea name="media" rows="2" class="w-full font-mono text-xs border border-slate-200 rounded-xl p-3 text-slate-800 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition">{{ old('media', json_encode($session->media ?? [])) }}</textarea>
                             </div>
                         </div>
                     </div>
 
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Status</label>
-                        <select name="status" x-model="status" class="shadow border rounded w-full py-2 px-3 text-gray-700">
-                            <option value="draft">Draft</option>
-                            <option value="published">Published</option>
-                            <option value="archived">Archived</option>
-                        </select>
-                    </div>
-
-                    <div class="flex items-center justify-between">
-                        <button class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
-                            Save Session
+                    {{-- Form Footer CTA --}}
+                    <div class="mt-8 pt-6 border-t border-slate-100 flex items-center justify-between">
+                        <a href="{{ route('admin.pscm.index') }}" class="text-slate-500 hover:text-slate-700 text-sm font-semibold">
+                            Cancel
+                        </a>
+                        <button type="submit" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm shadow-md shadow-emerald-100 transition">
+                            <span>💾 Save MicroLearning Session</span>
                         </button>
                     </div>
+
                 </form>
 
             </div>
@@ -99,6 +156,8 @@
             return {
                 mode: 'auto',
                 status: 'draft',
+                category: 'GK',
+                title: '',
                 rawHookQuestion: '',
                 hookQuestion: `{!! addslashes(old('hook_question', is_array($session->hook_question ?? null) ? json_encode($session->hook_question, JSON_PRETTY_PRINT) : ($session->hook_question ?? ''))) !!}`,
                 lessonContent: `{!! addslashes(old('lesson_content', $session->lesson_content ?? '')) !!}`,
@@ -107,11 +166,13 @@
                 loading: false,
                 errorMsg: '',
 
-                initData(status, generateUrl) {
-                    this.status = status;
+                initData(status, generateUrl, category, title) {
+                    this.status = status || 'draft';
                     this.generateUrl = generateUrl;
+                    if (category) this.category = category;
+                    if (title) this.title = title;
                     
-                    // If editing an existing session, switch to manual mode by default
+                    // If editing an existing session with structured question, switch to manual mode by default
                     const hookVal = this.hookQuestion.trim();
                     if(hookVal && hookVal.startsWith('{')) {
                         this.mode = 'manual';
@@ -119,8 +180,8 @@
                 },
 
                 async generateAI() {
-                    if (!this.rawHookQuestion) {
-                        this.errorMsg = 'Please enter a raw hook question first.';
+                    if (!this.rawHookQuestion.trim()) {
+                        this.errorMsg = 'Please enter or paste the raw hook question text first.';
                         return;
                     }
                     
@@ -132,6 +193,7 @@
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
+                                'Accept': 'application/json',
                                 'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
                             },
                             body: JSON.stringify({ hook_question: this.rawHookQuestion })
@@ -140,14 +202,23 @@
                         const data = await response.json();
                         
                         if (data.success) {
-                            // Update alpine models directly
+                            // Update models directly
                             this.lessonContent = data.lesson_content;
                             this.practiceMcqs = JSON.stringify(data.practice_mcqs, null, 2);
-                            if(data.hook_question_json) {
+                            
+                            if (data.hook_question_json) {
                                 this.hookQuestion = JSON.stringify(data.hook_question_json, null, 2);
                             }
                             
-                            // Switch to manual mode to review
+                            if (data.category && (!this.category || this.category === 'GK')) {
+                                this.category = data.category;
+                            }
+
+                            if (data.suggested_title && !this.title) {
+                                this.title = data.suggested_title;
+                            }
+                            
+                            // Switch to manual mode so user can review beautiful content
                             this.mode = 'manual';
                         } else {
                             this.errorMsg = data.message || 'Generation failed.';
