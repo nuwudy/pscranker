@@ -119,7 +119,7 @@
                                 <textarea name="hook_question" x-model="hookQuestion" rows="4" class="w-full font-mono text-xs border border-slate-200 rounded-xl p-3 text-slate-800 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition">{{ old('hook_question', is_array($session->hook_question ?? null) ? json_encode($session->hook_question, JSON_PRETTY_PRINT) : ($session->hook_question ?? '')) }}</textarea>
                             </div>
 
-                            {{-- 2. NEW: Manually attach Video or Image between Hook Question & Core Lesson --}}
+                            {{-- 2. Manually attach Video or Image between Hook Question & Core Lesson --}}
                             <div class="bg-gradient-to-br from-slate-50 to-indigo-50/40 p-5 rounded-2xl border-2 border-indigo-100">
                                 <div class="flex items-center justify-between mb-2">
                                     <div class="flex items-center gap-2">
@@ -128,33 +128,69 @@
                                     </div>
                                     <span class="text-[11px] font-bold text-indigo-700 bg-indigo-100/80 px-2.5 py-0.5 rounded-full">Optional • Displays before Lesson</span>
                                 </div>
-                                <p class="text-xs text-slate-500 mb-4">Add a YouTube/MP4 video or diagram/meme image right after the hook question to enrich student retention.</p>
+                                <p class="text-xs text-slate-500 mb-4">Add a YouTube/MP4 video or diagram/meme image right after the hook question to enrich student retention. You can either paste a URL or directly upload a file!</p>
 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {{-- Video URL --}}
-                                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
-                                        <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                                            <span>🎥 Video URL (YouTube, Vimeo, MP4)</span>
-                                        </label>
-                                        <input type="url" name="video_url" x-model="videoUrl" class="w-full border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 transition" placeholder="https://www.youtube.com/watch?v=... or direct MP4 link">
-                                        <p class="text-[10px] text-slate-400 mt-1">If set, a video player screen appears immediately after the Hook Question.</p>
+                                    
+                                    {{-- Video Card (URL or Direct File Upload) --}}
+                                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                                        <div>
+                                            <label class="block text-slate-800 text-xs font-bold uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                                                <span>🎥 Video Anchor</span>
+                                                <span class="text-[10px] text-slate-400 font-normal">YouTube or MP4</span>
+                                            </label>
+                                            
+                                            <input type="url" name="video_url" x-model="videoUrl" class="w-full border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 transition" placeholder="https://www.youtube.com/watch?v=... or direct MP4 link">
+                                            
+                                            <!-- Direct Video File Upload Button -->
+                                            <div class="mt-2.5 pt-2.5 border-t border-slate-100 flex items-center justify-between">
+                                                <label class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition" :class="uploadingVideo ? 'opacity-50 pointer-events-none' : ''">
+                                                    <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                                    <span x-text="uploadingVideo ? 'Uploading Video...' : '📁 Upload Local Video'"></span>
+                                                    <input type="file" accept="video/mp4,video/webm,video/quicktime" class="hidden" @change="uploadMediaFile($event, 'video')">
+                                                </label>
+                                                <button type="button" x-show="videoUrl" @click="videoUrl = ''" class="text-xs text-rose-500 hover:text-rose-700 font-medium">Remove</button>
+                                            </div>
+                                        </div>
+                                        <p class="text-[10px] text-slate-400 mt-2">Plays right after the Hook Question.</p>
                                     </div>
 
-                                    {{-- Image URL & Caption --}}
-                                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
-                                        <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                                            <span>🖼️ Image / Infographic / Meme URL</span>
-                                        </label>
-                                        <input type="url" name="image_url" x-model="imageUrl" class="w-full border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 transition mb-2" placeholder="https://... image link or hosted graphic">
-                                        <input type="text" name="image_caption" x-model="imageCaption" class="w-full border border-slate-200 rounded-lg p-2 text-xs text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 transition" placeholder="Optional caption (e.g. 'Articles 32 & 226 Summary Table')">
+                                    {{-- Image Card (URL or Direct File Upload) --}}
+                                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                                        <div>
+                                            <label class="block text-slate-800 text-xs font-bold uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                                                <span>🖼️ Image / Infographic / Meme</span>
+                                                <span class="text-[10px] text-slate-400 font-normal">JPG, PNG, WebP</span>
+                                            </label>
+                                            
+                                            <input type="url" name="image_url" x-model="imageUrl" class="w-full border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 transition mb-2" placeholder="https://... image link or uploaded file URL">
+                                            <input type="text" name="image_caption" x-model="imageCaption" class="w-full border border-slate-200 rounded-lg p-2 text-xs text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 transition" placeholder="Optional caption (e.g. 'Articles 32 & 226 Summary Table')">
+                                            
+                                            <!-- Direct Image File Upload Button -->
+                                            <div class="mt-2.5 pt-2.5 border-t border-slate-100 flex items-center justify-between">
+                                                <label class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition" :class="uploadingImage ? 'opacity-50 pointer-events-none' : ''">
+                                                    <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                                    <span x-text="uploadingImage ? 'Uploading Image...' : '📁 Upload Local Image'"></span>
+                                                    <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" class="hidden" @change="uploadMediaFile($event, 'image')">
+                                                </label>
+                                                <button type="button" x-show="imageUrl" @click="imageUrl = ''" class="text-xs text-rose-500 hover:text-rose-700 font-medium">Remove</button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
+                                {{-- Live Upload / Preview Status Alert --}}
+                                <div x-show="uploadMsg" class="mt-3 p-2.5 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-900 text-xs font-semibold flex items-center justify-between" x-text="uploadMsg"></div>
+
                                 {{-- Live Preview Card if URL is provided --}}
-                                <div x-show="imageUrl || videoUrl" class="mt-4 pt-3 border-t border-indigo-100 flex items-center gap-3 text-xs text-indigo-900 font-semibold">
-                                    <span>Preview Active:</span>
-                                    <span x-show="videoUrl" class="px-2 py-0.5 rounded bg-blue-100 text-blue-800">✅ Video Attached</span>
-                                    <span x-show="imageUrl" class="px-2 py-0.5 rounded bg-purple-100 text-purple-800">✅ Image Attached</span>
+                                <div x-show="imageUrl || videoUrl" class="mt-4 pt-3 border-t border-indigo-100 flex flex-wrap items-center gap-3 text-xs text-indigo-900 font-semibold">
+                                    <span>Attached Media:</span>
+                                    <span x-show="videoUrl" class="px-2.5 py-1 rounded-lg bg-blue-100 text-blue-800 flex items-center gap-1">
+                                        <span>🎥 Video Active</span>
+                                    </span>
+                                    <span x-show="imageUrl" class="px-2.5 py-1 rounded-lg bg-purple-100 text-purple-800 flex items-center gap-1">
+                                        <span>🖼️ Image Active</span>
+                                    </span>
                                 </div>
                             </div>
 
@@ -204,6 +240,9 @@
                 practiceMcqs: `{!! addslashes(old('practice_mcqs', json_encode($session->practice_mcqs ?? []))) !!}`,
                 generateUrl: '',
                 loading: false,
+                uploadingVideo: false,
+                uploadingImage: false,
+                uploadMsg: '',
                 errorMsg: '',
 
                 initData(status, generateUrl, category, title) {
@@ -216,6 +255,55 @@
                     const hookVal = this.hookQuestion.trim();
                     if((hookVal && hookVal.startsWith('{')) || this.videoUrl || this.imageUrl) {
                         this.mode = 'manual';
+                    }
+                },
+
+                async uploadMediaFile(event, type) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+
+                    if (type === 'video') this.uploadingVideo = true;
+                    if (type === 'image') this.uploadingImage = true;
+                    this.uploadMsg = `Uploading ${file.name}...`;
+
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('_token', document.querySelector('input[name="_token"]').value);
+
+                    try {
+                        const response = await fetch('{{ route('admin.media.store') }}', {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: formData
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success && data.media && data.media.url) {
+                            if (type === 'video') {
+                                this.videoUrl = data.media.url;
+                            } else {
+                                this.imageUrl = data.media.url;
+                                if (!this.imageCaption) {
+                                    this.imageCaption = data.media.name;
+                                }
+                            }
+                            this.uploadMsg = `✅ Successfully uploaded: ${data.media.name}`;
+                            setTimeout(() => { this.uploadMsg = ''; }, 5000);
+                        } else {
+                            alert('Upload failed: ' + (data.message || 'Unknown error occurred.'));
+                            this.uploadMsg = '';
+                        }
+                    } catch (err) {
+                        alert('Upload failed: ' + err.message);
+                        this.uploadMsg = '';
+                    } finally {
+                        if (type === 'video') this.uploadingVideo = false;
+                        if (type === 'image') this.uploadingImage = false;
+                        event.target.value = '';
                     }
                 },
 
