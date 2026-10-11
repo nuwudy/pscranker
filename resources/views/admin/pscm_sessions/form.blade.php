@@ -140,7 +140,7 @@
                                                 <span class="text-[10px] text-slate-400 font-normal">YouTube or MP4</span>
                                             </label>
                                             
-                                            <input type="url" name="video_url" x-model="videoUrl" class="w-full border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 transition" placeholder="https://www.youtube.com/watch?v=... or direct MP4 link">
+                                            <input type="text" name="video_url" x-model="videoUrl" @input="if(videoUrl.trim()) imageUrl = ''" class="w-full border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 transition" placeholder="https://www.youtube.com/watch?v=... or direct / uploaded MP4 link">
                                             
                                             <!-- Direct Video File Upload Button -->
                                             <div class="mt-2.5 pt-2.5 border-t border-slate-100 flex items-center justify-between">
@@ -163,7 +163,7 @@
                                                 <span class="text-[10px] text-slate-400 font-normal">JPG, PNG, WebP</span>
                                             </label>
                                             
-                                            <input type="url" name="image_url" x-model="imageUrl" class="w-full border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 transition mb-2" placeholder="https://... image link or uploaded file URL">
+                                            <input type="text" name="image_url" x-model="imageUrl" @input="if(imageUrl.trim()) videoUrl = ''" class="w-full border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 transition mb-2" placeholder="https://... or uploaded image link">
                                             <input type="text" name="image_caption" x-model="imageCaption" class="w-full border border-slate-200 rounded-lg p-2 text-xs text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 transition" placeholder="Optional caption (e.g. 'Articles 32 & 226 Summary Table')">
                                             
                                             <!-- Direct Image File Upload Button -->
@@ -285,8 +285,11 @@
                         if (data.success && data.media && data.media.url) {
                             if (type === 'video') {
                                 this.videoUrl = data.media.url;
+                                this.imageUrl = '';
+                                this.imageCaption = '';
                             } else {
                                 this.imageUrl = data.media.url;
+                                this.videoUrl = '';
                                 if (!this.imageCaption) {
                                     this.imageCaption = data.media.name;
                                 }

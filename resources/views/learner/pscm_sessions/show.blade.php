@@ -147,8 +147,11 @@
                         </template>
                     </div>
                 </div>
-                <div class="pt-6">
-                    <button @click="nextStep" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-100 transition">
+                <div class="pt-6 flex items-center gap-3">
+                    <button @click="prevStep" type="button" class="px-5 py-4 rounded-2xl border-2 border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition text-sm">
+                        &larr; Back
+                    </button>
+                    <button @click="nextStep" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-100 transition">
                         Continue to Concept &rarr;
                     </button>
                 </div>
@@ -171,8 +174,11 @@
                     
                     <p class="mt-3 text-xs text-slate-600 text-center font-semibold bg-slate-50 p-2 rounded-xl border border-slate-100" x-show="session.media?.image_caption" x-text="session.media?.image_caption"></p>
                 </div>
-                <div class="pt-6">
-                    <button @click="nextStep" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-100 transition">
+                <div class="pt-6 flex items-center gap-3">
+                    <button @click="prevStep" type="button" class="px-5 py-4 rounded-2xl border-2 border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition text-sm">
+                        &larr; Back
+                    </button>
+                    <button @click="nextStep" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-100 transition">
                         Read Lesson &rarr;
                     </button>
                 </div>
@@ -187,8 +193,11 @@
                     <h2 class="text-xl font-black text-slate-900 mb-4 leading-tight">{{ $session->title }}</h2>
                     <div class="lesson-markdown text-slate-700 text-sm font-medium bg-slate-50/70 p-4 rounded-2xl border border-slate-200" x-html="renderMarkdown(session.lesson_content)"></div>
                 </div>
-                <div class="pt-6">
-                    <button @click="nextStep" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-emerald-100 transition-all transform active:scale-95 flex items-center justify-center gap-2">
+                <div class="pt-6 flex items-center gap-3">
+                    <button @click="prevStep" type="button" class="px-5 py-4 rounded-2xl border-2 border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition text-sm">
+                        &larr; Back
+                    </button>
+                    <button @click="nextStep" class="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-emerald-100 transition-all transform active:scale-95 flex items-center justify-center gap-2">
                         <span>Start Practice MCQs (4)</span>
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                     </button>
@@ -226,8 +235,11 @@
                         </div>
                     </div>
 
-                    <div class="pt-6">
-                        <button x-show="practiceAnswers[idx] !== null" @click="nextStep" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-indigo-700 transition flex items-center justify-center gap-2">
+                    <div class="pt-6 flex items-center gap-3">
+                        <button @click="prevStep" type="button" class="px-5 py-4 rounded-2xl border-2 border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition text-sm">
+                            &larr; Back
+                        </button>
+                        <button x-show="practiceAnswers[idx] !== null" @click="nextStep" class="flex-1 bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-indigo-700 transition flex items-center justify-center gap-2">
                             <span>Continue</span>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                         </button>
@@ -443,7 +455,24 @@
                     return titles[this.currentStep] || 'Learning';
                 },
 
+                pauseMedia() {
+                    // Pause HTML5 video players
+                    const videos = document.querySelectorAll('video');
+                    videos.forEach(v => {
+                        try { v.pause(); } catch(e) {}
+                    });
+
+                    // Stop YouTube iframe audio/video by re-assigning src or posting postMessage
+                    const iframes = document.querySelectorAll('iframe');
+                    iframes.forEach(iframe => {
+                        try {
+                            iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                        } catch(e) {}
+                    });
+                },
+
                 nextStep() {
+                    this.pauseMedia();
                     let next = this.currentStep + 1;
                     
                     // Skip media screens if no data
@@ -454,6 +483,7 @@
                 },
 
                 prevStep() {
+                    this.pauseMedia();
                     let prev = this.currentStep - 1;
                     if (prev === 2 && !this.session.media?.image_url) prev--;
                     if (prev === 1 && !this.session.media?.video_url) prev--;
