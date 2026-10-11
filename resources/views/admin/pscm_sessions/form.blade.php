@@ -23,7 +23,7 @@
                             <span>✨ Auto-Generate (AI)</span>
                         </button>
                         <button type="button" @click="mode = 'manual'" :class="mode === 'manual' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5">
-                            <span>⚙️ Review / Manual</span>
+                            <span>⚙️ Review / Manual Media</span>
                         </button>
                     </div>
 
@@ -108,29 +108,66 @@
                             
                             <div class="p-4 rounded-xl bg-amber-50/70 border border-amber-200 flex items-center justify-between">
                                 <div class="text-xs text-amber-800">
-                                    <span class="font-bold">💡 Manual Mode Active:</span> You can review and fine-tune the AI generated lesson content and questions below before saving.
+                                    <span class="font-bold">💡 Manual Review & Media Customization:</span> Review the generated text or add custom video/image hooks below.
                                 </div>
                                 <button type="button" @click="mode = 'auto'" class="text-xs text-amber-900 underline font-bold">Back to AI input</button>
                             </div>
 
+                            {{-- 1. Hook Question --}}
                             <div>
                                 <label class="block text-slate-700 text-xs font-extrabold uppercase tracking-wider mb-2">Hook Question (Structured JSON)</label>
                                 <textarea name="hook_question" x-model="hookQuestion" rows="4" class="w-full font-mono text-xs border border-slate-200 rounded-xl p-3 text-slate-800 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition">{{ old('hook_question', is_array($session->hook_question ?? null) ? json_encode($session->hook_question, JSON_PRETTY_PRINT) : ($session->hook_question ?? '')) }}</textarea>
                             </div>
 
+                            {{-- 2. NEW: Manually attach Video or Image between Hook Question & Core Lesson --}}
+                            <div class="bg-gradient-to-br from-slate-50 to-indigo-50/40 p-5 rounded-2xl border-2 border-indigo-100">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-lg">🎬</span>
+                                        <label class="text-slate-900 font-bold text-sm">Media Anchor (Video or Image of your choice)</label>
+                                    </div>
+                                    <span class="text-[11px] font-bold text-indigo-700 bg-indigo-100/80 px-2.5 py-0.5 rounded-full">Optional • Displays before Lesson</span>
+                                </div>
+                                <p class="text-xs text-slate-500 mb-4">Add a YouTube/MP4 video or diagram/meme image right after the hook question to enrich student retention.</p>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {{-- Video URL --}}
+                                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
+                                        <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                                            <span>🎥 Video URL (YouTube, Vimeo, MP4)</span>
+                                        </label>
+                                        <input type="url" name="video_url" x-model="videoUrl" class="w-full border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 transition" placeholder="https://www.youtube.com/watch?v=... or direct MP4 link">
+                                        <p class="text-[10px] text-slate-400 mt-1">If set, a video player screen appears immediately after the Hook Question.</p>
+                                    </div>
+
+                                    {{-- Image URL & Caption --}}
+                                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
+                                        <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                                            <span>🖼️ Image / Infographic / Meme URL</span>
+                                        </label>
+                                        <input type="url" name="image_url" x-model="imageUrl" class="w-full border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 transition mb-2" placeholder="https://... image link or hosted graphic">
+                                        <input type="text" name="image_caption" x-model="imageCaption" class="w-full border border-slate-200 rounded-lg p-2 text-xs text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 transition" placeholder="Optional caption (e.g. 'Articles 32 & 226 Summary Table')">
+                                    </div>
+                                </div>
+
+                                {{-- Live Preview Card if URL is provided --}}
+                                <div x-show="imageUrl || videoUrl" class="mt-4 pt-3 border-t border-indigo-100 flex items-center gap-3 text-xs text-indigo-900 font-semibold">
+                                    <span>Preview Active:</span>
+                                    <span x-show="videoUrl" class="px-2 py-0.5 rounded bg-blue-100 text-blue-800">✅ Video Attached</span>
+                                    <span x-show="imageUrl" class="px-2 py-0.5 rounded bg-purple-100 text-purple-800">✅ Image Attached</span>
+                                </div>
+                            </div>
+
+                            {{-- 3. Core Lesson Content --}}
                             <div>
                                 <label class="block text-slate-700 text-xs font-extrabold uppercase tracking-wider mb-2">Core Lesson Content (Markdown)</label>
                                 <textarea name="lesson_content" x-model="lessonContent" rows="10" class="w-full font-sans text-sm border border-slate-200 rounded-xl p-3.5 text-slate-800 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition" placeholder="Write high-yield SCERT/NCERT facts in markdown..."></textarea>
                             </div>
                             
+                            {{-- 4. Practice MCQs --}}
                             <div>
                                 <label class="block text-slate-700 text-xs font-extrabold uppercase tracking-wider mb-2">Practice MCQs (JSON Array)</label>
                                 <textarea name="practice_mcqs" x-model="practiceMcqs" rows="8" class="w-full font-mono text-xs border border-slate-200 rounded-xl p-3 text-slate-800 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition">{{ old('practice_mcqs', json_encode($session->practice_mcqs ?? [])) }}</textarea>
-                            </div>
-                            
-                            <div>
-                                <label class="block text-slate-700 text-xs font-extrabold uppercase tracking-wider mb-2">Media URLs (Optional Video/Anchor JSON)</label>
-                                <textarea name="media" rows="2" class="w-full font-mono text-xs border border-slate-200 rounded-xl p-3 text-slate-800 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition">{{ old('media', json_encode($session->media ?? [])) }}</textarea>
                             </div>
                         </div>
                     </div>
@@ -159,6 +196,9 @@
                 category: 'GK',
                 title: '',
                 rawHookQuestion: '',
+                videoUrl: `{{ old('video_url', $session->media['video_url'] ?? '') }}`,
+                imageUrl: `{{ old('image_url', $session->media['image_url'] ?? '') }}`,
+                imageCaption: `{{ old('image_caption', $session->media['image_caption'] ?? '') }}`,
                 hookQuestion: `{!! addslashes(old('hook_question', is_array($session->hook_question ?? null) ? json_encode($session->hook_question, JSON_PRETTY_PRINT) : ($session->hook_question ?? ''))) !!}`,
                 lessonContent: `{!! addslashes(old('lesson_content', $session->lesson_content ?? '')) !!}`,
                 practiceMcqs: `{!! addslashes(old('practice_mcqs', json_encode($session->practice_mcqs ?? []))) !!}`,
@@ -172,9 +212,9 @@
                     if (category) this.category = category;
                     if (title) this.title = title;
                     
-                    // If editing an existing session with structured question, switch to manual mode by default
+                    // If editing an existing session with structured question or media, switch to manual mode by default
                     const hookVal = this.hookQuestion.trim();
-                    if(hookVal && hookVal.startsWith('{')) {
+                    if((hookVal && hookVal.startsWith('{')) || this.videoUrl || this.imageUrl) {
                         this.mode = 'manual';
                     }
                 },
@@ -218,7 +258,7 @@
                                 this.title = data.suggested_title;
                             }
                             
-                            // Switch to manual mode so user can review beautiful content
+                            // Switch to manual mode so user can review beautiful content and attach media
                             this.mode = 'manual';
                         } else {
                             this.errorMsg = data.message || 'Generation failed.';

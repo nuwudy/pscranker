@@ -134,13 +134,24 @@
                 <div>
                     <span class="text-xs font-bold text-indigo-600 uppercase tracking-wider mb-2 block">🎬 Video Insight</span>
                     <h2 class="text-xl font-black text-slate-900 mb-4">Core Explanation</h2>
-                    <div class="bg-slate-900 w-full aspect-video rounded-2xl flex items-center justify-center text-white/70 shadow-inner">
-                        <span x-text="session.media?.video_url ? 'Video Player' : 'Interactive Concept Video'"></span>
+                    
+                    <div class="w-full aspect-video rounded-2xl overflow-hidden shadow-lg bg-black flex items-center justify-center border border-slate-200">
+                        <template x-if="session.media?.video_url && isYouTube(session.media.video_url)">
+                            <iframe class="w-full h-full" :src="getYouTubeEmbedUrl(session.media.video_url)" title="Video Explanation" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        </template>
+                        <template x-if="session.media?.video_url && !isYouTube(session.media.video_url)">
+                            <video class="w-full h-full object-cover" controls :src="session.media.video_url"></video>
+                        </template>
+                        <template x-if="!session.media?.video_url">
+                            <span class="text-white/60 text-xs">No video specified</span>
+                        </template>
                     </div>
                 </div>
-                <button @click="nextStep" class="mt-8 w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-indigo-700 transition">
-                    Continue to Concept &rarr;
-                </button>
+                <div class="pt-6">
+                    <button @click="nextStep" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-100 transition">
+                        Continue to Concept &rarr;
+                    </button>
+                </div>
             </div>
 
             <!-- Screen 2: Visual Concept (Optional) -->
@@ -148,14 +159,23 @@
                 <div>
                     <span class="text-xs font-bold text-indigo-600 uppercase tracking-wider mb-2 block">🖼️ Concept Anchor</span>
                     <h2 class="text-xl font-black text-slate-900 mb-4">Visual Memory Hook</h2>
-                    <div class="bg-slate-100 w-full aspect-video rounded-2xl flex items-center justify-center text-slate-400 border border-slate-200">
-                        <span x-text="session.media?.image_url ? 'Image Preview' : 'Visual Mind Map'"></span>
+                    
+                    <div class="w-full rounded-2xl overflow-hidden shadow-sm bg-slate-100 border border-slate-200 flex items-center justify-center min-h-[220px]">
+                        <template x-if="session.media?.image_url">
+                            <img :src="session.media.image_url" :alt="session.media.image_caption || 'Concept Anchor'" class="w-full max-h-80 object-contain rounded-2xl">
+                        </template>
+                        <template x-if="!session.media?.image_url">
+                            <span class="text-slate-400 text-xs">No image specified</span>
+                        </template>
                     </div>
-                    <p class="mt-3 text-sm text-slate-600 text-center font-medium" x-text="session.media?.image_caption"></p>
+                    
+                    <p class="mt-3 text-xs text-slate-600 text-center font-semibold bg-slate-50 p-2 rounded-xl border border-slate-100" x-show="session.media?.image_caption" x-text="session.media?.image_caption"></p>
                 </div>
-                <button @click="nextStep" class="mt-8 w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-indigo-700 transition">
-                    Read Lesson &rarr;
-                </button>
+                <div class="pt-6">
+                    <button @click="nextStep" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-100 transition">
+                        Read Lesson &rarr;
+                    </button>
+                </div>
             </div>
 
             <!-- Screen 3: Core Lesson -->
@@ -457,6 +477,25 @@
                         .replace(/\n\n/g, '<div class="h-2"></div>')
                         .replace(/\n/g, '<br>');
                     return html;
+                },
+
+                isYouTube(url) {
+                    if (!url) return false;
+                    return url.includes('youtube.com') || url.includes('youtu.be');
+                },
+
+                getYouTubeEmbedUrl(url) {
+                    if (!url) return '';
+                    let videoId = '';
+                    if (url.includes('youtu.be/')) {
+                        videoId = url.split('youtu.be/')[1]?.split('?')[0];
+                    } else if (url.includes('youtube.com/watch')) {
+                        const match = url.match(/[?&]v=([^&]+)/);
+                        videoId = match ? match[1] : '';
+                    } else if (url.includes('youtube.com/embed/')) {
+                        return url;
+                    }
+                    return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
                 },
 
                 selectHookAnswer(optIdx) {

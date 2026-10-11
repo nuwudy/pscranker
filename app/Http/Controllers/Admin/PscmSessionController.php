@@ -41,9 +41,20 @@ class PscmSessionController extends Controller
         $data['slug'] = Str::slug($data['title']) . '-' . uniqid();
         
         if (!empty($data['media'])) {
-            $data['media'] = json_decode($data['media'], true) ?? [];
+            $data['media'] = is_array($data['media']) ? $data['media'] : (json_decode($data['media'], true) ?? []);
         } else {
             $data['media'] = [];
+        }
+
+        // Merge discrete media inputs if provided
+        if ($request->filled('video_url')) {
+            $data['media']['video_url'] = trim($request->input('video_url'));
+        }
+        if ($request->filled('image_url')) {
+            $data['media']['image_url'] = trim($request->input('image_url'));
+        }
+        if ($request->filled('image_caption')) {
+            $data['media']['image_caption'] = trim($request->input('image_caption'));
         }
 
         if (!empty($data['practice_mcqs'])) {
@@ -86,9 +97,20 @@ class PscmSessionController extends Controller
         $data = $request->all();
         
         if (!empty($data['media'])) {
-            $data['media'] = json_decode($data['media'], true) ?? [];
+            $data['media'] = is_array($data['media']) ? $data['media'] : (json_decode($data['media'], true) ?? []);
         } else {
             $data['media'] = [];
+        }
+
+        // Merge discrete media inputs if provided
+        if ($request->has('video_url')) {
+            $data['media']['video_url'] = trim($request->input('video_url', ''));
+        }
+        if ($request->has('image_url')) {
+            $data['media']['image_url'] = trim($request->input('image_url', ''));
+        }
+        if ($request->has('image_caption')) {
+            $data['media']['image_caption'] = trim($request->input('image_caption', ''));
         }
 
         if (!empty($data['practice_mcqs'])) {
