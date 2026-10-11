@@ -31,6 +31,24 @@ class MediaFile extends Model
         return $this->belongsTo(User::class, 'uploaded_by');
     }
 
+    public function getUrlAttribute($value): string
+    {
+        if (!$value) {
+            return '';
+        }
+
+        if (str_starts_with($value, 'http://') || str_starts_with($value, 'https://')) {
+            return $value;
+        }
+
+        return url($value);
+    }
+
+    public function getFullUrlAttribute(): string
+    {
+        return $this->url;
+    }
+
     public function getFormattedSizeAttribute(): string
     {
         $bytes = $this->file_size;

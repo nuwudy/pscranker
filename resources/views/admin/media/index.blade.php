@@ -348,14 +348,20 @@ function mediaLibraryManager() {
         toastMessage: '',
 
         copyToClipboard(url) {
-            navigator.clipboard.writeText(url).then(() => {
-                this.toastMessage = 'Media URL copied to clipboard!';
+            // Guarantee full absolute URL including https://domain
+            let fullUrl = url;
+            if (fullUrl && !fullUrl.startsWith('http://') && !fullUrl.startsWith('https://')) {
+                fullUrl = window.location.origin + (fullUrl.startsWith('/') ? '' : '/') + fullUrl;
+            }
+
+            navigator.clipboard.writeText(fullUrl).then(() => {
+                this.toastMessage = 'Full media URL copied to clipboard!';
                 this.toastVisible = true;
                 setTimeout(() => {
                     this.toastVisible = false;
                 }, 2500);
             }).catch(err => {
-                prompt('Copy URL:', url);
+                prompt('Copy URL:', fullUrl);
             });
         }
     };

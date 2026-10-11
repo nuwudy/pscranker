@@ -107,7 +107,7 @@ class MediaController extends Controller
             $filePath = $file->storeAs($folder, $safeName, 'public');
         }
 
-        $url = Storage::url($filePath);
+        $url = url(Storage::url($filePath));
 
         $media = MediaFile::create([
             'name' => $request->input('title') ?: $originalName,
