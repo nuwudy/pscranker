@@ -35,9 +35,12 @@ class PscmSessionController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'hook_question' => 'required|string',
+            'access_level' => 'nullable|string|in:free,registered,premium',
+            'price' => 'nullable|numeric|min:0',
         ]);
 
         $data = $request->all();
+        $data['access_level'] = $request->input('access_level', 'premium') ?: 'premium';
         $data['slug'] = Str::slug($data['title']) . '-' . uniqid();
         
         if (!empty($data['media'])) {
@@ -92,9 +95,14 @@ class PscmSessionController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'hook_question' => 'required|string',
+            'access_level' => 'nullable|string|in:free,registered,premium',
+            'price' => 'nullable|numeric|min:0',
         ]);
 
         $data = $request->all();
+        if ($request->has('access_level')) {
+            $data['access_level'] = $request->input('access_level', 'premium');
+        }
         
         if (!empty($data['media'])) {
             $data['media'] = is_array($data['media']) ? $data['media'] : (json_decode($data['media'], true) ?? []);

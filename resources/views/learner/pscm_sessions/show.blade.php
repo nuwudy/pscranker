@@ -89,6 +89,58 @@
             </div>
         </div>
 
+        @if(isset($isLocked) && $isLocked)
+            <!-- Gated Access Lock Modal -->
+            <div class="flex-1 p-6 sm:p-8 flex flex-col justify-center items-center text-center animate-fade-in my-auto">
+                <div class="w-20 h-20 rounded-3xl bg-gradient-to-tr from-amber-400 to-amber-600 text-white flex items-center justify-center text-4xl mb-4 shadow-xl shadow-amber-500/20">
+                    🔒
+                </div>
+                
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-900 border border-amber-200 text-xs font-black uppercase tracking-wider rounded-full mb-3">
+                    @if($lockReason === 'requires_premium')
+                        👑 PRO Paid Unit Locked
+                    @else
+                        👤 Free Registration Required
+                    @endif
+                </span>
+
+                <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-snug mb-2">
+                    {{ $session->title }}
+                </h1>
+
+                <p class="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed max-w-sm mb-6">
+                    @if($lockReason === 'requires_premium')
+                        This is an exclusive high-yield PRO micro-learning unit. Unlock instant access to all micro-lessons, speed drills, and full OMR rankings.
+                    @else
+                        This lesson is completely free for registered members! Sign in or register your free candidate account in 10 seconds to begin.
+                    @endif
+                </p>
+
+                <div class="w-full space-y-3">
+                    @if($lockReason === 'requires_premium')
+                        <a href="{{ route('pricing') }}" class="w-full py-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-extrabold text-sm rounded-2xl shadow-lg shadow-amber-200 flex items-center justify-center gap-2 transition active:scale-95">
+                            <span>⚡ UNLOCK FULL PRO ACCESS</span>
+                        </a>
+                        @if(!auth()->check())
+                            <a href="{{ route('login') }}" class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl flex items-center justify-center transition">
+                                Already Subscribed? Log In →
+                            </a>
+                        @endif
+                    @else
+                        <a href="{{ route('register') }}" class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold text-sm rounded-2xl shadow-lg shadow-indigo-200 flex items-center justify-center gap-2 transition active:scale-95">
+                            <span>⚡ REGISTER FREE (10 SECONDS)</span>
+                        </a>
+                        <a href="{{ route('login') }}" class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl flex items-center justify-center transition">
+                            Already Have an Account? Log In →
+                        </a>
+                    @endif
+                    
+                    <a href="{{ route('learner.pscm.index') }}" class="inline-block pt-2 text-xs font-bold text-slate-400 hover:text-slate-600">
+                        &larr; Back to All Lessons
+                    </a>
+                </div>
+            </div>
+        @else
         <!-- Main Content Scrollable Area -->
         <div class="flex-1 overflow-y-auto p-5 sm:p-6 flex flex-col">
             
@@ -389,6 +441,7 @@
             </div>
 
         </div>
+        @endif
     </div>
 
     <script>

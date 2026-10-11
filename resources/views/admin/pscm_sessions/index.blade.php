@@ -78,6 +78,7 @@
                                 <tr class="bg-slate-50/75 border-b border-slate-200 text-slate-500 text-xs font-bold uppercase tracking-wider">
                                     <th class="py-3.5 px-6">Session Details</th>
                                     <th class="py-3.5 px-4">Category</th>
+                                    <th class="py-3.5 px-4">Access Layer</th>
                                     <th class="py-3.5 px-4">Status</th>
                                     <th class="py-3.5 px-4">Created</th>
                                     <th class="py-3.5 px-6 text-right">Actions</th>
@@ -102,6 +103,21 @@
                                         @else
                                             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-400">
                                                 Uncategorized
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td class="py-4 px-4 whitespace-nowrap">
+                                        @if(($session->access_level ?? 'premium') === 'premium')
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black bg-amber-50 text-amber-800 border border-amber-200">
+                                                👑 Paid / PRO
+                                            </span>
+                                        @elseif($session->access_level === 'registered')
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                                👤 Registered
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                🎁 Free
                                             </span>
                                         @endif
                                     </td>

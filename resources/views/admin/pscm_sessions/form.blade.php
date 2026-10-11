@@ -51,8 +51,8 @@
                         </div>
                     @endif
 
-                    {{-- Category Selection & Status Bar --}}
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                    {{-- Category Selection, Access Tier & Status Bar --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
                         <div class="sm:col-span-2">
                             <label class="block text-slate-700 text-xs font-extrabold uppercase tracking-wider mb-2">Subject Category <span class="text-rose-500">*</span></label>
                             <select name="category" x-model="category" class="w-full border border-slate-200 rounded-xl py-2.5 px-3.5 text-slate-800 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 font-medium text-sm transition">
@@ -61,7 +61,17 @@
                                     <option value="{{ $key }}">{{ $label }} ({{ $key }})</option>
                                 @endforeach
                             </select>
-                            <p class="text-[11px] text-slate-400 mt-1">Learners can filter micro-learning units specifically by this subject category.</p>
+                            <p class="text-[11px] text-slate-400 mt-1">Learners filter units by this subject category.</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-slate-700 text-xs font-extrabold uppercase tracking-wider mb-2">Access Layer <span class="text-amber-500 font-black">★</span></label>
+                            <select name="access_level" x-model="accessLevel" class="w-full border border-slate-200 rounded-xl py-2.5 px-3.5 text-slate-800 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 font-bold text-sm transition" :class="accessLevel === 'premium' ? 'border-amber-300 bg-amber-50/50 text-amber-900' : (accessLevel === 'registered' ? 'border-blue-300 bg-blue-50/50 text-blue-900' : '')">
+                                <option value="premium">👑 Paid / PRO (Default)</option>
+                                <option value="registered">👤 Registered (Free with Login)</option>
+                                <option value="free">🎁 Free (Open to Everyone)</option>
+                            </select>
+                            <p class="text-[11px] text-slate-400 mt-1" x-text="accessLevel === 'premium' ? 'Requires active PRO subscription.' : (accessLevel === 'registered' ? 'Free for signed-in members.' : 'Publicly accessible without login.')"></p>
                         </div>
 
                         <div>
@@ -229,6 +239,7 @@
             return {
                 mode: 'auto',
                 status: 'draft',
+                accessLevel: `{{ old('access_level', $session->access_level ?? 'premium') }}`,
                 category: 'GK',
                 title: '',
                 rawHookQuestion: '',

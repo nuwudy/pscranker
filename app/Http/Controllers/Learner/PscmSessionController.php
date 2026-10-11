@@ -47,7 +47,31 @@ class PscmSessionController extends Controller
             ->orderBy('created_at', 'asc')
             ->first();
 
-        return view('learner.pscm_sessions.show', compact('session', 'prevSession', 'nextSession'));
+        // 3-Tier Access Gating Check:
+        // 'free' -> Open to everyone without login
+        // 'registered' -> Free for all logged-in users
+        // 'premium' -> Exclusive to subscribed/PRO users (or admin)
+        $user = auth()->user();
+        $isAdmin = $user && $user->isAdmin();
+        $isSubscribed = $user && $user->isSubscribed();
+
+        $accessLevel = $session->access_level ?? 'premium';
+        $isLocked = false;
+        $lockReason = null; // 'requires_registration' or 'requires_premium'
+
+        if ($accessLevel === 'premium') {
+            if (!$isAdmin && !$isSubscribed) {
+                $isLocked = true;
+                $lockReason = 'requires_premium';
+            }
+        } elseif ($accessLevel === 'registered') {
+            if (!$user) {
+                $isLocked = true;
+                $lockReason = 'requires_registration';
+            }
+        }
+
+        return view('learner.pscm_sessions.show', compact('session', 'prevSession', 'nextSession', 'isLocked', 'lockReason'));
     }
 
     public function storeAttempt(Request $request, $sessionId)
