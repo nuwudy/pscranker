@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Quiz;
 use App\Models\Question;
+use App\Models\Session;
 use App\Models\PscmSession;
 use App\Models\DrillAttempt;
 use Illuminate\Http\Request;
