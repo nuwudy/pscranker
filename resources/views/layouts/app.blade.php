@@ -85,9 +85,9 @@
 
                 <!-- Desktop Navigation Links: Decluttered around PSC Special Lessons -->
                 <nav class="hidden md:flex items-center space-x-1 lg:space-x-3 text-sm font-bold text-slate-700">
-                    <a href="{{ route('sessions.index') }}" class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('sessions.*') || request()->routeIs('session.*') || request()->routeIs('courses') ? 'text-[#0052FF] bg-blue-50 font-extrabold shadow-xs' : 'hover:text-[#0052FF] hover:bg-slate-50' }}">
-                        <span>PSC Special Lessons</span>
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-100 text-[#0052FF]">7 Subjects</span>
+                    <a href="{{ route('learner.pscm.index') }}" class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('learner.pscm.*') ? 'text-[#0052FF] bg-blue-50 font-extrabold shadow-xs' : 'hover:text-[#0052FF] hover:bg-slate-50' }}">
+                        <span>PSC Micro Lessons</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-100 text-[#0052FF]">9 Subjects</span>
                     </a>
                     <a href="{{ route('map.study') }}" class="px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 {{ request()->routeIs('map.study') ? 'text-[#0052FF] bg-blue-50 font-extrabold' : 'hover:text-[#0052FF] hover:bg-slate-50' }}">
                         <span>Map &amp; Globe Lab</span>
@@ -111,7 +111,7 @@
                         <a href="{{ route('register') }}" class="px-3.5 py-2 text-sm font-extrabold text-[#0052FF] hover:bg-blue-50 rounded-lg transition border border-blue-200">
                             Register Free
                         </a>
-                        <a href="{{ route('sessions.index') }}" class="px-4 py-2.5 text-sm font-extrabold text-slate-950 bg-[#FFD200] hover:bg-[#F5C500] active:scale-95 rounded-full shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 border border-yellow-400">
+                        <a href="{{ route('learner.pscm.index') }}" class="px-4 py-2.5 text-sm font-extrabold text-slate-950 bg-[#FFD200] hover:bg-[#F5C500] active:scale-95 rounded-full shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 border border-yellow-400">
                             <span>Start Lessons</span>
                             <span class="text-xs">⚡</span>
                         </a>
@@ -168,7 +168,7 @@
 
                 <!-- Mobile Hamburger Menu Toggle -->
                 <div class="flex items-center gap-2 md:hidden" x-data="{ open: false }">
-                    <a href="{{ route('sessions.index') }}" class="px-3 py-1.5 text-xs font-black text-slate-950 bg-[#FFD200] rounded-full border border-yellow-400">
+                    <a href="{{ route('learner.pscm.index') }}" class="px-3 py-1.5 text-xs font-black text-slate-950 bg-[#FFD200] rounded-full border border-yellow-400">
                         Lessons ⚡
                     </a>
                     <button @click="open = !open" class="p-2 rounded-xl text-slate-700 hover:bg-slate-100 transition">
@@ -185,9 +185,9 @@
                         class="absolute top-20 left-0 right-0 bg-white border-b border-slate-200 shadow-2xl p-4 flex flex-col gap-2 z-50 text-base font-bold"
                         style="display: none;"
                     >
-                        <a href="{{ route('sessions.index') }}" class="px-4 py-3 rounded-xl bg-blue-50 text-[#0052FF] flex items-center justify-between font-black">
-                            <span>🎓 PSC Special Lessons</span>
-                            <span class="text-xs bg-[#0052FF] text-white px-2.5 py-0.5 rounded-full font-mono">7 Subjects</span>
+                        <a href="{{ route('learner.pscm.index') }}" class="px-4 py-3 rounded-xl bg-blue-50 text-[#0052FF] flex items-center justify-between font-black">
+                            <span>🎓 PSC Micro Lessons</span>
+                            <span class="text-xs bg-[#0052FF] text-white px-2.5 py-0.5 rounded-full font-mono">9 Subjects</span>
                         </a>
                         <a href="{{ route('map.study') }}" class="px-4 py-2.5 rounded-xl hover:bg-blue-50 text-slate-800 flex items-center justify-between font-bold">
                             <span class="flex items-center gap-2"><span>🌐</span> 3D Globe &amp; Map Lab</span>
@@ -203,7 +203,7 @@
                             <div class="pt-2 border-t border-slate-100 flex flex-col gap-2">
                                 <a href="{{ route('login') }}" class="px-4 py-2.5 rounded-xl hover:bg-blue-50 text-slate-800">🔐 Login to Account</a>
                                 <a href="{{ route('register') }}" class="px-4 py-2.5 rounded-xl bg-blue-50 text-[#0052FF] font-black">⚡ Register Free Account</a>
-                                <a href="{{ route('sessions.index') }}" class="w-full text-center py-3 bg-[#FFD200] font-black text-slate-950 rounded-xl shadow-xs">
+                                <a href="{{ route('learner.pscm.index') }}" class="w-full text-center py-3 bg-[#FFD200] font-black text-slate-950 rounded-xl shadow-xs">
                                     Start Lessons Free ⚡
                                 </a>
                             </div>
@@ -220,7 +220,7 @@
                                     <a href="{{ route('admin.dashboard') }}" class="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-900 font-black">📊 Admin Dashboard</a>
                                     <a href="{{ route('admin.affiliates.index') }}" class="px-4 py-2.5 rounded-xl bg-yellow-50 text-amber-950 font-black">🤝 Affiliates &amp; Settlements</a>
                                     <a href="{{ route('admin.users.index') }}" class="px-4 py-2.5 rounded-xl bg-emerald-50 text-emerald-800 font-black">👥 Users &amp; Subscriptions</a>
-                                    <a href="{{ route('admin.sessions.index') }}" class="px-4 py-2.5 rounded-xl bg-blue-50 text-[#0052FF] font-black">⚙️ Lessons Manager</a>
+                                    <a href="{{ route('admin.pscm.index') }}" class="px-4 py-2.5 rounded-xl bg-blue-50 text-[#0052FF] font-black">⚙️ Lessons Manager</a>
                                     <a href="{{ route('admin.media.index') }}" class="px-4 py-2.5 rounded-xl bg-purple-50 text-purple-700 font-black">📁 Media Library</a>
                                 @else
                                     <div class="px-4 py-2 flex items-center justify-between">
@@ -325,12 +325,12 @@
                 <div>
                     <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-4 border-b border-slate-800 pb-2">PSC Special Subjects</h4>
                     <ul class="space-y-2 text-xs">
-                        <li><a href="{{ route('sessions.index') }}?subject=english" class="hover:text-yellow-400 transition flex items-center gap-1.5"><span>📖</span> <span>English (ഇംഗ്ലീഷ്)</span></a></li>
-                        <li><a href="{{ route('sessions.index') }}?subject=maths" class="hover:text-yellow-400 transition flex items-center gap-1.5"><span>🔢</span> <span>Maths &amp; Reasoning (ഗണിതം)</span></a></li>
-                        <li><a href="{{ route('sessions.index') }}?subject=science" class="hover:text-yellow-400 transition flex items-center gap-1.5"><span>🔬</span> <span>General Science (സയൻസ്)</span></a></li>
-                        <li><a href="{{ route('sessions.index') }}?subject=history" class="hover:text-yellow-400 transition flex items-center gap-1.5"><span>🏛️</span> <span>History &amp; Renaissance (ചരിത്രം)</span></a></li>
-                        <li><a href="{{ route('sessions.index') }}?subject=geography" class="hover:text-yellow-400 transition flex items-center gap-1.5"><span>🌍</span> <span>Geography (ഭൂമിശാസ്ത്രം)</span></a></li>
-                        <li><a href="{{ route('sessions.index') }}?subject=current-affairs" class="hover:text-yellow-400 transition flex items-center gap-1.5"><span>📰</span> <span>Current Affairs (സമകാലികം)</span></a></li>
+                        <li><a href="{{ route('learner.pscm.index', ['category' => 'English']) }}" class="hover:text-yellow-400 transition flex items-center gap-1.5"><span>📖</span> <span>English (ഇംഗ്ലീഷ്)</span></a></li>
+                        <li><a href="{{ route('learner.pscm.index', ['category' => 'Maths']) }}" class="hover:text-yellow-400 transition flex items-center gap-1.5"><span>🔢</span> <span>Maths &amp; Reasoning (ഗണിതം)</span></a></li>
+                        <li><a href="{{ route('learner.pscm.index', ['category' => 'Science']) }}" class="hover:text-yellow-400 transition flex items-center gap-1.5"><span>🔬</span> <span>General Science (സയൻസ്)</span></a></li>
+                        <li><a href="{{ route('learner.pscm.index', ['category' => 'History']) }}" class="hover:text-yellow-400 transition flex items-center gap-1.5"><span>🏛️</span> <span>History &amp; Renaissance (ചരിത്രം)</span></a></li>
+                        <li><a href="{{ route('learner.pscm.index', ['category' => 'Geography']) }}" class="hover:text-yellow-400 transition flex items-center gap-1.5"><span>🌍</span> <span>Geography (ഭൂമിശാസ്ത്രം)</span></a></li>
+                        <li><a href="{{ route('learner.pscm.index', ['category' => 'Current Affairs']) }}" class="hover:text-yellow-400 transition flex items-center gap-1.5"><span>📰</span> <span>Current Affairs (സമകാലികം)</span></a></li>
                     </ul>
                 </div>
 

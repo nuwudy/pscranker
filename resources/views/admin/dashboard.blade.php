@@ -39,7 +39,7 @@
                 <span>➕ User / Offline Sub</span>
             </button>
             <a 
-                href="{{ route('admin.sessions.create') }}" 
+                href="{{ route('admin.pscm.create') }}" 
                 class="px-4 py-2.5 bg-[#FFD200] hover:bg-yellow-400 text-slate-950 font-black text-xs rounded-xl shadow transition flex items-center gap-1.5 border border-yellow-300 active:scale-95"
             >
                 <span>+ New Session</span>
@@ -206,18 +206,18 @@
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div class="space-y-1">
                     <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#0052FF] text-white">
-                        ✨ Modular Architecture Guide
+                        ✨ AI Micro-Learning Studio
                     </span>
                     <h3 class="text-base font-black text-slate-950">
-                        How to Create a Newly Styled Learning Track Session
+                        Create a New AI Micro-Learning Session
                     </h3>
                     <p class="text-xs text-slate-600 max-w-2xl leading-relaxed">
-                        Build sequential units: <strong>Unit 1</strong> (Hook Concept Opener), <strong>Unit 2</strong> (Rich Notes + Malayalam callouts + Audio), <strong>Unit 3</strong> (Practice MCQs 1 per screen), and <strong>Final Unit</strong> (Auto-compiled Capstone OMR Exam Sheet with authentic bubble selection).
+                        Paste a PSC question (or JSON from Gemini) to build the full unit: <strong>Hook Question</strong>, optional <strong>Video / Image</strong>, <strong>Core Lesson</strong>, <strong>4 Practice MCQs</strong> and the auto-compiled <strong>5-question OMR exam</strong> with evaluation.
                     </p>
                 </div>
                 <div class="shrink-0">
                     <a 
-                        href="{{ route('admin.sessions.create') }}" 
+                        href="{{ route('admin.pscm.create') }}" 
                         class="px-5 py-3 bg-[#0052FF] hover:bg-blue-700 text-white font-black text-xs rounded-xl shadow transition flex items-center gap-2"
                     >
                         <span>＋ Create New Session</span>
@@ -231,17 +231,17 @@
             <div class="p-5 sm:p-6 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
                 <div>
                     <h2 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
-                        <span>Learning Sessions &amp; Sequential Units</span>
+                        <span>Latest AI Micro-Learning Sessions</span>
                     </h2>
-                    <p class="text-xs text-slate-500 font-medium">Modular unit breakdown, content blocks, and Capstone OMR assessment questions.</p>
+                    <p class="text-xs text-slate-500 font-medium">Hook question, lesson, 4 practice MCQs and 5-question OMR exam per session.</p>
                 </div>
 
                 <div class="flex items-center gap-2">
                     <a 
-                        href="{{ route('admin.sessions.index') }}" 
+                        href="{{ route('admin.pscm.index') }}" 
                         class="text-xs font-bold text-[#0052FF] hover:underline"
                     >
-                        View Full List →
+                        View Full List ({{ $stats['total_sessions'] }}) →
                     </a>
                 </div>
             </div>
@@ -250,12 +250,10 @@
                 <table class="w-full text-left text-xs">
                     <thead>
                         <tr class="bg-slate-50 border-b border-slate-200/80 text-slate-500 font-bold uppercase tracking-wider">
-                            <th class="p-4"># Order</th>
                             <th class="p-4">Session Title</th>
-                            <th class="p-4">Subject Track</th>
-                            <th class="p-4 text-center">Modular Units</th>
-                            <th class="p-4 text-center">OMR Exam Bank</th>
-                            <th class="p-4 text-center">Access Tier</th>
+                            <th class="p-4">Category</th>
+                            <th class="p-4 text-center">OMR Exam</th>
+                            <th class="p-4 text-center">Access Layer</th>
                             <th class="p-4 text-center">Status</th>
                             <th class="p-4 text-right">Actions</th>
                         </tr>
@@ -263,66 +261,50 @@
                     <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
                         @forelse($sessions as $sess)
                             @php
-                                $units = $sess->structured_units;
-                                $omrQuestionsCount = $sess->effective_omr_questions->count();
+                                $omrCount = (!empty($sess->hook_question) ? 1 : 0) + (is_array($sess->practice_mcqs) ? count($sess->practice_mcqs) : 0);
+                                $tier = $sess->access_level ?? 'premium';
                             @endphp
                             <tr class="hover:bg-blue-50/20 transition">
-                                <td class="p-4 font-mono font-bold">{{ $sess->order }}</td>
                                 <td class="p-4">
                                     <div class="font-bold text-slate-900 leading-snug">{{ $sess->title }}</div>
-                                    @if($sess->title_malayalam)
-                                        <div class="text-[11px] text-[#0052FF] font-['Noto_Sans_Malayalam']">{{ $sess->title_malayalam }}</div>
-                                    @endif
+                                    <div class="text-[10px] text-slate-400 font-mono">{{ \Illuminate\Support\Str::limit($sess->slug, 40) }}</div>
                                 </td>
                                 <td class="p-4">
                                     <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800">
-                                        {{ $sess->category ? $sess->category->name : 'General Stream' }}
+                                        {{ \App\Models\PscmSession::CATEGORIES[$sess->category] ?? ($sess->category ?: 'GK') }}
                                     </span>
                                 </td>
-
-                                <!-- Modular Units Count -->
-                                <td class="p-4 text-center">
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-blue-100 text-blue-900 border border-blue-200">
-                                        {{ count($units) }} Units
-                                    </span>
-                                </td>
-
-                                <!-- OMR Exam Bank -->
                                 <td class="p-4 text-center">
                                     <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-900 text-white font-mono">
-                                        {{ $omrQuestionsCount }} Bubbles 📝
+                                        {{ $omrCount }} Bubbles 📝
                                     </span>
                                 </td>
-
-                                <!-- Access Tier -->
                                 <td class="p-4 text-center">
-                                    @if($sess->isFree())
+                                    @if($tier === 'free')
                                         <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">Free</span>
+                                    @elseif($tier === 'registered')
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-100 text-blue-800">Registered</span>
                                     @else
-                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-900 font-mono">{{ $sess->formatted_price }}</span>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-900">Paid / PRO</span>
                                     @endif
                                 </td>
-
-                                <!-- Status -->
                                 <td class="p-4 text-center">
-                                    @if($sess->is_active)
-                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">Active</span>
+                                    @if($sess->status === 'published')
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">Published</span>
                                     @else
-                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-200 text-slate-600">Draft</span>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-200 text-slate-600">{{ ucfirst($sess->status ?? 'draft') }}</span>
                                     @endif
                                 </td>
-
-                                <!-- Action Buttons -->
                                 <td class="p-4 text-right space-x-2">
                                     <a 
-                                        href="{{ route('session.show', $sess->slug) }}" 
+                                        href="{{ route('learner.pscm.show', $sess->slug) }}" 
                                         target="_blank"
                                         class="text-blue-600 hover:underline font-bold"
                                     >
-                                        Runner ↗
+                                        View ↗
                                     </a>
                                     <a 
-                                        href="{{ route('admin.sessions.edit', $sess) }}" 
+                                        href="{{ route('admin.pscm.edit', $sess->id) }}" 
                                         class="text-[#0052FF] hover:underline font-black"
                                     >
                                         Edit ⚙️
@@ -331,7 +313,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="p-8 text-center text-slate-500">
+                                <td colspan="6" class="p-8 text-center text-slate-500">
                                     No sessions created yet. Click "+ Create New Session" to start!
                                 </td>
                             </tr>

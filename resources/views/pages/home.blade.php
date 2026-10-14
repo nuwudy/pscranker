@@ -42,7 +42,7 @@
                 <div class="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5">
                     <!-- Primary CTA launching Latest Micro-Learning Course Unit -->
                     <a 
-                        href="{{ $latestPscmSession ? route('learner.pscm.show', $latestPscmSession->slug) : ($firstMixedSession ? route('session.show', ['slug' => $firstMixedSession->slug, 'stream' => 'general']) : route('learner.pscm.index')) }}" 
+                        href="{{ $latestPscmSession ? route('learner.pscm.show', $latestPscmSession->slug) : route('learner.pscm.index') }}" 
                         class="px-8 sm:px-10 py-4 sm:py-4.5 bg-[#0052FF] hover:bg-[#003ECC] text-white font-black text-base sm:text-lg rounded-full shadow-xl shadow-blue-500/35 hover:shadow-blue-500/50 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 border-2 border-[#FFD200] group"
                     >
                         <span>START COURSE UNITS</span>
@@ -270,7 +270,7 @@
                     <!-- Direct 1-Click Action to Units -->
                     <div class="mt-6 pt-4 flex flex-col gap-2">
                         <a 
-                            href="{{ $category->slug === 'map-study' ? route('map.study') : route('sessions.index', ['subject' => $category->slug]) }}" 
+                            href="{{ $category->slug === 'map-study' ? route('map.study') : ($category->pscm_category ? route('learner.pscm.index', ['category' => $category->pscm_category]) : route('learner.pscm.index')) }}" 
                             class="w-full py-3.5 px-5 text-center font-black text-sm text-white {{ $theme['button_bg'] }} active:scale-95 rounded-2xl shadow-md flex items-center justify-center gap-2 transition"
                         >
                             <span>{{ $category->slug === 'map-study' ? 'Launch 3D Map Lab' : 'Explore ' . $category->name . ' Units' }}</span>
@@ -278,10 +278,10 @@
                         </a>
                         @if($category->slug === 'map-study')
                             <a 
-                                href="{{ route('sessions.index', ['subject' => 'map-study']) }}" 
+                                href="{{ route('map.study') }}" 
                                 class="w-full py-1.5 text-center font-bold text-xs text-indigo-700 hover:text-indigo-900 transition"
                             >
-                                Practice Course Units ({{ $category->sessions_count }}) →
+                                Practice 3D Map Lab →
                             </a>
                         @endif
                     </div>
@@ -333,7 +333,7 @@
                 <!-- Call to Action -->
                 <div class="mt-8">
                     <a 
-                        href="{{ route('sessions.index') }}" 
+                        href="{{ route('learner.pscm.index') }}" 
                         class="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-[#0052FF] hover:bg-blue-500 text-white font-black text-base shadow-xl shadow-blue-500/30 active:scale-95 transition border-2 border-yellow-300"
                     >
                         <span>Start Learning Units Now</span>
@@ -389,7 +389,7 @@
         <!-- Bottom CTA Banner in Dark Section -->
         <div class="mt-12 text-center">
             <a 
-                href="{{ route('sessions.index') }}" 
+                href="{{ route('learner.pscm.index') }}" 
                 class="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-[#FFD200] hover:bg-[#F5C500] text-slate-950 font-black text-lg shadow-lg shadow-yellow-500/20 active:scale-95 transition"
             >
                 <span>Browse All Course Units</span>

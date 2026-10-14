@@ -19,7 +19,7 @@ class AuthController extends Controller
             if ($user->isAdmin()) {
                 return redirect()->route('admin.dashboard');
             }
-            return redirect()->route('sessions.index');
+            return redirect()->route('learner.pscm.index');
         }
 
         return view('auth.login');
@@ -31,7 +31,7 @@ class AuthController extends Controller
     public function showRegister()
     {
         if (Auth::check()) {
-            return redirect()->route('sessions.index');
+            return redirect()->route('learner.pscm.index');
         }
 
         return view('auth.register');
@@ -77,7 +77,7 @@ class AuthController extends Controller
         Auth::login($user, true);
         $request->session()->regenerate();
 
-        return redirect()->intended(route('sessions.index'))
+        return redirect()->intended(route('learner.pscm.index'))
             ->with('success', 'Welcome to PSCRanker, ' . $user->name . '! 🎉 Your Free Member account has been activated.');
     }
 
@@ -127,7 +127,7 @@ class AuthController extends Controller
             $request->session()->regenerate();
 
             $isAdmin = $user->isAdmin();
-            $targetUrl = $isAdmin ? route('admin.dashboard') : route('sessions.index');
+            $targetUrl = $isAdmin ? route('admin.dashboard') : route('learner.pscm.index');
 
             return redirect()->intended($targetUrl)
                 ->with('success', 'Welcome back, ' . $user->name . '! 👋');

@@ -12,9 +12,23 @@ use App\Http\Controllers\Admin\AdminSessionController;
 // Main Homepage matching Behance Mockup
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
-// 4-Phase Micro-Learning Sessions Engine
-Route::get('/sessions', [SessionController::class, 'index'])->name('sessions.index');
-Route::get('/session/{slug}', [SessionController::class, 'show'])->name('session.show');
+// Legacy Sessions / Mixed Train — retired. Redirect to the AI Micro-Learning catalog.
+// Route names are kept so any old links/bookmarks keep working.
+$legacySubjectMap = [
+    'english' => 'English', 'maths' => 'Maths', 'quantitative-aptitude' => 'Maths',
+    'science' => 'Science', 'general-science' => 'Science',
+    'history' => 'History', 'kerala-renaissance' => 'History',
+    'geography' => 'Geography', 'current-affairs' => 'Current Affairs',
+    'general-knowledge' => 'GK', 'gk' => 'GK', 'malayalam' => 'Malayalam',
+    'constitution' => 'Constitution',
+];
+$legacyRedirect = function (\Illuminate\Http\Request $request) use ($legacySubjectMap) {
+    $subject = strtolower((string) $request->query('subject', ''));
+    $params = isset($legacySubjectMap[$subject]) ? ['category' => $legacySubjectMap[$subject]] : [];
+    return redirect()->route('learner.pscm.index', $params);
+};
+Route::get('/sessions', $legacyRedirect)->name('sessions.index');
+Route::get('/session/{slug}', $legacyRedirect)->name('session.show');
 Route::post('/api/session/{id}/progress', [SessionController::class, 'saveProgress'])->name('api.session.progress');
 Route::post('/api/session/{id}/omr-submit', [SessionController::class, 'submitOmr'])->name('api.session.omr-submit');
 Route::post('/api/session/{id}/retake', [SessionController::class, 'retake'])->name('api.session.retake');
@@ -70,12 +84,15 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('dashboard', [DashboardController::class, 'index']);
     Route::post('settings/pricing', [DashboardController::class, 'updatePricingSettings'])->name('settings.pricing');
-    Route::get('mixed-practice', [AdminSessionController::class, 'mixedPractice'])->name('mixed-practice.index');
+    // Legacy session builder & mixed train — retired, redirect to AI Micro-Learning admin
+    Route::get('mixed-practice', fn () => redirect()->route('admin.pscm.index'))->name('mixed-practice.index');
     Route::post('mixed-practice/toggle', [AdminSessionController::class, 'toggleMixedPractice'])->name('mixed-practice.toggle');
     Route::post('mixed-practice/reorder', [AdminSessionController::class, 'reorderMixedPractice'])->name('mixed-practice.reorder');
     Route::post('categories/quick-store', [\App\Http\Controllers\Admin\CategoryController::class, 'quickStore'])->name('categories.quick-store');
     Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class);
-    Route::resource('sessions', AdminSessionController::class);
+    Route::get('sessions', fn () => redirect()->route('admin.pscm.index'))->name('sessions.index');
+    Route::get('sessions/create', fn () => redirect()->route('admin.pscm.create'))->name('sessions.create');
+    Route::resource('sessions', AdminSessionController::class)->except(['index', 'create']);
     Route::get('media', [MediaController::class, 'index'])->name('media.index');
     Route::get('media/api-list', [MediaController::class, 'apiList'])->name('media.api-list');
     Route::post('media', [MediaController::class, 'store'])->name('media.store');
@@ -116,7 +133,7 @@ Route::middleware('auth')->prefix('affiliate')->name('affiliate.')->group(functi
 });
 
 // Quick Aliases for Navigation links
-Route::get('/courses', [SessionController::class, 'index'])->name('courses');
+Route::get('/courses', fn () => redirect()->route('learner.pscm.index'))->name('courses');
 
 Route::get('/profile', function () {
     return redirect()->route('leaderboard');

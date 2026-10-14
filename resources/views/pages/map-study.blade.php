@@ -29,10 +29,10 @@
                 <!-- Back to Sessions CTA -->
                 <div class="flex items-center gap-3">
                     <a 
-                        href="{{ route('sessions.index') }}" 
+                        href="{{ route('learner.pscm.index') }}" 
                         class="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs sm:text-sm border border-slate-300 transition flex items-center gap-2 shadow-xs"
                     >
-                        <span>← PSC Special Lessons</span>
+                        <span>← PSC Micro Lessons</span>
                     </a>
                 </div>
             </div>

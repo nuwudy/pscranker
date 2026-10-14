@@ -552,7 +552,7 @@ function pricingEngine(tiers, razorpayKey) {
                 if (res.success) {
                     this.paymentSuccess = true;
                     setTimeout(() => {
-                        window.location.href = '{{ route("sessions.index") }}';
+                        window.location.href = '{{ route("learner.pscm.index") }}';
                     }, 1500);
                 } else {
                     alert(res.error || 'Verification failed. Please contact support at infopscranker@gmail.com or +91 9895 204 224');

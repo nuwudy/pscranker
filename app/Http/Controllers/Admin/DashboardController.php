@@ -7,7 +7,7 @@ use App\Models\Category;
 use App\Models\DrillAttempt;
 use App\Models\MediaFile;
 use App\Models\Question;
-use App\Models\Session;
+use App\Models\PscmSession;
 use App\Models\SiteSetting;
 use App\Models\SubscriptionPayment;
 use App\Models\User;
@@ -20,13 +20,18 @@ class DashboardController extends Controller
      */
     public function index()
     {
+        // AI Micro-Learning is now the only learning system
+        $totalPscm = PscmSession::count();
+        $hookCount = PscmSession::whereNotNull('hook_question')->count();
+        $practiceCount = PscmSession::get(['practice_mcqs'])->sum(fn ($s) => is_array($s->practice_mcqs) ? count($s->practice_mcqs) : 0);
+
         $stats = [
-            'total_sessions' => Session::count(),
-            'active_sessions' => Session::where('is_active', true)->count(),
-            'total_questions' => Question::count(),
-            'diagnostic_questions' => Question::where('phase_type', 'diagnostic')->count(),
-            'reinforcement_questions' => Question::where('phase_type', 'reinforcement')->count(),
-            'omr_questions' => Question::where('phase_type', 'omr')->count(),
+            'total_sessions' => $totalPscm,
+            'active_sessions' => PscmSession::where('status', 'published')->count(),
+            'total_questions' => $hookCount + $practiceCount,
+            'diagnostic_questions' => $hookCount,
+            'reinforcement_questions' => $practiceCount,
+            'omr_questions' => $hookCount + $practiceCount,
             'total_media' => MediaFile::count(),
             'media_storage_formatted' => $this->formatBytes(MediaFile::sum('file_size')),
             'total_users' => User::count(),
@@ -59,23 +64,26 @@ class DashboardController extends Controller
             ->take(6)
             ->get();
 
-        // Learning sessions inventory with content and question counts
-        $sessions = Session::with(['category'])
-            ->withCount([
-                'contents',
-                'questions',
-                'questions as diagnostic_count' => fn($q) => $q->where('phase_type', 'diagnostic'),
-                'questions as reinforcement_count' => fn($q) => $q->where('phase_type', 'reinforcement'),
-                'questions as omr_count' => fn($q) => $q->where('phase_type', 'omr'),
-            ])
-            ->orderBy('order', 'asc')
-            ->get();
+        // Latest AI micro-learning sessions
+        $sessions = PscmSession::latest()->take(10)->get();
 
         // Recent uploaded media files
         $recentMedia = MediaFile::latest()->take(6)->get();
 
-        // Categories breakdown
-        $categories = Category::withCount(['questions', 'sessions'])->orderBy('order')->get();
+        // Categories breakdown (AI micro-learning categories)
+        $countsByCategory = PscmSession::selectRaw('category, COUNT(*) as total')
+            ->groupBy('category')
+            ->pluck('total', 'category');
+
+        $categories = collect(PscmSession::CATEGORIES)->map(function ($label, $key) use ($countsByCategory) {
+            $count = (int) ($countsByCategory[$key] ?? 0);
+            return (object) [
+                'name' => $label,
+                'name_malayalam' => null,
+                'sessions_count' => $count,
+                'questions_count' => $count * 5,
+            ];
+        })->values();
 
         // Current pricing settings & preview tiers
         $pricingSettings = [

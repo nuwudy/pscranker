@@ -66,36 +66,20 @@
                     </div>
                     <div class="space-y-1">
                         <a 
-                            href="{{ route('admin.sessions.index') }}" 
-                            class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.sessions.index') || (request()->routeIs('admin.sessions.*') && !request()->routeIs('admin.sessions.create')) ? 'bg-[#0052FF] text-white font-bold shadow' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}"
+                            href="{{ route('admin.pscm.index') }}" 
+                            class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.pscm.*') && !request()->routeIs('admin.pscm.create') ? 'bg-[#0052FF] text-white font-bold shadow' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}"
                         >
-                            <span class="text-sm">📚</span>
-                            <span>Learning Sessions</span>
+                            <span class="text-sm">🧠</span>
+                            <span>Micro-Learning Sessions</span>
                         </a>
 
                         <!-- Highlighted Button: + Create Session -->
                         <a 
-                            href="{{ route('admin.sessions.create') }}" 
-                            class="flex items-center gap-2.5 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.sessions.create') ? 'bg-amber-400 text-slate-950 font-black shadow' : 'text-amber-300 bg-amber-400/10 hover:bg-amber-400/20 border border-amber-400/20 font-bold' }}"
+                            href="{{ route('admin.pscm.create') }}" 
+                            class="flex items-center gap-2.5 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.pscm.create') ? 'bg-amber-400 text-slate-950 font-black shadow' : 'text-amber-300 bg-amber-400/10 hover:bg-amber-400/20 border border-amber-400/20 font-bold' }}"
                         >
                             <span class="text-amber-400 font-black text-base leading-none">＋</span>
                             <span>Create Session</span>
-                        </a>
-
-                        <a 
-                            href="{{ route('admin.pscm.index') }}" 
-                            class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.pscm.*') ? 'bg-[#0052FF] text-white font-bold shadow' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}"
-                        >
-                            <span class="text-sm">🧠</span>
-                            <span>AI Micro-Learning</span>
-                        </a>
-
-                        <a 
-                            href="{{ route('admin.categories.index') }}" 
-                            class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.categories.*') ? 'bg-[#0052FF] text-white font-bold shadow' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}"
-                        >
-                            <span class="text-sm">🏷️</span>
-                            <span>Subject Tracks</span>
                         </a>
 
                         <a 
@@ -158,13 +142,13 @@
                             <span class="text-[10px] text-slate-400">↗</span>
                         </a>
                         <a 
-                            href="{{ route('sessions.index') }}" 
+                            href="{{ route('learner.pscm.index') }}" 
                             target="_blank"
                             class="flex items-center justify-between px-3 py-1.5 rounded-xl transition text-slate-400 hover:bg-slate-800/60 hover:text-white"
                         >
                             <span class="flex items-center gap-2.5">
                                 <span>⚡</span>
-                                <span>Student Runner</span>
+                                <span>Student Lessons</span>
                             </span>
                             <span class="text-[10px] text-slate-400">↗</span>
                         </a>
@@ -232,16 +216,14 @@
                 </div>
                 <div class="flex-1 overflow-y-auto p-4 space-y-3 text-sm font-semibold">
                     <a href="{{ route('admin.dashboard') }}" class="block px-3 py-2 rounded-xl text-white bg-[#0052FF]">📊 Dashboard</a>
-                    <a href="{{ route('admin.sessions.index') }}" class="block px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800">📚 Learning Sessions</a>
-                    <a href="{{ route('admin.sessions.create') }}" class="block px-3 py-2 rounded-xl text-amber-300 bg-amber-400/10 font-black">+ Create Session</a>
-                    <a href="{{ route('admin.pscm.index') }}" class="block px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800">🧠 AI Micro-Learning</a>
-                    <a href="{{ route('admin.categories.index') }}" class="block px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800">🏷️ Subject Tracks</a>
+                    <a href="{{ route('admin.pscm.index') }}" class="block px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800">🧠 Micro-Learning Sessions</a>
+                    <a href="{{ route('admin.pscm.create') }}" class="block px-3 py-2 rounded-xl text-amber-300 bg-amber-400/10 font-black">+ Create Session</a>
                     <a href="{{ route('admin.media.index') }}" class="block px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800">📁 Media Library</a>
                     <a href="{{ route('admin.users.index') }}" class="block px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800">👥 Candidates &amp; Subs</a>
                     <a href="{{ route('admin.affiliates.index') }}" class="block px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800">🤝 Affiliate Promoters</a>
                     <div class="pt-4 border-t border-slate-800">
                         <a href="{{ route('home') }}" target="_blank" class="block px-3 py-2 text-slate-400 text-xs">Public Website ↗</a>
-                        <a href="{{ route('sessions.index') }}" target="_blank" class="block px-3 py-2 text-slate-400 text-xs">Student Runner ↗</a>
+                        <a href="{{ route('learner.pscm.index') }}" target="_blank" class="block px-3 py-2 text-slate-400 text-xs">Student Lessons ↗</a>
                     </div>
                 </div>
             </div>
@@ -280,7 +262,7 @@
                 <!-- Right Quick Actions -->
                 <div class="flex items-center gap-2.5">
                     <a 
-                        href="{{ route('admin.sessions.create') }}" 
+                        href="{{ route('admin.pscm.create') }}" 
                         class="px-3.5 py-2 rounded-xl bg-[#0052FF] hover:bg-blue-700 text-white font-black text-xs shadow transition flex items-center gap-1.5 active:scale-95"
                     >
                         <span>＋ New Session</span>

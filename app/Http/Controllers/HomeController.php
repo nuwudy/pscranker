@@ -19,21 +19,37 @@ class HomeController extends Controller
             ->where('slug', '3-min-rapid-blitz')
             ->first() ?? Quiz::with(['questions.category'])->first();
 
-        // Fetch official PSC categories with sessions and question count
-        $categories = Category::withCount(['questions', 'sessions'])
+        // Fetch official PSC categories with questions count
+        $categories = Category::withCount(['questions'])
             ->orderBy('order')
             ->get();
 
-        // Fetch latest published micro-learning session (PSCM)
+        // Count new AI micro-learning sessions per category
+        $pscmCounts = PscmSession::where('status', 'published')
+            ->selectRaw('category, COUNT(*) as total')
+            ->groupBy('category')
+            ->pluck('total', 'category');
+
+        $slugToPscmCategory = [
+            'history' => 'History',
+            'science' => 'Science',
+            'maths' => 'Maths',
+            'current-affairs' => 'Current Affairs',
+            'english' => 'English',
+            'geography' => 'Geography',
+            'general-knowledge' => 'GK',
+            'quantitative-aptitude' => 'Maths',
+        ];
+
+        foreach ($categories as $cat) {
+            $pscmKey = $slugToPscmCategory[$cat->slug] ?? null;
+            $cat->sessions_count = $pscmKey ? ($pscmCounts[$pscmKey] ?? 0) : 0;
+            $cat->pscm_category = $pscmKey;
+        }
+
+        // Fetch latest published AI micro-learning session (PSCM)
         $latestPscmSession = PscmSession::where('status', 'published')
             ->latest()
-            ->first();
-
-        // Fetch the first unit in the Mixed Practice Train (General Stream) as fallback
-        $firstMixedSession = Session::where('is_active', true)
-            ->where('in_general_stream', true)
-            ->orderBy('general_stream_order', 'asc')
-            ->orderBy('id', 'asc')
             ->first();
 
         // Top 3 live leaderboard for the quick-access card
@@ -57,6 +73,6 @@ class HomeController extends Controller
             'drills_completed_today' => rand(3200, 3950),
         ];
 
-        return view('pages.home', compact('featuredQuiz', 'categories', 'latestPscmSession', 'firstMixedSession', 'leaderboardTop', 'memeQuestions', 'stats'));
+        return view('pages.home', compact('featuredQuiz', 'categories', 'latestPscmSession', 'leaderboardTop', 'memeQuestions', 'stats'));
     }
 }
