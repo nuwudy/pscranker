@@ -52,6 +52,11 @@ class HomeController extends Controller
             ->latest()
             ->first();
 
+        // Student practice progress resume resolution
+        $continueSession = \App\Http\Controllers\Learner\PscmSessionController::getContinueSession();
+        $continueUnitNumber = $continueSession ? \App\Http\Controllers\Learner\PscmSessionController::getSessionUnitNumber($continueSession) : 1;
+        $totalUnits = PscmSession::where('status', 'published')->count();
+
         // Top 3 live leaderboard for the quick-access card
         $leaderboardTop = DrillAttempt::orderByDesc('score')
             ->orderBy('time_taken_seconds')
@@ -73,6 +78,10 @@ class HomeController extends Controller
             'drills_completed_today' => rand(3200, 3950),
         ];
 
-        return view('pages.home', compact('featuredQuiz', 'categories', 'latestPscmSession', 'leaderboardTop', 'memeQuestions', 'stats'));
+        return view('pages.home', compact(
+            'featuredQuiz', 'categories', 'latestPscmSession', 
+            'continueSession', 'continueUnitNumber', 'totalUnits',
+            'leaderboardTop', 'memeQuestions', 'stats'
+        ));
     }
 }

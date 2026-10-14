@@ -75,6 +75,34 @@
         </div>
     </section>
 
+    @if(isset($continueSession))
+        <!-- Resume Learning Card (Always pick up where left off) -->
+        <section class="max-w-6xl mx-auto px-4 sm:px-6 mb-8 w-full">
+            <div class="bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-800 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-indigo-600/20 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden border border-indigo-500/30">
+                <div class="absolute -right-10 -bottom-10 w-52 h-52 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="space-y-2 max-w-xl relative z-10">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-white text-xs font-black uppercase tracking-wider">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span>Continue Practice</span>
+                    </div>
+                    <h2 class="text-xl sm:text-2xl font-black tracking-tight leading-snug">
+                        Unit #{{ $continueUnitNumber }}: {{ $continueSession->title }}
+                    </h2>
+                    <p class="text-xs sm:text-sm text-indigo-100 font-medium">
+                        {{ $continueSession->category ?? 'GK' }} • Pick up seamlessly from where you left off.
+                    </p>
+                </div>
+                <div class="relative z-10 flex-shrink-0 w-full md:w-auto">
+                    <a href="{{ route('learner.pscm.continue') }}" 
+                       class="w-full md:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 bg-[#FFD200] hover:bg-[#F5C500] text-slate-950 font-black text-sm sm:text-base rounded-2xl shadow-lg shadow-black/20 hover:scale-[1.02] active:scale-95 transition">
+                        <span>Resume Unit #{{ $continueUnitNumber }}</span>
+                        <span class="text-lg">➔</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+    @endif
+
     <!-- Sessions Grid -->
     <main class="max-w-6xl mx-auto px-4 sm:px-6 pb-20 w-full flex-1">
         @if($sessions->isEmpty())
@@ -89,18 +117,29 @@
         @else
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 @foreach($sessions as $session)
-                    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden group hover:-translate-y-1">
+                    @php
+                        $unitIndex = \App\Http\Controllers\Learner\PscmSessionController::getSessionUnitNumber($session);
+                        $isCurrent = isset($continueSession) && $continueSession->id === $session->id;
+                    @endphp
+                    <div class="bg-white rounded-3xl border {{ $isCurrent ? 'border-indigo-400 ring-2 ring-indigo-200' : 'border-slate-200/80' }} shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden group hover:-translate-y-1">
                         
                         <div class="p-6">
                             {{-- Header meta --}}
                             <div class="flex items-center justify-between mb-3">
                                 <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-100">
-                                    <span>🏷️</span>
+                                    <span class="font-black text-indigo-950">Unit #{{ $unitIndex }}</span>
+                                    <span class="text-indigo-300">•</span>
                                     <span>{{ $categories[$session->category] ?? ($session->category ?? 'GK') }}</span>
                                 </span>
-                                <span class="text-[11px] font-bold text-slate-400 flex items-center gap-1">
-                                    <span>⏱️ ~5 mins</span>
-                                </span>
+                                @if($isCurrent)
+                                    <span class="inline-flex items-center gap-1 text-[10px] font-extrabold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200 animate-pulse">
+                                        🎯 Up Next
+                                    </span>
+                                @else
+                                    <span class="text-[11px] font-bold text-slate-400 flex items-center gap-1">
+                                        <span>⏱️ ~5 mins</span>
+                                    </span>
+                                @endif
                             </div>
 
                             {{-- Title & Access Badge --}}

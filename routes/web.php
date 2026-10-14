@@ -155,6 +155,7 @@ Route::prefix('admin/micro-learning')->name('admin.pscm.')->middleware('auth')->
 
 Route::prefix('micro-learning')->name('learner.pscm.')->group(function () {
     Route::get('/', [LearnerPscmSessionController::class, 'index'])->name('index');
+    Route::get('/continue', [LearnerPscmSessionController::class, 'continueSession'])->name('continue');
     Route::get('/{slug}', [LearnerPscmSessionController::class, 'show'])->name('show');
     Route::post('/{session_id}/attempt', [LearnerPscmSessionController::class, 'storeAttempt'])->name('attempt');
 });

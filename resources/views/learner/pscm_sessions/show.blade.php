@@ -67,23 +67,24 @@
         <!-- Category & Session Badge (Screens 0 to 7) -->
         <div x-show="currentStep < 8" class="px-6 pt-3 flex items-center justify-between">
             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">
-                <span>🏷️</span>
+                <span class="font-black text-indigo-950">Unit {{ $unitNumber }} of {{ $totalUnits }}</span>
+                <span class="text-indigo-300">•</span>
                 <span>{{ $session->category ?? 'GK' }}</span>
             </span>
 
-            {{-- Prev / Next session links if available --}}
+            {{-- Prev / Next session links if available (chronological stream) --}}
             <div class="flex items-center gap-2 text-xs font-semibold text-slate-400">
                 @if(isset($prevSession))
-                    <a href="{{ route('learner.pscm.show', $prevSession->slug) }}" class="hover:text-indigo-600 p-1 rounded hover:bg-slate-100 transition" title="Previous session: {{ $prevSession->title }}">
-                        &larr; Prev Lesson
+                    <a href="{{ route('learner.pscm.show', $prevSession->slug) }}" class="hover:text-indigo-600 p-1 rounded hover:bg-slate-100 transition" title="Previous Unit: {{ $prevSession->title }}">
+                        &larr; Unit {{ $unitNumber - 1 }}
                     </a>
                 @endif
                 @if(isset($prevSession) && isset($nextSession))
                     <span>•</span>
                 @endif
                 @if(isset($nextSession))
-                    <a href="{{ route('learner.pscm.show', $nextSession->slug) }}" class="hover:text-indigo-600 p-1 rounded hover:bg-slate-100 transition" title="Next session: {{ $nextSession->title }}">
-                        Next Lesson &rarr;
+                    <a href="{{ route('learner.pscm.show', $nextSession->slug) }}" class="hover:text-indigo-600 p-1 rounded hover:bg-slate-100 transition" title="Next Unit: {{ $nextSession->title }}">
+                        Unit {{ $unitNumber + 1 }} &rarr;
                     </a>
                 @endif
             </div>
@@ -501,19 +502,23 @@
                     </div>
                 </div>
 
-                {{-- Previous and Next Lesson Navigation Buttons --}}
+                {{-- Previous and Next Lesson Navigation Buttons (Sequential Global Flow) --}}
                 <div class="w-full space-y-3 pt-3 border-t border-slate-100">
                     @if(isset($nextSession))
                         <a href="{{ route('learner.pscm.show', $nextSession->slug) }}" class="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-100 transition transform active:scale-95">
-                            <span>Next Lesson: {{ Str::limit($nextSession->title, 25) }}</span>
+                            <span>Next Unit ({{ $unitNumber + 1 }}/{{ $totalUnits }}): {{ Str::limit($nextSession->title, 25) }}</span>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                         </a>
+                    @else
+                        <div class="w-full py-4 px-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-center font-bold text-xs shadow-sm">
+                            🏆 You have completed all {{ $totalUnits }} curriculum units! Outstanding work!
+                        </div>
                     @endif
 
                     <div class="flex items-center gap-3">
                         @if(isset($prevSession))
                             <a href="{{ route('learner.pscm.show', $prevSession->slug) }}" class="flex-1 py-3 px-4 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 transition text-center">
-                                &larr; Previous Lesson
+                                &larr; Unit {{ $unitNumber - 1 }}
                             </a>
                         @endif
                         <a href="{{ route('learner.pscm.index') }}" class="flex-1 py-3 px-4 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-black transition text-center">
@@ -572,6 +577,12 @@
                     }
 
                     this.omrAnswers = new Array(this.omrQuestions.length).fill(null);
+
+                    // Persist student progress to localStorage
+                    try {
+                        localStorage.setItem('pscm_last_session_slug', this.session.slug);
+                        localStorage.setItem('pscm_last_unit_number', '{{ $unitNumber }}');
+                    } catch (e) {}
                 },
 
                 getStepTitle() {
@@ -752,7 +763,7 @@
                         });
                     }
 
-                    // Save attempt asynchronously
+                    // Save attempt asynchronously and update resume pointer to next unit
                     fetch(`/micro-learning/${this.session.id}/attempt`, {
                         method: 'POST',
                         headers: {
@@ -764,6 +775,12 @@
                             omr_responses: this.omrAnswers,
                             gamification: { score: this.score, correct: this.correctCount, wrong: this.wrongCount }
                         })
+                    }).then(res => res.json()).then(data => {
+                        if (data && data.next_slug) {
+                            try {
+                                localStorage.setItem('pscm_last_session_slug', data.next_slug);
+                            } catch(e) {}
+                        }
                     }).catch(() => {});
                 }
             }
