@@ -122,5 +122,13 @@ class User extends Authenticatable
     {
         return $this->affiliate !== null && $this->affiliate->status === 'active';
     }
+
+    /**
+     * Get the micro-learning user attempts associated with this candidate.
+     */
+    public function pscmAttempts(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PscmUserAttempt::class, 'user_id');
+    }
 }
 

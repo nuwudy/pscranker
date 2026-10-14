@@ -135,9 +135,12 @@ Route::middleware('auth')->prefix('affiliate')->name('affiliate.')->group(functi
 // Quick Aliases for Navigation links
 Route::get('/courses', fn () => redirect()->route('learner.pscm.index'))->name('courses');
 
-Route::get('/profile', function () {
-    return redirect()->route('leaderboard');
-})->name('profile');
+// Student "My Account" Learning Train & Profile Hub
+Route::middleware('auth')->group(function () {
+    Route::get('/account', [\App\Http\Controllers\Learner\AccountController::class, 'index'])->name('account');
+    Route::get('/my-account', fn () => redirect()->route('account'))->name('my-account');
+    Route::get('/profile', fn () => redirect()->route('account'))->name('profile');
+});
 
 // PSCM Micro-Learning Engine Routes
 use App\Http\Controllers\Admin\PscmSessionController as AdminPscmSessionController;

@@ -153,11 +153,13 @@
                                     </a>
                                 @endif
 
-                                <span class="text-xs font-extrabold text-slate-800">{{ $user->name }}</span>
+                                <a href="{{ route('account') }}" class="px-3 py-1.5 rounded-xl text-xs font-black {{ request()->routeIs('account') ? 'bg-[#0052FF] text-white shadow-xs' : 'bg-blue-50 text-[#0052FF] hover:bg-blue-100 border border-blue-200' }} transition flex items-center gap-1.5">
+                                    <span>👤 My Account</span>
+                                </a>
 
                                 <form action="{{ route('logout') }}" method="POST" class="inline">
                                     @csrf
-                                    <button type="submit" class="px-3 py-1.5 text-xs font-bold text-slate-500 hover:text-red-600 rounded-lg hover:bg-slate-100 transition cursor-pointer">
+                                    <button type="submit" class="px-2.5 py-1.5 text-xs font-bold text-slate-500 hover:text-red-600 rounded-lg hover:bg-slate-100 transition cursor-pointer">
                                         Logout
                                     </button>
                                 </form>
@@ -231,6 +233,11 @@
                                             <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-100 text-blue-800">FREE MEMBER</span>
                                         @endif
                                     </div>
+
+                                    <a href="{{ route('account') }}" class="px-4 py-3 rounded-xl bg-blue-50 text-[#0052FF] font-black flex items-center justify-between">
+                                        <span>👤 My Account &amp; Learning Train</span>
+                                        <span>➔</span>
+                                    </a>
 
                                     @if($mobileUser->affiliate)
                                         <a href="{{ route('affiliate.dashboard') }}" class="px-4 py-2.5 rounded-xl bg-yellow-50 text-amber-950 font-black flex items-center justify-between">
