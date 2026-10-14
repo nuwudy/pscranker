@@ -39,7 +39,8 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
             {{-- 1. Main Game Launcher Hero Card (2 Cols) --}}
-            <div class="lg:col-span-2 bg-gradient-to-br from-[#0052FF] via-indigo-600 to-[#1E1B4B] rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-blue-600/20 relative overflow-hidden flex flex-col justify-between border-2 border-indigo-400/30">
+            <div style="background: linear-gradient(135deg, #0052FF 0%, #3730A3 50%, #1E1B4B 100%); color: #ffffff;" 
+                 class="lg:col-span-2 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-blue-900/20 relative overflow-hidden flex flex-col justify-between border-2 border-indigo-400/40">
                 <div class="absolute -right-12 -bottom-12 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
 
                 <div class="space-y-4 relative z-10">
@@ -56,7 +57,7 @@
 
                     @if($continueSession)
                         <div class="space-y-2">
-                            <h2 class="text-xl sm:text-2xl font-black text-white tracking-tight leading-snug">
+                            <h2 style="color: #ffffff;" class="text-xl sm:text-2xl font-black tracking-tight leading-snug">
                                 {{ $continueSession->title }}
                             </h2>
                             <div class="flex flex-wrap items-center gap-2 text-xs font-bold text-blue-100">
