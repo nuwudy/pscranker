@@ -30,36 +30,44 @@
     <div class="w-full max-w-md bg-white min-h-screen sm:min-h-0 sm:max-h-[92vh] sm:rounded-3xl shadow-2xl flex flex-col relative overflow-hidden border border-slate-100 sm:my-auto">
         
         <!-- Header / Progress & Quick Actions -->
-        <div class="px-5 py-3.5 bg-white/90 backdrop-blur-md border-b border-slate-100 sticky top-0 z-20 flex items-center justify-between gap-3">
+        <div class="px-3.5 py-3 bg-white/95 backdrop-blur-md border-b border-slate-100 sticky top-0 z-20 flex items-center justify-between gap-2">
             
+            {{-- Back to My Account button --}}
+            <a href="{{ auth()->check() ? route('account') : route('learner.pscm.index') }}" 
+               class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0052FF] text-xs font-black transition shrink-0 border border-blue-200/80 shadow-xs" 
+               title="Return to My Account Dashboard">
+                <span>👤</span>
+                <span class="text-[11px]">My Account</span>
+            </a>
+
             {{-- Prev step button --}}
             <button @click="prevStep" 
-                    class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition disabled:opacity-30" 
+                    class="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition disabled:opacity-30 shrink-0" 
                     :disabled="currentStep === 0 || currentStep >= 9">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
             </button>
 
             {{-- Progress pill track --}}
-            <div class="flex-1 px-1">
-                <div class="flex items-center justify-between text-[11px] font-bold text-slate-400 mb-1">
-                    <span x-text="getStepTitle()"></span>
+            <div class="flex-1 px-1 min-w-0">
+                <div class="flex items-center justify-between text-[10px] font-bold text-slate-400 mb-1">
+                    <span class="truncate" x-text="getStepTitle()"></span>
                     <span x-text="`${Math.min(currentStep + 1, 9)}/9`"></span>
                 </div>
-                <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 h-2 rounded-full transition-all duration-300" :style="`width: ${(Math.min(currentStep, 9) / 9) * 100}%`"></div>
+                <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 h-1.5 rounded-full transition-all duration-300" :style="`width: ${(Math.min(currentStep, 9) / 9) * 100}%`"></div>
                 </div>
             </div>
 
             <!-- Timer during OMR test -->
-            <div x-show="currentStep === 9" class="font-mono text-xs font-extrabold text-rose-600 bg-rose-50 px-2.5 py-1 rounded-full border border-rose-200 animate-pulse" x-text="formatTime(omrTimeLeft)"></div>
+            <div x-show="currentStep === 9" class="font-mono text-xs font-extrabold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200 animate-pulse shrink-0" x-text="formatTime(omrTimeLeft)"></div>
 
             {{-- Skip step button --}}
-            <button @click="nextStep" x-show="currentStep < 8" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 px-2 py-1 rounded-lg hover:bg-indigo-50 transition">
+            <button @click="nextStep" x-show="currentStep < 8" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 px-2 py-1 rounded-lg hover:bg-indigo-50 transition shrink-0">
                 Skip &rarr;
             </button>
 
             {{-- Catalog close button --}}
-            <a href="{{ route('learner.pscm.index') }}" x-show="currentStep >= 8" class="text-slate-400 hover:text-slate-700 p-1" title="Back to catalog">
+            <a href="{{ auth()->check() ? route('account') : route('learner.pscm.index') }}" x-show="currentStep >= 8" class="text-slate-400 hover:text-slate-700 p-1 shrink-0" title="Back to My Account">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </a>
         </div>
@@ -136,8 +144,8 @@
                         </a>
                     @endif
                     
-                    <a href="{{ route('learner.pscm.index') }}" class="inline-block pt-2 text-xs font-bold text-slate-400 hover:text-slate-600">
-                        &larr; Back to All Lessons
+                    <a href="{{ auth()->check() ? route('account') : route('learner.pscm.index') }}" class="inline-block pt-2 text-xs font-bold text-slate-400 hover:text-slate-600">
+                        &larr; Back to My Account
                     </a>
                 </div>
             </div>
@@ -521,10 +529,15 @@
                                 &larr; Unit {{ $unitNumber - 1 }}
                             </a>
                         @endif
-                        <a href="{{ route('learner.pscm.index') }}" class="flex-1 py-3 px-4 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-black transition text-center">
-                            Browse All Lessons 📚
+                        <a href="{{ route('learner.pscm.index') }}" class="flex-1 py-3 px-4 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold text-xs transition text-center">
+                            Browse Catalog 📚
                         </a>
                     </div>
+
+                    <a href="{{ auth()->check() ? route('account') : route('home') }}" class="w-full py-3.5 px-4 rounded-xl bg-slate-900 hover:bg-black text-white font-black text-xs text-center transition flex items-center justify-center gap-2 shadow-sm">
+                        <span>👤 Return to My Account Dashboard</span>
+                        <span>➔</span>
+                    </a>
                 </div>
             </div>
 
