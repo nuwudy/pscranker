@@ -14,14 +14,23 @@ class PscmSessionController extends Controller
     {
         $categories = PscmSession::CATEGORIES;
         $selectedCategory = $request->get('category');
+        $search = trim((string) $request->get('search', ''));
         
         $query = PscmSession::latest();
         if ($selectedCategory) {
             $query->where('category', $selectedCategory);
         }
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('slug', 'like', "%{$search}%")
+                  ->orWhere('lesson_content', 'like', "%{$search}%")
+                  ->orWhere('hook_question', 'like', "%{$search}%");
+            });
+        }
         $sessions = $query->paginate(15)->withQueryString();
 
-        return view('admin.pscm_sessions.index', compact('sessions', 'categories', 'selectedCategory'));
+        return view('admin.pscm_sessions.index', compact('sessions', 'categories', 'selectedCategory', 'search'));
     }
 
     public function create()

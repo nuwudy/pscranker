@@ -251,6 +251,143 @@
         </div>
         @endif
 
+        {{-- Section 2.5: Interactive Unit Search & Topic Finder --}}
+        <div x-data="learnerSessionSearch()" class="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/80 shadow-xs space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div class="space-y-0.5">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-[#0052FF] text-xs font-black uppercase tracking-wider">
+                        <span>🔍 Instant Unit Search</span>
+                    </div>
+                    <h3 class="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+                        Find &amp; Practice Any Syllabus Unit
+                    </h3>
+                    <p class="text-xs text-slate-500">
+                        Search across all {{ $totalUnits }} micro-learning units by Malayalam topic, English keywords, or unit number.
+                    </p>
+                </div>
+
+                <template x-if="query.trim().length > 0 || selectedCat !== ''">
+                    <button @click="clearSearch()" class="text-xs font-bold text-slate-400 hover:text-rose-600 transition flex items-center gap-1 cursor-pointer self-start sm:self-auto">
+                        <span>Clear filter</span>
+                        <span class="font-mono">✕</span>
+                    </button>
+                </template>
+            </div>
+
+            {{-- Search Bar Input --}}
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </div>
+                <input 
+                    type="text" 
+                    x-model="query" 
+                    @keydown.escape="clearSearch()"
+                    placeholder="Search any session: e.g. 'ഭരണഘടന', 'Active Passive Voice', 'Square Root', 'Unit 42'..."
+                    class="w-full pl-11 pr-10 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0052FF] focus:border-transparent transition shadow-2xs"
+                >
+                <template x-if="query.trim().length > 0">
+                    <button @click="query = ''" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </template>
+            </div>
+
+            {{-- Quick Category Filter Pills --}}
+            <div class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs">
+                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1 shrink-0">Quick Filter:</span>
+                <button type="button" 
+                        @click="setCategory('')" 
+                        :class="selectedCat === '' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'" 
+                        class="px-3 py-1.5 rounded-xl font-bold transition whitespace-nowrap cursor-pointer shrink-0">
+                    All
+                </button>
+                <template x-for="cat in quickCategories" :key="cat.key">
+                    <button type="button" 
+                            @click="setCategory(cat.key)" 
+                            :class="selectedCat === cat.key ? 'bg-[#0052FF] text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                            class="px-3 py-1.5 rounded-xl font-bold transition whitespace-nowrap flex items-center gap-1.5 cursor-pointer shrink-0">
+                        <span x-text="cat.icon"></span>
+                        <span x-text="cat.label"></span>
+                    </button>
+                </template>
+            </div>
+
+            {{-- Matching Results Live Panel --}}
+            <div x-show="query.trim().length > 0 || selectedCat !== ''" x-transition>
+                <div class="pt-3 border-t border-slate-100">
+                    <div class="flex items-center justify-between text-xs font-bold text-slate-500 mb-3">
+                        <span>
+                            Found <strong class="text-slate-900 font-black" x-text="filteredSessions.length"></strong> matching units
+                            <template x-if="query.trim().length > 0">
+                                <span> for "<span class="text-[#0052FF]" x-text="query"></span>"</span>
+                            </template>
+                            <template x-if="selectedCat">
+                                <span> in <span class="text-indigo-600" x-text="selectedCat"></span></span>
+                            </template>
+                        </span>
+                        <span class="text-[11px] text-slate-400 hidden sm:inline">Tap any card to play unit</span>
+                    </div>
+
+                    {{-- Cards Grid --}}
+                    <template x-if="filteredSessions.length > 0">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[460px] overflow-y-auto pr-1">
+                            <template x-for="item in filteredSessions" :key="item.id">
+                                <a :href="item.url" 
+                                   class="p-4 rounded-2xl border border-slate-200 hover:border-[#0052FF] bg-slate-50/50 hover:bg-white hover:shadow-md transition-all flex flex-col justify-between gap-3 group relative overflow-hidden">
+                                    
+                                    <div class="flex items-center justify-between gap-2">
+                                        <span class="text-[11px] font-black text-[#0052FF] bg-blue-50 px-2 py-0.5 rounded-md">
+                                            Unit #<span x-text="item.unit"></span>
+                                        </span>
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600" x-text="item.category"></span>
+                                            <template x-if="item.access === 'free'">
+                                                <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">Free</span>
+                                            </template>
+                                        </div>
+                                    </div>
+
+                                    <h4 class="text-xs font-bold text-slate-800 group-hover:text-[#0052FF] line-clamp-2 leading-snug" x-text="item.title"></h4>
+
+                                    <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                                        <template x-if="item.completed">
+                                            <span class="font-extrabold text-emerald-700 flex items-center gap-1">
+                                                <span>✓ Passed</span>
+                                                <template x-if="item.score !== null">
+                                                    <span class="text-[10px] text-emerald-800 font-black" x-text="'(' + item.score + '/5)'"></span>
+                                                </template>
+                                            </span>
+                                        </template>
+                                        <template x-if="!item.completed">
+                                            <span class="font-bold text-slate-400">Not attempted</span>
+                                        </template>
+
+                                        <span class="font-black text-[#0052FF] group-hover:translate-x-1 transition-transform flex items-center gap-1">
+                                            <span>Start</span>
+                                            <span class="text-sm">➔</span>
+                                        </span>
+                                    </div>
+                                </a>
+                            </template>
+                        </div>
+                    </template>
+
+                    {{-- Empty Results State --}}
+                    <template x-if="filteredSessions.length === 0">
+                        <div class="py-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200 px-4">
+                            <span class="text-2xl">🔍</span>
+                            <p class="text-sm font-bold text-slate-800 mt-2">No units match your search</p>
+                            <p class="text-xs text-slate-400 mt-0.5 max-w-sm mx-auto">Try searching with a broader keyword, Malayalam/English term, or clear the category filter.</p>
+                            <button type="button" @click="clearSearch()" class="mt-3 px-3.5 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer">
+                                Clear Search
+                            </button>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+
         {{-- Section 3: Interactive Category Tiles Grid (The Core Subject Roadmap) --}}
         <section class="space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -363,4 +500,60 @@
 
     </div>
 </div>
+
+<script>
+    function learnerSessionSearch() {
+        return {
+            query: '',
+            selectedCat: '',
+            allSessions: @js($searchIndex),
+            quickCategories: [
+                { key: 'History', label: 'History', icon: '🏛️' },
+                { key: 'Geography', label: 'Geography', icon: '🌍' },
+                { key: 'Constitution', label: 'Constitution', icon: '⚖️' },
+                { key: 'Science', label: 'Science', icon: '🔬' },
+                { key: 'Maths', label: 'Maths', icon: '📐' },
+                { key: 'Current Affairs', label: 'Current Affairs', icon: '📰' },
+                { key: 'English', label: 'English', icon: '🅰️' },
+                { key: 'Malayalam', label: 'Malayalam', icon: '✍️' },
+                { key: 'GK', label: 'GK', icon: '💡' },
+            ],
+            setCategory(cat) {
+                this.selectedCat = this.selectedCat === cat ? '' : cat;
+            },
+            clearSearch() {
+                this.query = '';
+                this.selectedCat = '';
+            },
+            get filteredSessions() {
+                const q = this.query.trim().toLowerCase();
+                const cat = this.selectedCat;
+
+                if (!q && !cat) {
+                    return [];
+                }
+
+                return this.allSessions.filter(s => {
+                    const matchCat = !cat || s.category === cat;
+                    if (!matchCat) return false;
+
+                    if (!q) return true;
+
+                    // Match unit number e.g. "unit 12", "unit #12", or "12"
+                    const unitClean = q.replace(/^unit\s*#?/i, '').trim();
+                    if (unitClean !== '' && !isNaN(unitClean) && String(s.unit) === unitClean) {
+                        return true;
+                    }
+
+                    // Match title, slug, or category (Malayalam unicode + English)
+                    const titleMatch = (s.title || '').toLowerCase().includes(q);
+                    const slugMatch = (s.slug || '').toLowerCase().includes(q);
+                    const catMatch = (s.category || '').toLowerCase().includes(q);
+
+                    return titleMatch || slugMatch || catMatch;
+                });
+            }
+        };
+    }
+</script>
 @endsection

@@ -188,6 +188,27 @@ class AccountController extends Controller
         $isSubscribed = $user->isSubscribed();
         $subscriptionDays = $user->subscriptionDaysRemaining();
 
+        // 7. Compact Search Index for Instant Client-Side Unit Finding
+        $searchIndex = [];
+        foreach ($sessions as $index => $sess) {
+            $unitNum = $index + 1;
+            $isCompleted = isset($completedAttempts[$sess->id]);
+            $attempt = $isCompleted ? $completedAttempts[$sess->id] : null;
+            $score = $attempt && isset($attempt->gamification['score']) ? $attempt->gamification['score'] : null;
+
+            $searchIndex[] = [
+                'unit' => $unitNum,
+                'id' => $sess->id,
+                'title' => $sess->title,
+                'slug' => $sess->slug,
+                'category' => $sess->category ?? 'GK',
+                'access' => $sess->access_level ?? 'premium',
+                'completed' => $isCompleted,
+                'score' => $score !== null ? round(floatval($score), 1) : null,
+                'url' => route('learner.pscm.show', $sess->slug),
+            ];
+        }
+
         return view('learner.account', compact(
             'user',
             'continueSession',
@@ -199,7 +220,8 @@ class AccountController extends Controller
             'trainWindow',
             'categoryTiles',
             'isSubscribed',
-            'subscriptionDays'
+            'subscriptionDays',
+            'searchIndex'
         ));
     }
 }

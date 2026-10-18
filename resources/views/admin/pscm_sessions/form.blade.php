@@ -648,8 +648,8 @@
         function pscmAdminForm() {
             return {
                 // Metadata
-                title: @js(old('title', $session->title ?? '')),
-                category: @js(old('category', $session->category ?? 'GK')),
+                title: @js(old('title', $session->title ?? request('title', ''))),
+                category: @js(old('category', $session->category ?? request('category', 'GK'))),
                 status: @js(old('status', $session->status ?? 'published')),
                 accessLevel: @js(old('access_level', $session->access_level ?? 'premium')),
                 price: @js(old('price', $session->price ?? 199)),
