@@ -9,7 +9,19 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Malayalam:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Malayalam:wght@400;500;600;700&family=Manjari:wght@400;700&family=Gayathri:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- KaTeX Mathematical Notation CDN & Auto-render Engine -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+            onload="renderMathInElement(document.body, {
+              delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '$', right: '$', display: false}
+              ],
+              throwOnError: false
+            });"></script>
     <style>
         body { font-family: 'Plus Jakarta Sans', 'Noto Sans Malayalam', sans-serif; }
         .lesson-markdown h1 { font-size: 1.25rem; font-weight: 800; color: #0f172a; margin-top: 1.25rem; margin-bottom: 0.5rem; line-height: 1.3; }
@@ -596,6 +608,22 @@
                         localStorage.setItem('pscm_last_session_slug', this.session.slug);
                         localStorage.setItem('pscm_last_unit_number', '{{ $unitNumber }}');
                     } catch (e) {}
+
+                    this.triggerMathRender();
+                },
+
+                triggerMathRender() {
+                    this.$nextTick(() => {
+                        if (typeof renderMathInElement === 'function') {
+                            renderMathInElement(document.body, {
+                                delimiters: [
+                                    {left: '$$', right: '$$', display: true},
+                                    {left: '$', right: '$', display: false}
+                                ],
+                                throwOnError: false
+                            });
+                        }
+                    });
                 },
 
                 getStepTitle() {
@@ -640,6 +668,7 @@
                     if (next === 2 && !this.session.media?.image_url) next++;
                     
                     this.currentStep = next;
+                    this.triggerMathRender();
                 },
 
                 prevStep() {
@@ -648,25 +677,49 @@
                     if (prev === 2 && !this.session.media?.image_url) prev--;
                     if (prev === 1 && !this.session.media?.video_url) prev--;
                     this.currentStep = Math.max(0, prev);
+                    this.triggerMathRender();
                 },
 
                 renderMarkdown(text) {
                     if (!text) return '';
+                    let parsed = '';
                     if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
-                        return marked.parse(text);
+                        parsed = marked.parse(text);
+                    } else {
+                        // Comprehensive Regex Fallback if marked is loading
+                        parsed = text
+                            .replace(/^### (.*$)/gim, '<h3 class="text-sm font-bold text-slate-800 mt-3 mb-1">$1</h3>')
+                            .replace(/^## (.*$)/gim, '<h2 class="text-base font-extrabold text-slate-900 mt-4 mb-1.5">$1</h2>')
+                            .replace(/^# (.*$)/gim, '<h1 class="text-lg font-black text-slate-900 mt-4 mb-2">$1</h1>')
+                            .replace(/\*\*(.*?)\*\*/g, '<strong class="font-extrabold text-slate-900">$1</strong>')
+                            .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
+                            .replace(/^---$/gim, '<hr class="my-3 border-slate-200">')
+                            .replace(/^[\*\-] (.*$)/gim, '<li class="ml-4 list-disc mb-1">$1</li>')
+                            .replace(/\n\n/g, '<div class="h-2"></div>')
+                            .replace(/\n/g, '<br>');
                     }
-                    // Comprehensive Regex Fallback if marked is loading
-                    let html = text
-                        .replace(/^### (.*$)/gim, '<h3 class="text-sm font-bold text-slate-800 mt-3 mb-1">$1</h3>')
-                        .replace(/^## (.*$)/gim, '<h2 class="text-base font-extrabold text-slate-900 mt-4 mb-1.5">$1</h2>')
-                        .replace(/^# (.*$)/gim, '<h1 class="text-lg font-black text-slate-900 mt-4 mb-2">$1</h1>')
-                        .replace(/\*\*(.*?)\*\*/g, '<strong class="font-extrabold text-slate-900">$1</strong>')
-                        .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
-                        .replace(/^---$/gim, '<hr class="my-3 border-slate-200">')
-                        .replace(/^[\*\-] (.*$)/gim, '<li class="ml-4 list-disc mb-1">$1</li>')
-                        .replace(/\n\n/g, '<div class="h-2"></div>')
-                        .replace(/\n/g, '<br>');
-                    return html;
+
+                    // Render LaTeX formulas ($...$ and $$...$$) using KaTeX if available
+                    if (typeof katex !== 'undefined') {
+                        // Display block math $$...$$
+                        parsed = parsed.replace(/\$\$([\s\S]+?)\$\$/g, function(match, math) {
+                            try {
+                                return katex.renderToString(math.trim(), { displayMode: true, throwOnError: false });
+                            } catch (e) {
+                                return match;
+                            }
+                        });
+                        // Inline math $...$
+                        parsed = parsed.replace(/\$([^\$\n]+?)\$/g, function(match, math) {
+                            try {
+                                return katex.renderToString(math.trim(), { displayMode: false, throwOnError: false });
+                            } catch (e) {
+                                return match;
+                            }
+                        });
+                    }
+
+                    return parsed;
                 },
 
                 isYouTube(url) {

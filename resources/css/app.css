@@ -130,3 +130,54 @@
     @apply text-right;
 }
 
+/* =========================================================================
+   KaTeX Mathematical Notation & Malayalam Unicode Typography
+   ========================================================================= */
+.katex {
+    font-size: 1.05em;
+    text-rendering: auto;
+    line-height: 1.2;
+    white-space: normal;
+}
+
+/* Fallback font families to ensure Malayalam Unicode inside \text{...} or formula blocks render seamlessly */
+.katex,
+.katex .katex-html,
+.katex .base,
+.katex .strut,
+.katex .mainrm {
+    font-family: KaTeX_Main, 'Noto Sans Malayalam', 'Manjari', 'Gayathri', sans-serif;
+}
+
+.katex .text,
+.katex .mord.text,
+.katex .brahmic_fallback,
+.katex .mord.brahmic_fallback {
+    font-family: 'Noto Sans Malayalam', 'Manjari', 'Gayathri', 'Outfit', sans-serif !important;
+}
+
+/* Block math ($$...$$) display container */
+.katex-display {
+    display: block;
+    margin: 1.25rem 0 !important;
+    text-align: center;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0.5rem 0;
+    -webkit-overflow-scrolling: touch;
+}
+
+.katex-display > .katex {
+    display: inline-block;
+    white-space: nowrap;
+    text-align: initial;
+    max-width: 100%;
+}
+
+.katex-display .katex-html {
+    overflow-x: auto;
+    overflow-y: hidden;
+    max-width: 100%;
+}
+
+

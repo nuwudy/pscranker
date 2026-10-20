@@ -2,6 +2,9 @@
 @section('title', isset($session) ? 'Edit MicroLearning Unit' : 'Create MicroLearning Unit')
 @section('content')
 
+    <!-- Markdown Parser -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
     <div class="py-6 sm:py-8 bg-slate-50 min-h-screen" 
          x-data="pscmAdminForm()" 
          x-init="initData()">
@@ -462,7 +465,7 @@
                                 <span>+ Insert SCERT Template</span>
                             </button>
                             <button type="button" 
-                                    @click="previewLesson = !previewLesson" 
+                                    @click="previewLesson = !previewLesson; $nextTick(() => { if (previewLesson && typeof renderMathInElement === 'function') renderMathInElement($el.closest('.space-y-4'), { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}], throwOnError: false }); })" 
                                     class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold border border-slate-200 transition cursor-pointer">
                                 <span x-text="previewLesson ? '✏️ Edit Markdown' : '👁️ Preview'"></span>
                             </button>
@@ -477,6 +480,8 @@
                         <button type="button" @click="insertFormat('bullet')" class="px-2 py-1 bg-white hover:bg-slate-100 rounded-md border border-slate-200 text-slate-700">• List</button>
                         <button type="button" @click="insertFormat('keynote')" class="px-2 py-1 bg-white hover:bg-slate-100 rounded-md border border-slate-200 text-indigo-700">📌 Key Fact</button>
                         <button type="button" @click="insertFormat('trap')" class="px-2 py-1 bg-white hover:bg-slate-100 rounded-md border border-slate-200 text-amber-700">⚠️ Trap</button>
+                        <button type="button" @click="insertFormat('math')" class="px-2 py-1 bg-white hover:bg-blue-50 rounded-md border border-slate-200 text-blue-700 font-mono font-bold" title="Inline Math: $formula$">$x$</button>
+                        <button type="button" @click="insertFormat('mathblock')" class="px-2 py-1 bg-white hover:bg-blue-50 rounded-md border border-slate-200 text-blue-700 font-mono font-bold" title="Block Math: $$formula$$">$$x_n$$</button>
                     </div>
 
                     {{-- Markdown Textarea --}}
@@ -882,6 +887,8 @@
                     else if (type === 'bullet') { prefix = '\n- '; suffix = ''; }
                     else if (type === 'keynote') { prefix = '\n> 📌 **Key Fact:** '; suffix = '\n'; }
                     else if (type === 'trap') { prefix = '\n> ⚠️ **PSC Trap:** '; suffix = '\n'; }
+                    else if (type === 'math') { prefix = '$'; suffix = '$'; }
+                    else if (type === 'mathblock') { prefix = '\n$$\n'; suffix = '\n$$\n'; }
 
                     el.value = val.substring(0, start) + prefix + (sel || 'text') + suffix + val.substring(end);
                     this.lessonContent = el.value;
@@ -890,10 +897,34 @@
 
                 renderMarkdown(text) {
                     if (!text) return '<p class="text-slate-400 italic">No lesson content yet.</p>';
+                    let parsed = '';
                     if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
-                        return marked.parse(text);
+                        parsed = marked.parse(text);
+                    } else {
+                        parsed = text.replace(/\n/g, '<br>');
                     }
-                    return text.replace(/\n/g, '<br>');
+
+                    // Render LaTeX formulas ($...$ and $$...$$) using KaTeX if available
+                    if (typeof katex !== 'undefined') {
+                        // Display block math $$...$$
+                        parsed = parsed.replace(/\$\$([\s\S]+?)\$\$/g, function(match, math) {
+                            try {
+                                return katex.renderToString(math.trim(), { displayMode: true, throwOnError: false });
+                            } catch (e) {
+                                return match;
+                            }
+                        });
+                        // Inline math $...$
+                        parsed = parsed.replace(/\$([^\$\n]+?)\$/g, function(match, math) {
+                            try {
+                                return katex.renderToString(math.trim(), { displayMode: false, throwOnError: false });
+                            } catch (e) {
+                                return match;
+                            }
+                        });
+                    }
+
+                    return parsed;
                 },
 
                 copyPromptTemplate() {

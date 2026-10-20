@@ -414,7 +414,7 @@
                                         <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-200" x-text="block.content_data.scert_reference"></span>
                                     </template>
                                 </div>
-                                <div class="psc-text-block text-xs sm:text-sm leading-relaxed text-slate-800 font-['Noto_Sans_Malayalam']" x-html="window.marked ? marked.parse(block.content_data.body || '') : block.content_data.body"></div>
+                                <div class="psc-text-block text-xs sm:text-sm leading-relaxed text-slate-800 font-['Noto_Sans_Malayalam']" x-html="renderMarkdown(block.content_data.body || '')"></div>
                             </div>
                         </template>
 
@@ -1130,12 +1130,61 @@ function modularTrackEngine(config) {
                     };
                 }
             }
+
+            this.triggerMathRender();
+        },
+
+        renderMarkdown(text) {
+            if (!text) return '';
+            let parsed = '';
+            if (window.marked && typeof window.marked.parse === 'function') {
+                parsed = window.marked.parse(text);
+            } else {
+                parsed = text.replace(/\n/g, '<br>');
+            }
+
+            // Render LaTeX formulas ($...$ and $$...$$) using KaTeX if available
+            if (typeof katex !== 'undefined') {
+                // Display block math $$...$$
+                parsed = parsed.replace(/\$\$([\s\S]+?)\$\$/g, function(match, math) {
+                    try {
+                        return katex.renderToString(math.trim(), { displayMode: true, throwOnError: false });
+                    } catch (e) {
+                        return match;
+                    }
+                });
+                // Inline math $...$
+                parsed = parsed.replace(/\$([^\$\n]+?)\$/g, function(match, math) {
+                    try {
+                        return katex.renderToString(math.trim(), { displayMode: false, throwOnError: false });
+                    } catch (e) {
+                        return match;
+                    }
+                });
+            }
+
+            return parsed;
+        },
+
+        triggerMathRender() {
+            this.$nextTick(() => {
+                if (typeof renderMathInElement === 'function') {
+                    renderMathInElement(document.body, {
+                        delimiters: [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '$', right: '$', display: false}
+                        ],
+                        throwOnError: false
+                    });
+                }
+            });
         },
 
         adminViewProgress() {
             this.omrSubmitted = false;
             this.activeUnitIdx = 0;
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            this.triggerMathRender();
         },
 
         adminViewFinished() {
@@ -1158,6 +1207,7 @@ function modularTrackEngine(config) {
                 };
             }
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            this.triggerMathRender();
         },
 
         // -------------------------------------------------------------
@@ -1167,6 +1217,7 @@ function modularTrackEngine(config) {
             if (idx >= 0 && idx < this.units.length) {
                 this.activeUnitIdx = idx;
                 window.scrollTo({ top: 0, behavior: 'smooth' });
+                this.triggerMathRender();
             }
         },
 
@@ -1174,6 +1225,7 @@ function modularTrackEngine(config) {
             if (this.activeUnitIdx > 0) {
                 this.activeUnitIdx--;
                 window.scrollTo({ top: 0, behavior: 'smooth' });
+                this.triggerMathRender();
             }
         },
 
@@ -1181,6 +1233,7 @@ function modularTrackEngine(config) {
             if (this.activeUnitIdx < this.units.length - 1) {
                 this.activeUnitIdx++;
                 window.scrollTo({ top: 0, behavior: 'smooth' });
+                this.triggerMathRender();
             }
         },
 
