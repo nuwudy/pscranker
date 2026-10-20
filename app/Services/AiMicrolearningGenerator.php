@@ -11,7 +11,7 @@ class AiMicrolearningGenerator
 
     public function __construct()
     {
-        $this->apiKey = env('GEMINI_API_KEY');
+        $this->apiKey = config('services.gemini.api_key') ?: env('GEMINI_API_KEY');
     }
 
     public function generate($hookQuestion)
